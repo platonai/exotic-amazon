@@ -1,0 +1,178 @@
+#!/bin/bash
+
+function printUsage() {
+  echo "Usage: proxy <COMMAND> [-perm]"
+  echo "COMMAND is one of:"
+  echo
+  echo "  lsapd              List available providers"
+  echo "  lsepd              List enabled providers"
+  echo "  epd <file|-all>    Enable provider e.g. epd -all"
+  echo "  testip <ip>       Add a test ip"
+  echo "  dispd <file|-all>  Disable provider e.g. epd -all"
+  echo "  lsap               List available proxy files"
+  echo "  lsep               List enabled proxy files"
+  echo "  ep <file|-all>     Enable proxy file"
+  echo "  disep <file|-all>  Disable proxy file"
+  echo "  ban <host|segment|none|clear|show>  Handle with ban strategy"
+  echo
+  echo "OPTIONS:"
+  echo "  perm     Permanent"
+  echo "  -h, --help  The help text"
+}
+
+function enable() {
+  available_dir=$1
+  shift
+  enable_dir=$1
+  shift
+  file=$1
+  shift
+
+  if [ "$file" == "-all" ]; then
+    for source in "$available_dir"/*; do
+      if [ -f "$source" ]; then
+        file=${source##*/}
+        target="$enable_dir/$file"
+        if [ -e "$target" ]; then
+          unlink "$target"
+        fi
+        ln -s "$source" "$target"
+      fi
+    done
+  elif [ -f "$available_dir/$file" ]; then
+    ln -s "$path" "$enable_dir/$file"
+  else
+    echo "File doesn't exit - $path"
+  fi
+}
+
+function disable() {
+  enable_dir=$1
+  shift
+  file=$1
+  shift
+  if [ "$file" == "-all" ]; then
+    for path in "$enable_dir"/*; do
+      if [ -f "$path" ]; then
+        rm "$path"
+      fi
+    done
+  elif [ -f "$enable_dir/$file" ]; then
+    rm "$path"
+  else
+    echo "File doesn't exit - $path"
+  fi
+}
+
+# if no args specified, show usage
+if [ $# == 0 ]; then
+  printUsage
+  exit 1
+fi
+
+cmd=$1
+shift
+
+PROXY_BASE_DIR="$HOME/.pulsar/proxy"
+mkdir -p "$PROXY_BASE_DIR/providers-available"
+mkdir -p "$PROXY_BASE_DIR/providers-enabled"
+mkdir -p "$PROXY_BASE_DIR/proxies-available"
+mkdir -p "$PROXY_BASE_DIR/proxies-enabled"
+
+# find a valid proxymgr provider config file
+if [ -e "$HOME/proxy.providers.txt" ]; then
+  rm "$PROXY_BASE_DIR/providers-available/proxy.providers.txt"
+  cp "$HOME/proxy.providers.txt" "$PROXY_BASE_DIR/providers-available"
+fi
+
+if [ "$cmd" == "lsapd" ]; then
+  ls -l "$PROXY_BASE_DIR/providers-available"
+elif [ "$cmd" == "lsepd" ]; then
+  ls -l "$PROXY_BASE_DIR/providers-enabled"
+elif [ "$cmd" == "epd" ]; then
+  file=$1
+  shift
+  if [ "$file" == "" ]; then
+    echo "Usage: proxy epd <filename|-all>"
+    exit 0
+  fi
+
+  enable "$PROXY_BASE_DIR/providers-available" "$PROXY_BASE_DIR/providers-enabled" "$file"
+  ls -l "$PROXY_BASE_DIR/providers-enabled"
+
+elif [ "$cmd" == "testip" ]; then
+  testIp=$1
+  shift
+  if [ "$testIp" == "" ]; then
+    echo "Usage: proxy testip <ip>"
+    echo "   Ip must be parsed by ProxyEntry.parse()"
+    exit 0
+  fi
+  file="$PROXY_BASE_DIR/test-ip"
+  echo "$testIp" > "$file"
+  cat "$file"
+elif [ "$cmd" == "dispd" ]; then
+  file=$1
+  shift
+  if [ "$file" == "" ]; then
+    echo "Usage: proxy dispd <filename|-all>"
+    exit 0
+  fi
+  disable "$PROXY_BASE_DIR/providers-enabled" "$file"
+  ls -l "$PROXY_BASE_DIR/providers-enabled"
+
+elif [ "$cmd" == "lsap" ]; then
+  ls -l "$PROXY_BASE_DIR/proxies-available"
+elif [ "$cmd" == "lsep" ]; then
+  ls -l "$PROXY_BASE_DIR/proxies-enabled"
+elif [ "$cmd" == "ep" ]; then
+    file=$1
+  shift
+  if [ "$file" == "" ]; then
+    echo "Usage: proxy ep <filename>"
+    exit 0
+  fi
+
+  enable "$PROXY_BASE_DIR/proxies-available/$file" "$PROXY_BASE_DIR/proxies-enabled/$file" "$path"
+  ls -l "$PROXY_BASE_DIR/proxies-enabled"
+
+elif [ "$cmd" == "disp" ]; then
+  file=$1
+  shift
+  if [ "$file" == "" ]; then
+    echo "Usage: proxy disp <filename>"
+    exit 0
+  fi
+
+  disable "$PROXY_BASE_DIR/proxies-enabled/$file" "$path"
+  ls -l "$PROXY_BASE_DIR/proxies-enabled"
+
+elif [ "$cmd" == "ban" ]; then
+  strategy=$1
+  shift
+
+  if [ "$strategy" == "none" ]; then
+    echo "none" > "$PROXY_BASE_DIR/proxy-ban-strategy.txt"
+    echo "Ip ban rules are disabled"
+  elif [ "$strategy" == "show" ]; then
+    echo "Banned stategy: " "$(cat "$PROXY_BASE_DIR/proxy-ban-strategy.txt")"
+    echo "Banned segments: "
+    cat "$PROXY_BASE_DIR/proxies-banned-segments.txt"
+    echo
+    echo "Banned hosts: "
+    cat "$PROXY_BASE_DIR/proxies-banned-hosts.txt"
+    echo
+  elif [ "$strategy" == "segment" ] || [ "$strategy" == "host" ]; then
+    echo "$strategy" > "$PROXY_BASE_DIR/proxy-ban-strategy.txt"
+    echo "Ip ban strategy: $strategy"
+  elif [ "$strategy" == "clear" ]; then
+    echo "" > "$PROXY_BASE_DIR/proxies-banned-segments.txt"
+    echo "" > "$PROXY_BASE_DIR/proxies-banned-hosts.txt"
+    echo "Ip ban rules are cleared, it will take effect after the process restarted"
+  else
+    echo "Usage: proxy ban <host|segment|none|clear|show>"
+  fi
+
+else
+  echo "Unknown command $cmd"
+fi

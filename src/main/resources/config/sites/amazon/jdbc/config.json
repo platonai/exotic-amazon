@@ -1,0 +1,6 @@
+{
+  "driver": "com.mysql.cj.jdbc.Driver",
+  "url": "jdbc:mysql://master:3306/amazon_com?autoReconnect=true",
+  "username": "",
+  "password": ""
+}
