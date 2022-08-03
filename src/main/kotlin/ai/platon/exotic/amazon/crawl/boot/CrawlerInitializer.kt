@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.AbstractApplicationContext
 
-class AmazonCrawlerInitializer: ApplicationContextInitializer<AbstractApplicationContext> {
+class CrawlerInitializer: ApplicationContextInitializer<AbstractApplicationContext> {
     companion object {
         init {
             LoadOptionDefaults.apply {
@@ -23,7 +23,7 @@ class AmazonCrawlerInitializer: ApplicationContextInitializer<AbstractApplicatio
         }
     }
 
-    private val logger = LoggerFactory.getLogger(AmazonCrawlerInitializer::class.java)
+    private val logger = LoggerFactory.getLogger(CrawlerInitializer::class.java)
 
     override fun initialize(applicationContext: AbstractApplicationContext) {
         ScentEnvironment().checkEnvironment()

@@ -1,7 +1,5 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
-import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
@@ -69,7 +67,7 @@ class TestResidentTasks: TestBase() {
     fun ensureBestSellerGeneration() {
         val task = PredefinedTask.BEST_SELLERS.apply { ignoreTTL = true }
         val tasks = listOf(task).map { it.toResidentTask() }
-        mainGenerator.generateLoadingTasks(tasks, true)
+        amazonGenerator.generateLoadingTasks(tasks, true)
 
         assertTrue { urlFeeder.openCollectors.isNotEmpty() }
         assertTrue { urlFeeder.openCollectors.any { tasks[0].name in it.name } }
@@ -82,7 +80,7 @@ class TestResidentTasks: TestBase() {
                 .filter { it.taskPeriod == Duration.ofHours(1) }
                 .map { it.toResidentTask() }
 
-        mainGenerator.generateLoadingTasks(tasks, true)
+        amazonGenerator.generateLoadingTasks(tasks, true)
 
         assertTrue { openCollectors.isNotEmpty() }
         assertTrue { openCollectors.any { tasks[0].name in it.name } }
@@ -105,8 +103,8 @@ class TestResidentTasks: TestBase() {
 
     @Test
     fun testAsinTaskGeneration() {
-        mainGenerator.asinGenerator.externalClear()
-        mainGenerator.generateAsinTasks()
+        amazonGenerator.asinGenerator.externalClear()
+        amazonGenerator.generateAsinTasks()
 
         val collector = openCollectors.firstOrNull { PredefinedTask.ASIN.name in it.name }
         println(PriorityDataCollectorsTableFormatter(crawlLoop.collectors))

@@ -2,7 +2,7 @@ package ai.platon.exotic.amazon.crawl.boot
 
 import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
-import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.scent.parse.html.JdbcCommitConfig
@@ -25,7 +25,7 @@ class CrawlerConfiguration(
     /**
      * The amazon crawler
      * */
-    private val mainCrawler: MainCrawler,
+    private val amazonCrawler: AmazonCrawler,
     /**
      * The parse filter manager
      * */
@@ -43,6 +43,6 @@ class CrawlerConfiguration(
 
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)
 
-        return StartStopRunner(mainCrawler)
+        return StartStopRunner(amazonCrawler)
     }
 }

@@ -1,6 +1,5 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
@@ -9,18 +8,13 @@ import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.sleepSeconds
 import ai.platon.pulsar.persist.WebDb
 import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
-import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
-import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.scent.boot.autoconfigure.component.LoadingSeedsGenerator
-import ai.platon.scent.parse.html.JdbcCommitConfig
 import org.junit.Before
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.getBean
-import org.springframework.context.ApplicationContext
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -51,7 +45,7 @@ class TestPeriodicalCrawlTasks: TestBase() {
     fun `When periodical tasks generated then the args are correct`() {
         val predefinedTasks = listOf(PredefinedTask.BEST_SELLERS, PredefinedTask.NEW_RELEASES, PredefinedTask.MOST_WISHED_FOR)
         val tasks = predefinedTasks.map { it.toResidentTask() }.onEach { it.ignoreTTL = true }.take(10)
-        val generator = LoadingSeedsGenerator(tasks, mainGenerator.periodicalSeedDirectories, collectorHelper, urlLoader, webDb)
+        val generator = LoadingSeedsGenerator(tasks, amazonGenerator.periodicalSeedDirectories, collectorHelper, urlLoader, webDb)
         val collectors = generator.generate(true).shuffled()
         val now = DateTimes.startOfDay()
 

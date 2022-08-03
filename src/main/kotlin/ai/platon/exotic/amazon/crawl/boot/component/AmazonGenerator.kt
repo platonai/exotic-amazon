@@ -25,7 +25,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @Component
-class MainGenerator(
+class AmazonGenerator(
     private val session: ScentSession,
     private val globalCacheFactory: GlobalCacheFactory,
     private val crawlLoop: ScentCrawlLoop,
@@ -37,7 +37,7 @@ class MainGenerator(
         const val periodicalSeedResourceDirectoryTemplate = "sites/{project}/crawl/generate/periodical/{period}"
     }
 
-    private val logger = getLogger(MainGenerator::class)
+    private val logger = getLogger(AmazonGenerator::class)
     private val charset = Charset.defaultCharset()
     private val collectorHelper get() = CollectorHelper(crawlLoop.urlFeeder)
     private val isDev get() = ClusterTools.isDevInstance()

@@ -16,6 +16,8 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
     cd exotic-amazon && mvn
     java -jar target/exotic-amazon*.jar
 
+Open [System Glances](http://localhost:8182/api/system/status/glances) to see the system status at a glance.
+
 ## Technical Features
 
 * Web spider: browser rendering, ajax data crawling

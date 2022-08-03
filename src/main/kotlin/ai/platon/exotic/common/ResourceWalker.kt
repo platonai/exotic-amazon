@@ -4,9 +4,6 @@ import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.getLogger
 import java.nio.file.*
 
-/**
- * TODO: use ai.platon.pulsar.common.ResourceWalker instead when pulsar-1.9.11 or later available
- * */
 class ResourceWalker {
     companion object {
         val SPRING_PACKEDR_ESOURCE_PREFIX = "BOOT-INF/classes/"

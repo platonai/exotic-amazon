@@ -25,6 +25,9 @@ class JDBCSinkSQLExtractorParser(
     val crawlConfig = scentObjectMapper().readValue<CrawlConfig>(ResourceLoader.readString(extractConfigResource))
     val jdbcConfig = scentObjectMapper().readValue<JdbcConfig>(ResourceLoader.readString(jdbcConfigResource))
 
+    /**
+     * Parse the config file and create [AbstractJdbcSinkSQLExtractor]s.
+     * */
     fun parse(): List<ParseFilter> {
         // create all extractors
         val extractors = crawlConfig.extractRules.associate { it.id to createParseFilter(it) }

@@ -37,8 +37,8 @@ class JDBCSinkSQLExtractor(
     session: ScentSession,
     scentStatusTracker: ScentStatusTracker,
     globalCacheFactory: GlobalCacheFactory,
-    private val mainGenerator: MainGenerator,
-    private val linkCollector: LinkCollector,
+    private val amazonGenerator: AmazonGenerator,
+    private val amazonLinkCollector: AmazonLinkCollector,
     conf: ImmutableConfig,
 ) : AbstractJdbcSinkSQLExtractor(session, scentStatusTracker, globalCacheFactory, conf) {
     companion object {
@@ -66,7 +66,7 @@ class JDBCSinkSQLExtractor(
 
     private val urlPool get() = globalCache.urlPool
     private val reviewFetchCache
-        get() = mainGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+        get() = amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
     private val reviewQueue get() = reviewFetchCache.nonReentrantQueue
     private val amazonMetrics = AmazonMetrics.extractMetrics
 
@@ -162,7 +162,7 @@ class JDBCSinkSQLExtractor(
                 // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
                 // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
                 if (label == PredefinedTask.BEST_SELLERS.label) {
-                    linkCollector.collectAsinLinksFromBestSeller(page, document)
+                    amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
                 }
 
                 // Every primary portal page have a concomitant secondary one, rising the priority
@@ -170,11 +170,11 @@ class JDBCSinkSQLExtractor(
                 val queue2 = urlPool.higher2Cache.reentrantQueue
                 if (!url.contains("?")) {
                     // a primary labeled portal, supposed to be loaded from a config file or database
-                    linkCollector.updateWebNode(page, document, queue2)
+                    amazonLinkCollector.updateWebNode(page, document, queue2)
                 }
 
                 val queue3 = urlPool.higher3Cache.reentrantQueue
-                val hyperlink = linkCollector.collectSecondaryLinksFromLabeledPortal(label, page, document, queue3)
+                val hyperlink = amazonLinkCollector.collectSecondaryLinksFromLabeledPortal(label, page, document, queue3)
                 val isPrimary = AmazonPageTraitsDetector.isPrimaryLabeledPortalPage(page.url)
                 if (isPrimary && hyperlink == null) {
                     when (label) {
@@ -186,16 +186,16 @@ class JDBCSinkSQLExtractor(
             }
             traits.isItem && isAsinExtractor(page) -> {
                 // collect prime review pages (resultset.reviewsurl)
-                linkCollector.collectReviewLinksFromProductPage(page, sqlTemplate.template, rs, reviewQueue)
+                amazonLinkCollector.collectReviewLinksFromProductPage(page, sqlTemplate.template, rs, reviewQueue)
             }
             traits.isPrimaryReview -> {
                 // collect the all review urls
                 // NOTE: actually, primary review is not collected by default
-                linkCollector.collectSecondaryReviewLinks(page, document, rs, reviewQueue)
+                amazonLinkCollector.collectSecondaryReviewLinks(page, document, rs, reviewQueue)
             }
             traits.isSecondaryReview -> {
                 // collect the all the review urls
-                linkCollector.collectSecondaryReviewLinksFromPagination(page, document, reviewQueue)
+                amazonLinkCollector.collectSecondaryReviewLinksFromPagination(page, document, reviewQueue)
             }
         }
     }

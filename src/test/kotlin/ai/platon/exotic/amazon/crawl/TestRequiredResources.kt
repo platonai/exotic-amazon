@@ -9,7 +9,7 @@ class TestRequiredResources: TestBase() {
 
     @Test
     fun `Ensure crawl resources exist`() {
-        mainGenerator.periodicalSeedDirectories.map { it.substringBeforeLast("/") }
+        amazonGenerator.periodicalSeedDirectories.map { it.substringBeforeLast("/") }
             .forEach { dir1 -> assertTrue(dir1) { ResourceLoader.exists(dir1) } }
 
         val sqls = "sites/amazon/crawl/parse/sql"
@@ -22,7 +22,7 @@ class TestRequiredResources: TestBase() {
 
     @Test
     fun `Ensure periodical tasks exist`() {
-        mainGenerator.periodicalSeedDirectories.map { it.substringBeforeLast("/") }
+        amazonGenerator.periodicalSeedDirectories.map { it.substringBeforeLast("/") }
             .forEach { dir -> assertTrue(dir) { ResourceLoader.exists(dir) } }
     }
 }

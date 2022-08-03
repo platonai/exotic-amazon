@@ -1,7 +1,7 @@
-package ai.platon.exotic.amazon.crawl.boot.schedule
+package ai.platon.exotic.amazon.crawl.boot
 
-import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
-import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
@@ -23,9 +23,9 @@ import java.time.temporal.ChronoUnit
 
 @Component
 @EnableScheduling
-class CrawlMonitor(
-    val crawler: MainCrawler,
-    val mainGenerator: MainGenerator,
+class CrawlScheduler(
+    val crawler: AmazonCrawler,
+    val amazonGenerator: AmazonGenerator,
     val scrapeServiceV1: ScrapeServiceV1,
     val scentStatusTracker: ScentStatusTracker,
     val crawlLoop: ScentCrawlLoop,
@@ -36,7 +36,7 @@ class CrawlMonitor(
         const val INITIAL_DELAY = 3 * MINUTE_TO_MILLIS
     }
 
-    private val logger = LoggerFactory.getLogger(CrawlMonitor::class.java)
+    private val logger = LoggerFactory.getLogger(CrawlScheduler::class.java)
 
     private val generateDefaultTasks get() = conf.getBoolean(AMAZON_CRAWLER_GENERATE_DEFAULT_TASKS, true)
 
@@ -56,7 +56,7 @@ class CrawlMonitor(
             return
         }
 
-        mainGenerator.generateLoadingTasksAtTimePoint(ChronoUnit.MINUTES)
+        amazonGenerator.generateLoadingTasksAtTimePoint(ChronoUnit.MINUTES)
     }
 
     /**
@@ -78,7 +78,7 @@ class CrawlMonitor(
             return
         }
 
-        mainGenerator.generateLoadingTasksAtTimePoint(ChronoUnit.MINUTES)
+        amazonGenerator.generateLoadingTasksAtTimePoint(ChronoUnit.MINUTES)
     }
 
     /**
@@ -91,7 +91,7 @@ class CrawlMonitor(
             return
         }
 
-        mainGenerator.generateAsinTasks()
+        amazonGenerator.generateAsinTasks()
     }
 
     /**
@@ -117,7 +117,7 @@ class CrawlMonitor(
             .map { it.toResidentTask() }
 
         logger.info("Run hourly crawl tasks ...")
-        mainGenerator.generateLoadingTasks(tasks, true)
+        amazonGenerator.generateLoadingTasks(tasks, true)
     }
 
     /**
@@ -165,7 +165,7 @@ class CrawlMonitor(
 
         if (asinCount in 1..DailyAsinGenerator.minAsinTasks && task.isRunTime()) {
             logger.info("Too few asins, generating asin tasks ...")
-            mainGenerator.generateAsinTasks()
+            amazonGenerator.generateAsinTasks()
             return CheckState(0, "Few asins")
         }
 
@@ -174,7 +174,7 @@ class CrawlMonitor(
             return CheckState(80, "Still other tasks")
         }
 
-        mainGenerator.generateAsinTasks()
+        amazonGenerator.generateAsinTasks()
         return CheckState(0, "No any task")
     }
 
@@ -196,7 +196,7 @@ class CrawlMonitor(
             return
         }
 
-        mainGenerator.asinGenerator.clearAll()
+        amazonGenerator.asinGenerator.clearAll()
     }
 
     @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = MINUTE_TO_MILLIS)
@@ -205,6 +205,6 @@ class CrawlMonitor(
             return
         }
 
-        mainGenerator.clearPredefinedTasksIfNotInRunTime()
+        amazonGenerator.clearPredefinedTasksIfNotInRunTime()
     }
 }

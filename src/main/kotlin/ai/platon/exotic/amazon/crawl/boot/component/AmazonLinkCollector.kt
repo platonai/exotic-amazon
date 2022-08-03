@@ -32,9 +32,9 @@ import java.time.Instant
 import java.util.*
 
 @Component
-class LinkCollector(
+class AmazonLinkCollector(
     private val session: ScentSession,
-    private val mainGenerator: MainGenerator,
+    private val amazonGenerator: AmazonGenerator,
     private val statusTracker: ScentStatusTracker,
     private val webNodeRepository: WebNodeRepository,
 ) {
@@ -80,7 +80,7 @@ class LinkCollector(
             return null
         }
 
-        val processor = mainGenerator.reviewGenerator.indexPageProcessor
+        val processor = amazonGenerator.reviewGenerator.indexPageProcessor
         val primaryReviewLink =
             collectHyperlinksFromResultSet(page, rs, listOf(REVIEW_COLUMN_NAME), queue) ?: return null
 
@@ -103,7 +103,7 @@ class LinkCollector(
                     .substringBefore(" global reviews")
                     .replace(",", "").trim().toIntOrNull()
                 if (totalReviews != null) {
-                    return mainGenerator.reviewGenerator.indexPageProcessor
+                    return amazonGenerator.reviewGenerator.indexPageProcessor
                         .createSecondaryReviewIndexLink(page.url, 2)
                         ?.also { queue.add(it) }
                 }
@@ -117,7 +117,7 @@ class LinkCollector(
         page: WebPage, document: FeaturedDocument, queue: Queue<UrlAware>
     ): Hyperlink? {
         val url = page.url
-        val pageProcessor = mainGenerator.reviewGenerator.indexPageProcessor
+        val pageProcessor = amazonGenerator.reviewGenerator.indexPageProcessor
         val hyperlink = pageProcessor.createSecondaryReviewLinksFromPagination(page, document)
         if (hyperlink == null) {
             logger.info("{}", LoadStatusFormatter(page, prefix = "Last Review"))

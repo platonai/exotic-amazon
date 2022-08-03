@@ -18,17 +18,17 @@ import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
-class MainCrawler(
+class AmazonCrawler(
     globalCacheFactory: GlobalCacheFactory,
     scentStatusTracker: ScentStatusTracker,
     session: ScentSession,
     crawlLoops: CrawlLoops,
     private val crawlLoop: ScentCrawlLoop,
-    private val mainGenerator: MainGenerator,
+    private val amazonGenerator: AmazonGenerator,
     private val scrapeService: ScrapeServiceV1,
 ) : ConfigurableStreamingCrawler(session, globalCacheFactory, crawlLoops, scentStatusTracker) {
 
-    private val logger = LoggerFactory.getLogger(MainCrawler::class.java)
+    private val logger = LoggerFactory.getLogger(AmazonCrawler::class.java)
     private val isDev get() = ClusterTools.isDevInstance()
 
     override var name = "sites/amazon"
@@ -60,7 +60,7 @@ class MainCrawler(
             }
         }
 
-        mainGenerator.generateStartupTasks()
+        amazonGenerator.generateStartupTasks()
 
         logger.info("Registered collectors: \n{}", formatAsTable(crawlLoop.collectors))
     }

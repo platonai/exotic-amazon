@@ -1,15 +1,12 @@
 package ai.platon.exotic.amazon.starter
 
-import ai.platon.exotic.amazon.crawl.boot.AmazonCrawlerInitializer
-import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
-import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
+import ai.platon.exotic.amazon.crawl.boot.CrawlerInitializer
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
-import ai.platon.pulsar.context.PulsarContexts
-import ai.platon.pulsar.context.support.AbstractPulsarContext
 import ai.platon.pulsar.persist.HadoopUtils
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
-import ai.platon.pulsar.protocol.browser.emulator.BrowserEmulatedFetcher
 import ai.platon.scent.ScentSession
 import ai.platon.scent.protocol.browser.emulator.context.BrowserPrivacyContextMonitor
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -29,8 +26,8 @@ class CrawlApplication(
     private val appMetrics: AppMetrics,
     private val driverPoolMonitor: WebDriverPoolMonitor,
     private val privacyContextMonitor: BrowserPrivacyContextMonitor,
-    private val mainGenerator: MainGenerator,
-    private val mainCrawler: MainCrawler,
+    private val amazonGenerator: AmazonGenerator,
+    private val amazonCrawler: AmazonCrawler,
     private val session: ScentSession
 ) {
     private val logger = getLogger(this)
@@ -54,7 +51,7 @@ fun main(args: Array<String>) {
 
     runApplication<CrawlApplication>(*args) {
         setAdditionalProfiles(*additionalProfiles.toTypedArray())
-        addInitializers(AmazonCrawlerInitializer())
+        addInitializers(CrawlerInitializer())
         setRegisterShutdownHook(true)
         setLogStartupInfo(true)
     }

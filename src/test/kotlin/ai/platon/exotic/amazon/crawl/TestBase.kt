@@ -1,9 +1,8 @@
 package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
-import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
-import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
-import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.scent.ScentSession
@@ -43,10 +42,10 @@ open class TestBase {
     lateinit var crawlLoop: ScentCrawlLoop
 
     @Autowired
-    lateinit var crawler: MainCrawler
+    lateinit var crawler: AmazonCrawler
 
     @Autowired
-    lateinit var mainGenerator: MainGenerator
+    lateinit var amazonGenerator: AmazonGenerator
 
     val extractorFactory = { conf: JdbcCommitConfig ->
         applicationContext.getBean<JDBCSinkSQLExtractor>()
