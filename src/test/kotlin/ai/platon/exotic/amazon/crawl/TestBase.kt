@@ -1,22 +1,34 @@
 package ai.platon.exotic.amazon.crawl
 
+import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
+import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
+import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.test.ScentBootTest
+import ai.platon.scent.parse.html.JdbcCommitConfig
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.getBean
+import org.springframework.context.ApplicationContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @RunWith(SpringRunner::class)
 @ScentBootTest
+@ActiveProfiles("rest")
 open class TestBase {
     val productUrl = "https://www.amazon.com/dp/B07V2CLJLV"
+
+    @Autowired
+    lateinit var applicationContext: ApplicationContext
 
     @Autowired
     lateinit var session: ScentSession
@@ -29,6 +41,16 @@ open class TestBase {
 
     @Autowired
     lateinit var crawlLoop: ScentCrawlLoop
+
+    @Autowired
+    lateinit var crawler: MainCrawler
+
+    @Autowired
+    lateinit var mainGenerator: MainGenerator
+
+    val extractorFactory = { conf: JdbcCommitConfig ->
+        applicationContext.getBean<JDBCSinkSQLExtractor>()
+    }
 
     var enableCrawlLoop = true
 

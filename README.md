@@ -1,6 +1,6 @@
 # Exotic Amazon README
 
-Exotic Amazon is a complete solution to crawls the entire website of amazon.com.
+Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
 
 ## Data
 
@@ -10,11 +10,10 @@ Exotic Amazon is a complete solution to crawls the entire website of amazon.com.
 * Product detail
 * Reviews
 
-## Get Start
+## Get Started
 
     git clone https://github.com/platonai/exotic-amazon.git
-    cd exotic-amazon
-    mvn
+    cd exotic-amazon && mvn
     java -jar target/exotic-amazon*.jar
 
 ## Technical Features
@@ -48,4 +47,3 @@ Exotic Amazon is a complete solution to crawls the entire website of amazon.com.
 * Java and jar on the PATH
 * Google Chrome 90+
 * MongoDB started
-

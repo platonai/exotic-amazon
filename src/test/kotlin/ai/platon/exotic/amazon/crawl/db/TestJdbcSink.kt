@@ -10,6 +10,7 @@ import org.junit.After
 import org.junit.Ignore
 import org.junit.Test
 import org.slf4j.LoggerFactory
+import org.springframework.test.context.ActiveProfiles
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
@@ -18,11 +19,11 @@ import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@Ignore("Amazon crawler is suspended temporary")
+@Ignore("Make sure JDBC sink is available")
 class TestJdbcSink: TestBase() {
     private val logger = LoggerFactory.getLogger(TestJdbcSink::class.java)
 
-    private val jdbcResource = "config/sites/amazon/db/jdbc/config.json"
+    private val jdbcResource = "config/jdbc-sink-config.json"
 
     private val jdbcConfig = scentObjectMapper()
         .readValue<JdbcConfig>(ResourceLoader.readString(jdbcResource))

@@ -5,11 +5,11 @@ import ai.platon.exotic.amazon.crawl.boot.component.MainGenerator
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
+import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.PriorityDataCollectorsTableFormatter
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.urls.UrlAware
-import ai.platon.pulsar.common.urls.sites.amazon.AmazonUrls
 import ai.platon.scent.crawl.isRunTime
 import org.junit.After
 import org.junit.Before
@@ -25,11 +25,7 @@ import kotlin.test.assertTrue
 class TestResidentTasks: TestBase() {
 
     @Autowired
-    lateinit var crawler: MainCrawler
-    @Autowired
     lateinit var urlLoader: ExternalUrlLoader
-    @Autowired
-    lateinit var mainGenerator: MainGenerator
 
     private val logger = getLogger(TestResidentTasks::class)
 

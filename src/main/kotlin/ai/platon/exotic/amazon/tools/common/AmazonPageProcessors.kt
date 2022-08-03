@@ -5,7 +5,6 @@ import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.common.urls.UrlUtils
-import ai.platon.pulsar.common.urls.sites.amazon.AmazonUrls
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.dom.select.selectFirstOrNull
 import ai.platon.pulsar.persist.WebPage
@@ -28,7 +27,7 @@ class AmazonIndexPageProcessor(
     session: ScentSession
 ) : IndexPageProcessor(config, session) {
 
-    private val log = LoggerFactory.getLogger(AmazonIndexPageProcessor::class.java)
+    private val logger = LoggerFactory.getLogger(AmazonIndexPageProcessor::class.java)
 
     override fun filter(url: String): String? {
         return super.filter(url)?.takeIf { !it.contains("&i=aps") }

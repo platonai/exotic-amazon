@@ -6,29 +6,25 @@ import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.exotic.amazon.crawl.crawl.common.SimpleParseFilter
-import ai.platon.exotic.amazon.crawl.core.handlers.jdbc.JdbcSinkRegistry
-import ai.platon.exotic.amazon.crawl.boot.component.JdbcSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
 import org.junit.Ignore
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import java.time.Duration
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@Ignore("Amazon JDBC sink is not maintained currently")
+@Ignore("Make sure JDBC sink is available")
 class TestJdbcSinkSqlExtractor: TestBase() {
 
     private val args = "-i 100d -parse"
-    private val resourcePrefix = "config/sites/amazon/crawl/parse/sql"
+    private val resourcePrefix = "sites/amazon/crawl/parse/sql"
     private val sqlSource = "$resourcePrefix/crawl/x-asin.sql"
 
     @Autowired
-    private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    private lateinit var sqlExtractor: JdbcSinkSQLExtractor
+    private lateinit var sqlExtractor: JDBCSinkSQLExtractor
 
     @Autowired
     private lateinit var parseFilters: ParseFilters
@@ -56,7 +52,7 @@ class TestJdbcSinkSqlExtractor: TestBase() {
 
     @Test
     fun `When apply AmazonJdbcSinkSqlExtractor then all relevant SQLs are executed`() {
-        JdbcSinkRegistry(applicationContext).register()
+        WebDataExtractorInstaller(extractorFactory).install(parseFilters)
 
         val page = session.load(productUrl, args + " -i 0s")
         assertTrue { page.protocolStatus.isSuccess }
@@ -64,9 +60,9 @@ class TestJdbcSinkSqlExtractor: TestBase() {
         val document = session.parse(page)
 
         val asinExtractor = parseFilters.parseFilters
-            .filterIsInstance<JdbcSinkSQLExtractor>()
+            .filterIsInstance<JDBCSinkSQLExtractor>()
             .first { it.name == "asin" }
-        val children = asinExtractor.children.filterIsInstance<JdbcSinkSQLExtractor>()
+        val children = asinExtractor.children.filterIsInstance<JDBCSinkSQLExtractor>()
         assertEquals(7, children.size)
 
         children.forEach {

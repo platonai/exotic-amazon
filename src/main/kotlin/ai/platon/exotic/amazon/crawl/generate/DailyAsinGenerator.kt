@@ -1,7 +1,8 @@
 package ai.platon.exotic.amazon.crawl.generate
 
-import ai.platon.exotic.amazon.crawl.core.ClusterTools
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
@@ -11,7 +12,6 @@ import ai.platon.pulsar.common.collect.queue.AbstractLoadingQueue
 import ai.platon.pulsar.common.options.LoadOptions
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlAware
-import ai.platon.pulsar.common.urls.sites.amazon.AsinUrlNormalizer
 import ai.platon.pulsar.context.support.AbstractPulsarContext
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.persist.gora.generated.GWebPage
@@ -128,8 +128,8 @@ class DailyAsinGenerator constructor(
 
     private val context get() = session.context as AbstractPulsarContext
     private val webDb get() = context.webDb
-    private val bestSellerResource = "config/sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
-    private val propertiesResource = "config/sites/amazon/crawl/inject/seeds/category/best-sellers/seeds.properties"
+    private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
+    private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/seeds.properties"
     private val normalizer = AsinUrlNormalizer()
     private val expires = PredefinedTask.ASIN.expires
     private val deadTime = PredefinedTask.ASIN.deadTime()
@@ -208,7 +208,9 @@ class DailyAsinGenerator constructor(
 
         var count = 0
         relevantBestSellers.forEach { count += writeAsinTasks(it) }
-        logger.info("Written {} asin urls to {}", count, generatePath)
+        if (count != 0) {
+            logger.info("Written {} asin urls to {}", count, generatePath)
+        }
 
         val asins = if (Files.exists(generatePath)) {
             readAsinTasks(options)
@@ -298,7 +300,7 @@ class DailyAsinGenerator constructor(
     @Synchronized
     fun generateRelevantBestSellersTo(bestSellerPages: MutableCollection<WebPage>) {
         if (zgbsNextCheckTime > Instant.now()) {
-            logger.warn("The next best seller check will be after {}", zgbsNextCheckTime)
+            logger.warn("The next best seller check will be at {}", zgbsNextCheckTime)
             return
         }
         zgbsNextCheckTime += zgbsMinimalCheckInterval

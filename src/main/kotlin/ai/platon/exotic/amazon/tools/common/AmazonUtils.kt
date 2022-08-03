@@ -1,6 +1,6 @@
 package ai.platon.exotic.amazon.tools.common
 
-import ai.platon.exotic.amazon.crawl.common.AmazonMetrics
+import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.scent.common.ScentStatusTracker

@@ -1,7 +1,6 @@
 package ai.platon.exotic.amazon.crawl.generate
 
 import ai.platon.pulsar.common.AppPaths
-import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.collect.queue.AbstractLoadingQueue
 import ai.platon.pulsar.common.message.LoadStatusFormatter
@@ -17,7 +16,7 @@ import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.scent.ScentSession
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
-import ai.platon.exotic.amazon.crawl.core.ClusterTools
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.tools.common.AmazonItemPageProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonNavigationProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonReviewIndexPageProcessor

@@ -1,0 +1,56 @@
+package ai.platon.exotic.amazon.crawl.core.handlers
+
+import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.common.parse.JDBCSinkSQLExtractorParser
+import ai.platon.pulsar.common.ResourceLoader
+import ai.platon.pulsar.crawl.parse.ParseFilter
+import ai.platon.pulsar.crawl.parse.ParseFilters
+import ai.platon.scent.parse.html.AbstractJdbcSinkSQLExtractor
+import ai.platon.scent.parse.html.JdbcCommitConfig
+import org.slf4j.LoggerFactory
+
+/**
+ * Add a parse filter to sync extracted records to the JDBC sink, for example, a MySQL database.
+ * */
+class WebDataExtractorInstaller(
+        private val extractorFactory: (JdbcCommitConfig) -> AbstractJdbcSinkSQLExtractor
+) {
+    private val logger = LoggerFactory.getLogger(WebDataExtractorInstaller::class.java)
+
+    val jdbcConfig = "config/jdbc-sink-config.json"
+    val extractConfig = "sites/amazon/crawl/parse/extract-config.json"
+
+    fun install(parseFilters: ParseFilters) {
+        ResourceLoader.getResource(extractConfig) ?: return
+
+        logger.info("Initializing extractors, create extractors from config file | {}", extractConfig)
+
+        val configParser = JDBCSinkSQLExtractorParser(extractConfig, jdbcConfig, extractorFactory)
+
+        val parsers = configParser.parse()
+        parsers.forEach {
+            it.initialize()
+            parseFilters.addLast(it)
+        }
+
+        reportExtractor(parseFilters)
+    }
+
+    private fun reportExtractor(parseFilters: ParseFilters) {
+        val sb = StringBuilder()
+        parseFilters.parseFilters.filterIsInstance<JDBCSinkSQLExtractor>().forEach {
+            reportExtractor(it, 0, sb)
+        }
+        logger.info("Installed SQL extractors: \n$sb")
+    }
+
+    private fun reportExtractor(filter: ParseFilter, depth: Int, sb: StringBuilder) {
+        val padding = if (depth > 0) "  ".repeat(depth) else ""
+        sb.appendLine("${padding}$filter")
+        filter.children.forEach {
+            reportExtractor(it, depth + 1, sb)
+        }
+
+        // logger.info("Created committer to $tableName | $jdbcConfig")
+    }
+}

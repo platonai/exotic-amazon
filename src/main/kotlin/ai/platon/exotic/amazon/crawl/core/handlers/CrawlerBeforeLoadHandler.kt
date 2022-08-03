@@ -1,12 +1,14 @@
 package ai.platon.exotic.amazon.crawl.core.handlers
 
-import ai.platon.exotic.amazon.crawl.common.AmazonMetrics
+import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.PageTraits
 import ai.platon.scent.common.ScentStatusTracker
 
-class CrawlerBeforeLoadHandler(val statusTracker: ScentStatusTracker): (UrlAware) -> Unit {
+class CrawlerBeforeLoadHandler(
+    private val statusTracker: ScentStatusTracker
+): (UrlAware) -> Unit {
     private val amazonMetrics = AmazonMetrics.loadMetrics
 
     override fun invoke(url: UrlAware) {

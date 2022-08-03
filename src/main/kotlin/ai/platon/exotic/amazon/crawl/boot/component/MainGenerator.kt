@@ -1,13 +1,11 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
-import ai.platon.exotic.amazon.crawl.core.ClusterTools
-import ai.platon.exotic.amazon.crawl.core.ConfigurableStreamingCrawler
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.LoadingSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
-import ai.platon.pulsar.common.Priority13
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.getLogger
@@ -16,7 +14,6 @@ import ai.platon.pulsar.persist.WebDb
 import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
-import ai.platon.scent.common.PRIMER_DIFFUSING_TASK_LABEL
 import ai.platon.scent.crawl.ResidentTask
 import ai.platon.scent.crawl.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.scent.crawl.isRunTime
@@ -36,29 +33,25 @@ class MainGenerator(
     private val trackedUrlRepository: TrackedUrlRepository,
     private val webDb: WebDb,
 ) {
+    companion object {
+        const val periodicalSeedResourceDirectoryTemplate = "sites/{project}/crawl/generate/periodical/{period}"
+    }
+
     private val logger = getLogger(MainGenerator::class)
     private val charset = Charset.defaultCharset()
+    private val collectorHelper get() = CollectorHelper(crawlLoop.urlFeeder)
+    private val isDev get() = ClusterTools.isDevInstance()
+    private val periods = listOf("pt30m", "pt1h", "pt12h", "pt24h")
 
-    val isDev get() = ClusterTools.isDevInstance()
-    val label = PRIMER_DIFFUSING_TASK_LABEL
+    val name = "sites/amazon"
+    val label = "20220801"
+
+    val periodicalSeedDirectories get() = periods.map { buildPeriodicalSeedDirectory(name, it) }
     val globalCache get() = globalCacheFactory.globalCache
-
-    val collectorHelper get() = CollectorHelper(crawlLoop.urlFeeder)
-
     // create a new instant every day for that day
     val asinGenerator get() = DailyAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
-
-    val diffusingConfig = createDiffusingCrawlerConfig(label)
-    val reviewGenerator = ReviewGenerator(diffusingConfig, session, globalCacheFactory, trackedUrlRepository)
-
-    val name = "amazon"
-
-    private val periodicalSeedDirectories get() = listOf("pt30m", "pt1h", "pt12h", "pt24h")
-        .map { buildPeriodicalSeedDirectory(name, it) }
-
-    fun generate(priority: Priority13) {
-
-    }
+    val confusingConfig = createConfusionConfig(label)
+    val reviewGenerator = ReviewGenerator(confusingConfig, session, globalCacheFactory, trackedUrlRepository)
 
     fun generateStartupTasks() {
         val tasks = listOf(
@@ -68,10 +61,9 @@ class MainGenerator(
             PredefinedTask.NEW_RELEASES
         )
             .map { it.toResidentTask() }
-            .onEach { it.ignoreTTL = isDev }
             .filter { it.isRunTime() }
 
-        logger.info("Generating startup tasks")
+        logger.info("Generating startup tasks ...")
         generateLoadingTasks(tasks, true)
     }
 
@@ -83,7 +75,7 @@ class MainGenerator(
             .filter { it.startTime() == now }
             .filter { it.fileName != null }
 
-        logger.info("Generating loading tasks at time point ...")
+        logger.info("Generating loading tasks at time point $now ...")
 
         generateLoadingTasks(tasks, true)
     }
@@ -116,7 +108,7 @@ class MainGenerator(
         tasks.forEach { collectorHelper.removeAllLike(it.name) }
     }
 
-    private fun createDiffusingCrawlerConfig(label: String): DiffusingCrawlerConfig {
+    private fun createConfusionConfig(label: String): DiffusingCrawlerConfig {
         val keywords = when (label) {
             "insomnia" -> arrayOf("insomnia")
             "cups" -> arrayOf("cups", "mug", "demitasse", "beaker")
@@ -137,7 +129,7 @@ class MainGenerator(
     }
 
     private fun buildPeriodicalSeedDirectory(projectName: String, duration: String): String {
-        return ConfigurableStreamingCrawler.periodicalSeedResourceDirectoryTemplate
+        return periodicalSeedResourceDirectoryTemplate
             .replace("{project}", projectName)
             .replace("{period}", duration)
     }

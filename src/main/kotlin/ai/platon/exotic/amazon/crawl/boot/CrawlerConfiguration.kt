@@ -1,9 +1,12 @@
 package ai.platon.exotic.amazon.crawl.boot
 
-import ai.platon.exotic.amazon.crawl.core.handlers.jdbc.JdbcSinkRegistry
+import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.boot.component.MainCrawler
 import ai.platon.pulsar.common.StartStopRunner
-import ai.platon.scent.ScentSession
+import ai.platon.pulsar.crawl.parse.ParseFilters
+import ai.platon.scent.parse.html.JdbcCommitConfig
+import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -24,19 +27,22 @@ class CrawlerConfiguration(
      * */
     private val mainCrawler: MainCrawler,
     /**
+     * The parse filter manager
+     * */
+    private val parseFilters: ParseFilters,
+    /**
      * Trigger amazon crawler initialization
      * */
     private val applicationContext: ApplicationContext,
-    /**
-     * The scent session
-     * */
-    private val session: ScentSession,
 ) {
-    val unmodifiedConfig get() = session.unmodifiedConfig
-
     @Bean(initMethod = "start", destroyMethod = "stop")
     fun crawlerRunner(): StartStopRunner {
-        JdbcSinkRegistry(applicationContext).register()
+        val extractorFactory = { conf: JdbcCommitConfig ->
+            applicationContext.getBean<JDBCSinkSQLExtractor>()
+        }
+
+        WebDataExtractorInstaller(extractorFactory).install(parseFilters)
+
         return StartStopRunner(mainCrawler)
     }
 }

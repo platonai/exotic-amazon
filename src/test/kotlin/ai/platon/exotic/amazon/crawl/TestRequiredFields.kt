@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.common.AmazonFeatureCalculator
+import ai.platon.exotic.amazon.crawl.core.AmazonFeatureCalculator
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.persist.ext.options
@@ -11,7 +11,6 @@ import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.dom.features.CombinedFeatureCalculator
 import ai.platon.pulsar.dom.select.selectFirstOrNull
 import ai.platon.pulsar.persist.WebPage
-import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals

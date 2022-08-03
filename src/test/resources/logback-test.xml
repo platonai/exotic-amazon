@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration scan="true" scanPeriod="30 seconds" debug="false">
+<configuration scan="false" scanPeriod="30 seconds" debug="false">
     <property name="logging.dir" value="${logging.dir:-logs}" />
     <property name="logging.prefix" value="${logging.prefix:-pulsar}" />
     <property name="logging.file" value="${logging.prefix}.log" />

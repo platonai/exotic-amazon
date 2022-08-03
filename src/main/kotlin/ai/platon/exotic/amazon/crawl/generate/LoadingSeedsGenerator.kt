@@ -1,13 +1,16 @@
 package ai.platon.exotic.amazon.crawl.generate
 
-import ai.platon.exotic.amazon.crawl.common.ResourceWalker
-import ai.platon.exotic.amazon.crawl.core.ClusterTools
-import ai.platon.pulsar.common.*
+import ai.platon.exotic.common.ResourceWalker
+import ai.platon.exotic.common.ClusterTools
+import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.LocalFileHyperlinkCollector
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
-import ai.platon.pulsar.common.collect.queue.AbstractLoadingQueue
+import ai.platon.pulsar.common.collect.queue.LoadingQueue
+import ai.platon.pulsar.common.getLogger
+import ai.platon.pulsar.common.measureTimedValueJvm
+import ai.platon.pulsar.common.sleepSeconds
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.persist.WebDb
 import ai.platon.pulsar.persist.gora.generated.GWebPage
@@ -30,43 +33,44 @@ class LoadingSeedsGenerator(
     private val taskId = taskTime.toString()
     private val isDev = ClusterTools.isDevInstance()
 
-    val collectedTasks = mutableListOf<CollectedResidentTask>()
+    private val loadedTasks = mutableListOf<CollectedResidentTask>()
 
     private val fields = listOf(
         GWebPage.Field.PREV_FETCH_TIME,
         GWebPage.Field.PREV_CRAWL_TIME1,
     ).map { it.getName() }.toTypedArray()
 
-    fun isSupervisor(task: ResidentTask) = isDev || task.isSupervised()
-
     fun generate(refresh: Boolean): List<UrlCacheCollector> {
-        collectLoadingTasks()
+        loadTasksFromResources()
 
-        logger.info("Collected tasks: " + collectedTasks.joinToString { it.task.name })
+        logger.info("Collected tasks: " + loadedTasks.joinToString { it.task.name })
 
+        // for loading tasks
         val collectors = mutableListOf<UrlCacheCollector>()
-        collectedTasks.forEach { task ->
-            collectors.add(createCollector(task, refresh))
-            // reduce database load
+        loadedTasks.forEach { task ->
+            collectors.add(createUrlCacheCollector(task, refresh))
+            // have a rest to reduce database pressure
             sleepSeconds(15)
         }
-
-        tasks.filter { it !in collectedTasks.map { it.task } }
-            .filter { !collectorHelper.contains(it.name) }
-            .mapTo(collectors) { createFetchCacheCollector(it, urlLoader) }
 
         return collectors
     }
 
-    fun createCollector(collectedTask: CollectedResidentTask, refresh: Boolean): UrlCacheCollector {
+    /**
+     * Create a UrlCacheCollector for [collectedTask].
+     * For every collected link, check the database if it's expired, only expired links are added to the url pool to
+     * fetch.
+     * */
+    private fun createUrlCacheCollector(collectedTask: CollectedResidentTask, refresh: Boolean): UrlCacheCollector {
         val task = collectedTask.task
 
-        // If the collector is still alive, remove it
+        // If the old collector is still alive, remove it
         removeOldCollectors(task)
 
-        val collector = createFetchCacheCollector(task, urlLoader)
+        val collector = createUrlCacheCollector(task, urlLoader)
 
         if (refresh) {
+            // clear both the in-memory cache and the external storage
             collector.deepClear()
         }
 
@@ -84,7 +88,7 @@ class LoadingSeedsGenerator(
             return collector
         }
 
-        val readyQueue = collector.urlCache.nonReentrantQueue as AbstractLoadingQueue
+        val readyQueue = collector.urlCache.nonReentrantQueue as LoadingQueue
         logger.info("Checking {} links for task <{}> in database", links.size, task.name)
         val (fetchedUrls, time) = measureTimedValueJvm {
             WebDbLongTimeTask(webDb, task.name).getAll(links, fields)
@@ -117,22 +121,24 @@ class LoadingSeedsGenerator(
         }
     }
 
-    private fun createFetchCacheCollector(task: ResidentTask, urlLoader: ExternalUrlLoader): UrlCacheCollector {
+    private fun createUrlCacheCollector(task: ResidentTask, urlLoader: ExternalUrlLoader): UrlCacheCollector {
         val priority = task.priority.value
         collectorHelper.remove(task.name)
 
         logger.info("Creating collector for {}", task.name)
 
+        // the name addUrlPoolCollector is confusing, should be addUrlCacheCollector, corrected in 1.10.0+
         return collectorHelper.addUrlPoolCollector(task.name, priority, urlLoader).also {
             it.deadTime = task.deadTime()
             it.labels.add(task.name)
         }
     }
 
-    private fun collectLoadingTasks() {
+    private fun loadTasksFromResources() {
+        loadedTasks.clear()
+
         searchDirectories.forEach {
-            ResourceWalker().walk(it, 5) { path ->
-                println("Path - $path")
+            ResourceWalker().walk(it, 3) { path ->
                 loadTasksIfMatch(path)
             }
         }
@@ -145,8 +151,10 @@ class LoadingSeedsGenerator(
             .filter { path.endsWith(it.fileName!!) }
             .map { CollectedResidentTask(it, collectHyperlinks(path)) }
 
-        collectedTasks.addAll(collectedResidentTasks)
+        loadedTasks.addAll(collectedResidentTasks)
     }
+
+    private fun isSupervisor(task: ResidentTask) = isDev || task.isSupervised()
 
     private fun collectHyperlinks(path: Path): Set<Hyperlink> {
         return collectHyperlinksTo(path, mutableSetOf())

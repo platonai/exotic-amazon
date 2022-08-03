@@ -1,8 +1,8 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.handlers.CrawlerBeforeLoadHandler
-import ai.platon.exotic.amazon.crawl.core.ClusterTools
-import ai.platon.exotic.amazon.crawl.core.ConfigurableStreamingCrawler
+import ai.platon.exotic.common.ClusterTools
+import ai.platon.exotic.common.ConfigurableStreamingCrawler
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.formatAsTable
@@ -31,7 +31,7 @@ class MainCrawler(
     private val logger = LoggerFactory.getLogger(MainCrawler::class.java)
     private val isDev get() = ClusterTools.isDevInstance()
 
-    override var name = "amazon"
+    override var name = "sites/amazon"
 
     override fun setup() {
         super.setup()
@@ -45,11 +45,12 @@ class MainCrawler(
     }
 
     /**
-     * Inject seeds from default locations
+     * Generate fetch tasks
      * */
     override fun generate() {
         super.generate()
 
+        // In dev mode, we trigger every kind of tasks immediately.
         if (isDev) {
             PredefinedTask.values().forEach {
                 it.ignoreTTL = true
