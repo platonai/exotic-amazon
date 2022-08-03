@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl
 
 import ai.platon.pulsar.common.ResourceLoader
-import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import org.junit.Test
 import kotlin.test.assertTrue
 

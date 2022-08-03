@@ -1,6 +1,6 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
-import ai.platon.exotic.amazon.crawl.core.handlers.CrawlerBeforeLoadHandler
+import ai.platon.exotic.amazon.crawl.core.handlers.crawl.CrawlerBeforeLoadHandler
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.ConfigurableStreamingCrawler
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask

@@ -1,4 +1,4 @@
-package ai.platon.exotic.amazon.crawl.core.handlers
+package ai.platon.exotic.amazon.crawl.core.handlers.parse
 
 import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
 import ai.platon.exotic.common.parse.JDBCSinkSQLExtractorParser

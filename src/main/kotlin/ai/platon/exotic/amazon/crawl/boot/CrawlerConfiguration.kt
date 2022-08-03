@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl.boot
 
 import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
-import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.crawl.parse.ParseFilters

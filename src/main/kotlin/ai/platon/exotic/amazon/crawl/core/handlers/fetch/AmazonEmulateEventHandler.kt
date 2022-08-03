@@ -1,4 +1,4 @@
-package ai.platon.exotic.amazon.crawl.core.handlers
+package ai.platon.exotic.amazon.crawl.core.handlers.fetch
 
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.pulsar.common.HtmlIntegrity

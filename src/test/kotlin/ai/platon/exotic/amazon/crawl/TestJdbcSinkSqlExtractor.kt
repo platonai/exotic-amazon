@@ -6,7 +6,7 @@ import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.exotic.amazon.crawl.crawl.common.SimpleParseFilter
-import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
 import org.junit.Ignore
 import org.junit.Test

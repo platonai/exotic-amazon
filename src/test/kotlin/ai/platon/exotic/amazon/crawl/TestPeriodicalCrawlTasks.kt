@@ -7,7 +7,7 @@ import ai.platon.pulsar.common.collect.PriorityDataCollectorsTableFormatter
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.sleepSeconds
 import ai.platon.pulsar.persist.WebDb
-import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.pulsar.crawl.parse.ParseFilters

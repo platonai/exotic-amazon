@@ -1,4 +1,4 @@
-package ai.platon.exotic.amazon.crawl.core.handlers
+package ai.platon.exotic.amazon.crawl.core.handlers.crawl
 
 import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
 import ai.platon.pulsar.common.urls.UrlAware

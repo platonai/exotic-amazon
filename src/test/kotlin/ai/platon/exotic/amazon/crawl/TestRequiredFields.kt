@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.core.AmazonFeatureCalculator
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.AmazonFeatureCalculator
 import ai.platon.pulsar.common.browser.BrowserType
 import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.persist.ext.options

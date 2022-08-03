@@ -1,4 +1,4 @@
-package ai.platon.exotic.amazon.crawl.core
+package ai.platon.exotic.amazon.crawl.core.handlers.parse
 
 import ai.platon.pulsar.dom.features.AbstractFeatureCalculator
 import ai.platon.pulsar.dom.features.FeatureRegistry

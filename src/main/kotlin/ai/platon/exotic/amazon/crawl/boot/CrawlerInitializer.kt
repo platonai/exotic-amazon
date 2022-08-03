@@ -3,7 +3,7 @@ package ai.platon.exotic.amazon.crawl.boot
 import ai.platon.pulsar.common.options.LoadOptionDefaults
 import ai.platon.pulsar.dom.FeatureCalculatorFactory
 import ai.platon.pulsar.dom.features.CombinedFeatureCalculator
-import ai.platon.exotic.amazon.crawl.core.AmazonFeatureCalculator
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.AmazonFeatureCalculator
 import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.scent.ScentEnvironment
@@ -30,7 +30,7 @@ class CrawlerInitializer: ApplicationContextInitializer<AbstractApplicationConte
 
         // set emulate event handler to be AmazonEmulateEventHandler
         System.setProperty(
-            CapabilityTypes.BROWSER_EMULATOR_EVENT_HANDLER, "ai.platon.exotic.amazon.crawl.core.handlers.AmazonEmulateEventHandler")
+            CapabilityTypes.BROWSER_EMULATOR_EVENT_HANDLER, "ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonEmulateEventHandler")
         System.setProperty(CapabilityTypes.FETCH_MAX_RETRY, "3")
 
         logger.info("Initializing feature calculator, append AmazonFeatureCalculator")

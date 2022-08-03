@@ -10,7 +10,7 @@ import ai.platon.pulsar.crawl.component.FetchComponent
 import ai.platon.pulsar.crawl.component.LoadComponent
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.persist.HadoopUtils
-import ai.platon.exotic.amazon.crawl.core.handlers.WebDataExtractorInstaller
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
 import ai.platon.scent.crawl.serialize.config.v1.CrawlConfig
 import ai.platon.scent.jackson.scentObjectMapper
