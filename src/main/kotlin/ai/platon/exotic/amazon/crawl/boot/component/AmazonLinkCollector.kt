@@ -138,6 +138,9 @@ class AmazonLinkCollector(
         return hyperlink
     }
 
+    /**
+     * Update the category tree.
+     * */
     @Synchronized
     fun updateWebNode(page: WebPage, document: FeaturedDocument, queue: Queue<UrlAware>? = null): WebNodePersistable? {
         val url = page.url

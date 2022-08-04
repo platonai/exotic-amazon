@@ -3,6 +3,9 @@ package ai.platon.exotic.amazon.tools.category
 import ai.platon.pulsar.common.urls.UrlUtils
 import ai.platon.pulsar.common.urls.preprocess.UrlNormalizer
 
+/**
+ * Normalize category urls
+ * */
 class CategoryUrlNormalizer: UrlNormalizer {
     val redundantUrlParameters = arrayOf("qid", "ref", "_ref", "ref_")
     val redundantUrlParts = mapOf<String, String>()

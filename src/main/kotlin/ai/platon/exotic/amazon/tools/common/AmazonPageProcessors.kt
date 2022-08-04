@@ -59,7 +59,7 @@ class AmazonItemPageProcessor(
     config: DiffusingCrawlerConfig,
     session: ScentSession
 ) : ItemPageProcessor(config, session) {
-    private val log = LoggerFactory.getLogger(AmazonItemPageProcessor::class.java)
+    private val logger = LoggerFactory.getLogger(AmazonItemPageProcessor::class.java)
 
     val knownAsins = ConcurrentSkipListSet<String>()
 
