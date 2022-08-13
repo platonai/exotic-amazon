@@ -9,6 +9,7 @@
     <property name="logging.c.file" value="${logging.prefix}.c.log" />
     <property name="logging.m.file" value="${logging.prefix}.m.log" />
     <property name="logging.sql.file" value="${logging.prefix}.sql.log" />
+    <property name="logging.json.file" value="${logging.prefix}.json.log" />
     <property name="logging.dc.file" value="${logging.prefix}.dc.log" />
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
@@ -49,6 +50,13 @@
         </encoder>
     </appender>
 
+    <appender name="JSON" class="ch.qos.logback.core.FileAppender">
+        <File>${logging.dir}/${logging.json.file}</File>
+        <encoder>
+            <pattern>%d{ISO8601} --- %m%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="COLLECT" class="ch.qos.logback.core.FileAppender">
         <File>${logging.dir}/${logging.dc.file}</File>
         <encoder>
@@ -60,6 +68,10 @@
         <appender-ref ref="DRFA"/>
         <appender-ref ref="Console"/>
     </root>
+
+    <logger name="ai.platon.exotic.amazon.crawl.boot.component.json" level="INFO" additivity="false">
+        <appender-ref ref="JSON"/>
+    </logger>
 
     <logger name="ai.platon.scent" level="INFO"/>
     <logger name="ai.platon.scent.analysis" level="DEBUG"/>
@@ -93,7 +105,7 @@
     <logger name="ai.platon.pulsar" level="INFO"/>
     <logger name="ai.platon.pulsar.ql" level="INFO"/>
     <logger name="ai.platon.pulsar.net" level="INFO"/>
-    <logger name="ai.platon.pulsar.browser" level="INFO"/>
+    <logger name="ai.platon.pulsar.browser" level="WARN"/>
     <logger name="ai.platon.pulsar.parse.html" level="INFO"/>
     <logger name="ai.platon.pulsar.crawl.parse" level="INFO"/>
     <logger name="ai.platon.pulsar.crawl" level="INFO"/>
@@ -107,8 +119,6 @@
     <logger name="ai.platon.pulsar.protocol.browser.emulator.context" level="INFO"/>
 
     <logger name="ai.platon.pulsar.common.distributed.lock" level="INFO"/>
-
-    <logger name="ai.platon.pulsar.examples" level="INFO"/>
 
     <logger name="org.springframework.core" level="INFO"/>
     <logger name="org.springframework.core.env" level="INFO"/>

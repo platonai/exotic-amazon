@@ -13,14 +13,15 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 
 /**
- * The crawl config parser.
+ * The parser to parse parse-filters from config file, the parse-filters are extractors used to extract web data from
+ * webpages.
  * */
-class JDBCSinkSQLExtractorParser(
+class JdbcSinkSQLExtractorParser(
     private val extractConfigResource: String,
     private val jdbcConfigResource: String,
     private val extractorFactory: (JdbcCommitConfig) -> AbstractJdbcSinkSQLExtractor
 ) {
-    private val logger = LoggerFactory.getLogger(JDBCSinkSQLExtractorParser::class.java)
+    private val logger = LoggerFactory.getLogger(JdbcSinkSQLExtractorParser::class.java)
 
     val crawlConfig = scentObjectMapper().readValue<CrawlConfig>(ResourceLoader.readString(extractConfigResource))
     val jdbcConfig = scentObjectMapper().readValue<JdbcConfig>(ResourceLoader.readString(jdbcConfigResource))

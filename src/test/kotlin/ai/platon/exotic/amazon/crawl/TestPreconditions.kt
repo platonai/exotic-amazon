@@ -11,7 +11,7 @@ import ai.platon.pulsar.crawl.component.LoadComponent
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.persist.HadoopUtils
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
-import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.scent.crawl.serialize.config.v1.CrawlConfig
 import ai.platon.scent.jackson.scentObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -122,15 +122,15 @@ class TestPreconditions: TestBase() {
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)
 
         val asinExtractor = parseFilters.parseFilters
-                .filterIsInstance<JDBCSinkSQLExtractor>()
+                .filterIsInstance<AmazonJdbcSinkSQLExtractor>()
                 .firstOrNull { it.name == "asin" }
         assertNotNull(asinExtractor)
 
         val page = session.load(productUrl, "-parse -i 0s")
 
-        val district = JDBCSinkSQLExtractor.lastDistrict
+        val district = AmazonJdbcSinkSQLExtractor.lastDistrict
         assertTrue { page.protocolStatus.isSuccess }
-        assertTrue { "icp-nav-flag-us" in JDBCSinkSQLExtractor.lastLang }
+        assertTrue { "icp-nav-flag-us" in AmazonJdbcSinkSQLExtractor.lastLang }
         assertTrue("District: <$district>") { district.isNotBlank() }
         // Run ChooseCountry to choose the correct country
         // assertTrue("District: <$district>") { "New York" in district }

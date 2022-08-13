@@ -7,6 +7,8 @@ import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.amazon.tools.common.PageTraits
+import ai.platon.pulsar.common.AppFiles
+import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.getLogger
@@ -18,29 +20,30 @@ import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.persist.WebPage
+import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.ScentStatusTracker
 import ai.platon.scent.parse.html.AbstractJdbcSinkSQLExtractor
 import com.codahale.metrics.Gauge
+import com.google.gson.GsonBuilder
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
 import java.time.Instant
 
 /**
- * A JDBC sink SQL extractor is an extractor using SQL to extract fields from webpages and then sync the extract result
- * to a JDBC sink, such as MySQL database.
+ * SQL extractors use SQLs to extract fields from webpages.
  * */
 @Component
 @Scope("prototype")
-class JDBCSinkSQLExtractor(
+class AmazonJdbcSinkSQLExtractor(
     session: ScentSession,
-    scentStatusTracker: ScentStatusTracker,
+    statusTracker: ScentStatusTracker,
     globalCacheFactory: GlobalCacheFactory,
     private val amazonGenerator: AmazonGenerator,
     private val amazonLinkCollector: AmazonLinkCollector,
     conf: ImmutableConfig,
-) : AbstractJdbcSinkSQLExtractor(session, scentStatusTracker, globalCacheFactory, conf) {
+) : AbstractJdbcSinkSQLExtractor(session, statusTracker, globalCacheFactory, conf) {
     companion object {
         /**
          * The language of the site, choose the language in the top-right corner of the webpage
@@ -69,6 +72,11 @@ class JDBCSinkSQLExtractor(
         get() = amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
     private val reviewQueue get() = reviewFetchCache.nonReentrantQueue
     private val amazonMetrics = AmazonMetrics.extractMetrics
+
+    override val hasSink: Boolean get() {
+        val jdbcConfig = commitConfig?.jdbcConfig
+        return jdbcConfig != null && jdbcConfig.username.isNotBlank()
+    }
 
     override fun initialize() {
         if (ClusterTools.isDevInstance() || ClusterTools.isTestInstance()) {
@@ -108,18 +116,14 @@ class JDBCSinkSQLExtractor(
     override fun onAfterExtract(page: WebPage, document: FeaturedDocument, rs: ResultSet?): ResultSet? {
         rs ?: return null
 
-        // do not really sync the extract result for test pages
-        val isTestPage = page.label == ClusterTools.getTestLabel() || ClusterTools.isTestInstance()
-        if (isTestPage) {
-            committers.values.forEach { it.dryRunSQLs = true }
+        // add the extract result to the pending result manager, who will sync all the results to the sink later
+        if (hasSink) {
+            pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
+        } else {
+            exportWebData(page, rs)
         }
 
-        // add the extract result to the pending result manager, who will sync all the extract results to the sink later
-        pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
-        page.modelSyncTime = Instant.now()
-
         val traits = AmazonUtils.detectTraits(page, isAsinExtractor(page), amazonMetrics, statusTracker)
-
         // collect hyperlinks which will be fetched in the future
         collectHyperlinks(page, document, rs, traits)
 
@@ -148,6 +152,15 @@ class JDBCSinkSQLExtractor(
         }
     }
 
+    private fun exportWebData(page: WebPage, rs: ResultSet) {
+        val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
+        val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
+        val filename = AppPaths.fromUri(page.url,"", ".json")
+        val label = if (page.label.isNotBlank()) page.label else "other"
+        val path = AppPaths.DOC_EXPORT_DIR.resolve("json").resolve(label).resolve(filename)
+        AppFiles.saveTo(json, path, true)
+    }
+
     /**
      * Collect further hyperlinks after extraction.
      * */
@@ -169,8 +182,10 @@ class JDBCSinkSQLExtractor(
                 // should be a reentrant queue since the links are fetched periodically
                 val queue2 = urlPool.higher2Cache.reentrantQueue
                 if (!url.contains("?")) {
-                    // a primary labeled portal, supposed to be loaded from a config file or database
-                    amazonLinkCollector.updateWebNode(page, document, queue2)
+                    // this is a primary labeled portal url, it's supposed to be loaded from a config file or database,
+                    // for example, best-seller url, new-release url, etc.
+                    // TODO: update the web node
+                    // amazonLinkCollector.updateWebNode(page, document, queue2)
                 }
 
                 val queue3 = urlPool.higher3Cache.reentrantQueue

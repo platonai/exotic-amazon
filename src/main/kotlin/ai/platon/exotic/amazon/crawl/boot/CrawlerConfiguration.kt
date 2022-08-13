@@ -1,6 +1,6 @@
 package ai.platon.exotic.amazon.crawl.boot
 
-import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.pulsar.common.StartStopRunner
@@ -38,7 +38,7 @@ class CrawlerConfiguration(
     @Bean(initMethod = "start", destroyMethod = "stop")
     fun crawlerRunner(): StartStopRunner {
         val extractorFactory = { conf: JdbcCommitConfig ->
-            applicationContext.getBean<JDBCSinkSQLExtractor>()
+            applicationContext.getBean<AmazonJdbcSinkSQLExtractor>()
         }
 
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)

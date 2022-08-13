@@ -8,11 +8,13 @@ import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.crawl.CrawlLoops
+import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.common.AMAZON_CRAWLER_GENERATE_DEFAULT_TASKS
 import ai.platon.scent.common.MINUTE_TO_MILLIS
 import ai.platon.scent.common.ScentStatusTracker
 import ai.platon.scent.crawl.isRunTime
+import ai.platon.scent.parse.html.AbstractSinkAwareSQLExtractor
 import ai.platon.scent.rest.api.service.v1.ScrapeServiceV1
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -24,20 +26,21 @@ import java.time.temporal.ChronoUnit
 @Component
 @EnableScheduling
 class CrawlScheduler(
-    val crawler: AmazonCrawler,
-    val amazonGenerator: AmazonGenerator,
-    val scrapeServiceV1: ScrapeServiceV1,
-    val scentStatusTracker: ScentStatusTracker,
-    val crawlLoop: ScentCrawlLoop,
-    val crawlLoops: CrawlLoops,
-    val conf: ImmutableConfig
+    private val crawler: AmazonCrawler,
+    private val amazonGenerator: AmazonGenerator,
+    private val scrapeServiceV1: ScrapeServiceV1,
+    private val scentStatusTracker: ScentStatusTracker,
+    private val crawlLoop: ScentCrawlLoop,
+    private val crawlLoops: CrawlLoops,
+    private val parseFilters: ParseFilters,
+    private val conf: ImmutableConfig
 ) {
     companion object {
         const val INITIAL_DELAY = 3 * MINUTE_TO_MILLIS
     }
 
     private val logger = LoggerFactory.getLogger(CrawlScheduler::class.java)
-
+    private var commitCount = 0
     private val generateDefaultTasks get() = conf.getBoolean(AMAZON_CRAWLER_GENERATE_DEFAULT_TASKS, true)
 
     /**
@@ -206,5 +209,19 @@ class CrawlScheduler(
         }
 
         amazonGenerator.clearPredefinedTasksIfNotInRunTime()
+    }
+
+    /**
+     * Try to sync records extracted by sql extractors
+     * */
+    @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = MINUTE_TO_MILLIS)
+    fun syncExtractResultsToSinks() {
+        ++commitCount
+
+        logger.debug("{}. Try to commit extract results to sinks", commitCount)
+        parseFilters.parseFilters.filterIsInstance<AbstractSinkAwareSQLExtractor>().forEach {
+            it.tryCommit()
+        }
+        logger.debug("Commit #{} finished", commitCount)
     }
 }

@@ -7,7 +7,7 @@ import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.exotic.amazon.crawl.crawl.common.SimpleParseFilter
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
-import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import org.junit.Ignore
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +24,7 @@ class TestJdbcSinkSqlExtractor: TestBase() {
     private val sqlSource = "$resourcePrefix/crawl/x-asin.sql"
 
     @Autowired
-    private lateinit var sqlExtractor: JDBCSinkSQLExtractor
+    private lateinit var sqlExtractor: AmazonJdbcSinkSQLExtractor
 
     @Autowired
     private lateinit var parseFilters: ParseFilters
@@ -60,9 +60,9 @@ class TestJdbcSinkSqlExtractor: TestBase() {
         val document = session.parse(page)
 
         val asinExtractor = parseFilters.parseFilters
-            .filterIsInstance<JDBCSinkSQLExtractor>()
+            .filterIsInstance<AmazonJdbcSinkSQLExtractor>()
             .first { it.name == "asin" }
-        val children = asinExtractor.children.filterIsInstance<JDBCSinkSQLExtractor>()
+        val children = asinExtractor.children.filterIsInstance<AmazonJdbcSinkSQLExtractor>()
         assertEquals(7, children.size)
 
         children.forEach {

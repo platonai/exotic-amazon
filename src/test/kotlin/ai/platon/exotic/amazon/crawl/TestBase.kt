@@ -1,6 +1,6 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.pulsar.crawl.CrawlLoops
@@ -48,7 +48,7 @@ open class TestBase {
     lateinit var amazonGenerator: AmazonGenerator
 
     val extractorFactory = { conf: JdbcCommitConfig ->
-        applicationContext.getBean<JDBCSinkSQLExtractor>()
+        applicationContext.getBean<AmazonJdbcSinkSQLExtractor>()
     }
 
     var enableCrawlLoop = true

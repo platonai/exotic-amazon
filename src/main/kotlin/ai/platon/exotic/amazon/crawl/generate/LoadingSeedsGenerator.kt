@@ -43,7 +43,7 @@ class LoadingSeedsGenerator(
     fun generate(refresh: Boolean): List<UrlCacheCollector> {
         loadTasksFromResources()
 
-        logger.info("Collected tasks: " + loadedTasks.joinToString { it.task.name })
+        logger.info("Collected tasks: {}", loadedTasks.joinToString { it.task.name })
 
         // for loading tasks
         val collectors = mutableListOf<UrlCacheCollector>()
@@ -163,13 +163,7 @@ class LoadingSeedsGenerator(
     private fun collectHyperlinksTo(path: Path, hyperlinks: MutableSet<Hyperlink>): Set<Hyperlink> {
         val collector = LocalFileHyperlinkCollector(path)
 
-        val links = if (isDev) collector.hyperlinks.take(100) else collector.hyperlinks
-
-        val isCluster = ClusterTools.isCluster()
-        when {
-            isCluster -> collector.hyperlinks
-            else -> collector.hyperlinks.take(100)
-        }
+        val links = if (isDev) collector.hyperlinks.shuffled().take(100) else collector.hyperlinks
 
         val message = if (isDev) " (dev mode)" else ""
         logger.info("Loaded {} links$message | {}", links.size, path)

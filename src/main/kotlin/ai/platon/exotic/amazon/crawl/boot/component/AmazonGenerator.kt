@@ -43,7 +43,7 @@ class AmazonGenerator(
     private val isDev get() = ClusterTools.isDevInstance()
     private val periods = listOf("pt30m", "pt1h", "pt12h", "pt24h")
 
-    val name = "sites/amazon"
+    val name = "amazon"
     val label = "20220801"
 
     val periodicalSeedDirectories get() = periods.map { buildPeriodicalSeedDirectory(name, it) }

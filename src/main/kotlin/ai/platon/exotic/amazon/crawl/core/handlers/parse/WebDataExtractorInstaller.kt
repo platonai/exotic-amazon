@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl.core.handlers.parse
 
-import ai.platon.exotic.amazon.crawl.boot.component.JDBCSinkSQLExtractor
-import ai.platon.exotic.common.parse.JDBCSinkSQLExtractorParser
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
+import ai.platon.exotic.common.parse.JdbcSinkSQLExtractorParser
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.crawl.parse.ParseFilter
 import ai.platon.pulsar.crawl.parse.ParseFilters
@@ -25,7 +25,7 @@ class WebDataExtractorInstaller(
 
         logger.info("Initializing extractors, create extractors from config file | {}", extractConfig)
 
-        val configParser = JDBCSinkSQLExtractorParser(extractConfig, jdbcConfig, extractorFactory)
+        val configParser = JdbcSinkSQLExtractorParser(extractConfig, jdbcConfig, extractorFactory)
 
         val parsers = configParser.parse()
         parsers.forEach {
@@ -38,7 +38,7 @@ class WebDataExtractorInstaller(
 
     private fun reportExtractor(parseFilters: ParseFilters) {
         val sb = StringBuilder()
-        parseFilters.parseFilters.filterIsInstance<JDBCSinkSQLExtractor>().forEach {
+        parseFilters.parseFilters.filterIsInstance<AmazonJdbcSinkSQLExtractor>().forEach {
             reportExtractor(it, 0, sb)
         }
         logger.info("Installed SQL extractors: \n$sb")

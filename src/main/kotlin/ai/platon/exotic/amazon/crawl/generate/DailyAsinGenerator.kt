@@ -32,7 +32,7 @@ import java.util.*
  * Generator asin pages (product pages) every day.
  * The asin urls are extracted from best-seller pages, rotate every month.
  * */
-class DailyAsinGenerator constructor(
+class DailyAsinGenerator(
     val session: ScentSession,
     val dayOfMonth: Int
 ) {
@@ -128,21 +128,25 @@ class DailyAsinGenerator constructor(
 
     private val context get() = session.context as AbstractPulsarContext
     private val webDb get() = context.webDb
+    // The leaf categories of best-sellers
     private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
     private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/seeds.properties"
+    // The path of the file to store fetched best-seller urls, for dev mode only
+    private val fetchedBestSellerUrlPath = AppPaths.REPORT_DIR.resolve("fetch/fetched-best-sellers")
     private val normalizer = AsinUrlNormalizer()
     private val expires = PredefinedTask.ASIN.expires
     private val deadTime = PredefinedTask.ASIN.deadTime()
     private val taskTime = DateTimes.startOfDay()
     private val taskId = DateTimes.startOfDay().toString()
 
-    val generatePath
-        get() = AppPaths.TMP_DIR.resolve("generate/asin/$month/$dayOfMonth.txt")
-
-    val relevantBestSellers = mutableListOf<WebPage>()
-
-    val zgbsMinimalCheckInterval = Duration.ofMinutes(10)
-
+    // A temporary file that holds the generated urls
+    private val generatePath
+        get() = AppPaths.REPORT_DIR.resolve("generate/asin/$month/$dayOfMonth.txt")
+    // Keep the best-seller pages temporary to extract asin urls later
+    private val relevantBestSellers = mutableListOf<WebPage>()
+    // The minimal interval to check best-seller pages in the database
+    private val zgbsMinimalCheckInterval = Duration.ofMinutes(10)
+    // The next time to check best-seller pages in the database
     private var zgbsNextCheckTime = Instant.now()
 
     private var generatedCount = 0
@@ -305,7 +309,12 @@ class DailyAsinGenerator constructor(
         }
         zgbsNextCheckTime += zgbsMinimalCheckInterval
 
-        val primaryZgbs = LinkExtractors.fromResource(bestSellerResource)
+        val primaryZgbs = if (isDev) {
+            LinkExtractors.fromFile(fetchedBestSellerUrlPath).filter { "zgbs" in it && "pg=2" !in it }
+        } else {
+            LinkExtractors.fromResource(bestSellerResource)
+        }
+
         val secondaryZgbs = primaryZgbs.map { "$it/ref=zg_bs_pg_2?_encoding=UTF8&pg=2" }
         var unorderedZgbs = (primaryZgbs + secondaryZgbs).toList()
 
