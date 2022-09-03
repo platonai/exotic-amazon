@@ -155,9 +155,13 @@ class AmazonJdbcSinkSQLExtractor(
     private fun exportWebData(page: WebPage, rs: ResultSet) {
         val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
         val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
-        val filename = AppPaths.fromUri(page.url,"", ".json")
+        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
         val label = if (page.label.isNotBlank()) page.label else "other"
-        val path = AppPaths.DOC_EXPORT_DIR.resolve("json").resolve(label).resolve(filename)
+        val path = AppPaths.DOC_EXPORT_DIR
+            .resolve("amazon")
+            .resolve("json")
+            .resolve(label)
+            .resolve(filename)
         AppFiles.saveTo(json, path, true)
     }
 

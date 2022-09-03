@@ -167,7 +167,7 @@ class AmazonEmulateEventHandler(
             if (pos != -1) {
                 pos = pageSource.indexOf(allowedDistrict, pos)
                 if (pos == -1) {
-                    // when the deliver destination is not expected, the district is wrong
+                    // when the destination to deliver is not expected, the district is wrong
                     return true
                 }
             }

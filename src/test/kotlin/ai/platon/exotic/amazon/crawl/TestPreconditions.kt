@@ -117,6 +117,7 @@ class TestPreconditions: TestBase() {
         session.load(hyperlink)
     }
 
+    @Ignore("District restriction is disabled")
     @Test
     fun `Ensure the district is New York`() {
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)

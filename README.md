@@ -4,11 +4,17 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
 
 ## Data
 
-* Best seller list
-* New release list
-* Most wished for list
-* Product detail
-* Reviews
+* Best Seller - update every day, about 32,000 categories, about 4,000,000 critical data of products
+* Most Wished For - update every day, about 25,000 categories, about 3,500,000 critical data of products
+* New Releases - update every day, about 25,000 categories, about  3,000,000 critical data of products
+* Movers and Shakers - about 20 categories, update every hour
+* Products - about 20,000,000 products, update every month
+  * 100+ fields
+  * Title, price, stock, image, description, specification, shop
+  * Sponsored products, similar products, related products
+  * Read reviews
+  * Top reviews
+* Review - update every day
 
 ## Get Started
 
@@ -17,6 +23,13 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
     java -jar target/exotic-amazon*.jar
 
 Open [System Glances](http://localhost:8182/api/system/status/glances) to see the system status at a glance.
+
+## Results
+
+The results are written in json:
+
+    cd /tmp/pulsar-$USER/cache/web/export/amazon/json
+    ls
 
 ## Technical Features
 

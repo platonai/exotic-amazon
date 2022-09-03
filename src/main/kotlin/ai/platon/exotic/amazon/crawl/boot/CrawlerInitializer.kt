@@ -38,7 +38,7 @@ class CrawlerInitializer: ApplicationContextInitializer<AbstractApplicationConte
         val calculator = FeatureCalculatorFactory.calculator as? CombinedFeatureCalculator
         calculator?.calculators?.add(AmazonFeatureCalculator())
 
-        // ignore default crawl loop, ScentCrawlLoop is expected
+        // ignore the default crawl loop, ScentCrawlLoop is expected
         CrawlLoops.filters.add { loop -> loop.name != "DefaultCrawlLoop" }
     }
 }
