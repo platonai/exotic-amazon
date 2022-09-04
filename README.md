@@ -4,14 +4,14 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
 
 ## Data
 
-* Best Seller - update every day, about 32,000 categories, about 4,000,000 critical data of products
-* Most Wished For - update every day, about 25,000 categories, about 3,500,000 critical data of products
-* New Releases - update every day, about 25,000 categories, about  3,000,000 critical data of products
+* Best Seller - update every day, about 32,000 categories, about 4,000,000 product records
+* Most Wished For - update every day, about 25,000 categories, about 3,500,000 product records
+* New Releases - update every day, about 25,000 categories, about 3,000,000 product records
 * Movers and Shakers - about 20 categories, update every hour
 * Products - about 20,000,000 products, update every month
   * 100+ fields
-  * Title, price, stock, image, description, specification, shop
-  * Sponsored products, similar products, related products
+  * Title, price, stock, image, description, specification, shop, and more
+  * Sponsored products, similar products, related products, and more
   * Read reviews
   * Top reviews
 * Review - update every day
