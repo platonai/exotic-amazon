@@ -21,7 +21,10 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
     git clone https://github.com/platonai/exotic-amazon.git
     cd exotic-amazon && mvn
     java -jar target/exotic-amazon*.jar
-
+    
+    # or on windows:
+    java -jar target/exotic-amazon-{the-actual-version}.jar
+    
 Open [System Glances](http://localhost:8182/api/system/status/glances) to see the system status at a glance.
 
 ## Results
