@@ -74,7 +74,7 @@ By default, the extracted data is also persisted as key-value pairs in WebPage.p
 
 #### Custom destination
 
-You can write several line of additional code to persist the extract result to any destination as you wish, check [AmazonJdbcSinkSQLExtractor](./src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt).onAfterExtract() to learn how to write your own persister.
+You can write several line of additional code to persist the extract result to any destination as you wish, check [AmazonJdbcSinkSQLExtractor](./src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt).onAfterExtract() to learn how to write your own persistence layer.
 
 ## Technical Features
 
