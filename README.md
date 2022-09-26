@@ -32,19 +32,19 @@ Open [System Glances](http://localhost:8182/api/system/status/glances) to see th
 
 The results are written in json:
 
-On linux
+Linux:
 
     cd /tmp/pulsar-$USER/cache/web/export/amazon/json
     ls
     
-On windows
+Windows:
 
     echo %TMP%
     echo %username%
     cd %TMP%\pulsar-%username%/cache/web/export/amazon/json
     dir
 
-On Mac
+Mac:
 
     echo $TMPDIR
     echo $USER
