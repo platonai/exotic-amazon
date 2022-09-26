@@ -32,7 +32,9 @@ Open [System Glances](http://localhost:8182/api/system/status/glances) to see th
 
 ### Extract rules
 
-All [extract rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/) are written in X-SQL. Data type conversion, data cleaning are also processed by the X-SQL, which is part of why we need X-SQL. A good example is the X-SQL for the product page: [x-asin.sql](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/x-asin.sql).
+All [extract rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/) are written in X-SQL. Data type conversion, data cleaning are also handled inline by the powerful X-SQL, which is part of why we need X-SQL. 
+
+A good X-SQL example is x-asin.sql which extracts 70+ fields from each product page: [x-asin.sql](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/x-asin.sql).
 
 ### Save extract results in the local file system
 
@@ -59,15 +61,15 @@ Mac:
 
 ### Save extract results into a database
 
-There are several method to persist the extract result into a database:
+There are several methods to persist the extract result into a database:
 
-1. persist extract results as a field of the default webpage model: WebPage.pageModel
+1. serialize extract results as key-value pairs, and save them as a field of the default webpage model: WebPage.pageModel
 2. write extract results to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
-3. write several line of additional code to persist the extract result to any destination as you wish
+3. write several line of additional code to save the extract result to any destination as you wish
 
 #### Default WebPage storage
 
-By default, the extracted data is also persisted as key-value pairs in pageModel of 
+By default, the extracted data is also saved as key-value pairs in pageModel of 
 [WebPage](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
 
 #### Configured JDBC compatible databases
