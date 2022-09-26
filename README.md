@@ -34,7 +34,7 @@ Open [System Glances](http://localhost:8182/api/system/status/glances) to see th
 
 ### Extract rules
 
-All [extract rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/) are written in X-SQL. Data type conversion, data cleaning are also handled inline by the powerful X-SQL, which is part of why we need X-SQL. 
+All [extract rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/) are written in X-SQL. Data type conversion, data cleansing are also handled inline by powerful X-SQL, which is part of the reason why we need X-SQL.
 
 A good X-SQL example is x-asin.sql which extracts 70+ fields from each product page: [x-asin.sql](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/x-asin.sql).
 
@@ -63,27 +63,27 @@ Mac:
 
 ### Save extract results into a database
 
-There are several methods to persist the extract result into a database:
+There are several methods to persist the results into a database:
 
-1. serialize extract results as key-value pairs, and save them as a field of the default webpage model: WebPage.pageModel
-2. write extract results to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
-3. write several line of additional code to save the extract result to any destination as you wish
+1. Serialize the results as key-value pairs, and save them as a field of WebPage, which is the core data structure across the whole system
+2. Write the results to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
+3. Save the results to any destination as you wish by writing several line of additional code yourself
 
-#### Default WebPage storage
+#### Save as WebPage.pageModel
 
-By default, the extracted data is also saved as key-value pairs in pageModel of 
-[WebPage](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
+By default, the extracted fields are also saved as key-value pairs as 
+[WebPage.pageModel](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
 
-#### Configured JDBC compatible databases
+#### Save to a JDBC compatible database
 
 * Database connection config: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
 * Database schema: [schema](./src/main/resources/schema)
-* Page model and schema mapping: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
+* Page model and database schema mapping: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
 * Page model and extract rules: [X-SQLs](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
 
-#### Custom destination
+#### Save to a custom destination
 
-You can write several line of additional code to save the extract result to any destination as you wish, check [AmazonJdbcSinkSQLExtractor](./src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt).onAfterExtract() to learn how to write your own persistence layer.
+You can write several line of additional code to save the results to any destination as you wish, check [AmazonJdbcSinkSQLExtractor](./src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt).onAfterExtract() to learn how to write your own persistence layer.
 
 ## Technical Features
 
@@ -91,7 +91,7 @@ You can write several line of additional code to save the extract result to any 
 * Bot stealth: web driver stealth, IP rotation, privacy context rotation, never get banned
 * High performance: highly optimized, rendering hundreds of pages in parallel on a single machine without be blocked
 * Low cost: scraping 100,000 browser rendered e-comm webpages, or n * 10,000,000 data points each day, only 8 core CPU/32G memory are required
-* Data quantity assurance: smart retry, accurate scheduling, web data lifecycle management
+* Data quantity assurance: smart retry, **accurate scheduling**, web data lifecycle management
 * Large scale: fully distributed, designed for large scale crawling
 * Big data: various backend storage support: Local File/MongoDB/HBase/Gora
 * Logs &amp; metrics: monitored closely and every event is recorded
@@ -110,6 +110,8 @@ Pulsar has carefully designed the logging and metrics subsystem to record every 
 
 Pulsar logs the status for every load execution, so it's easy to know what happened in the system, find out answers such as is the system running healthy, how many pages were successfully fetched, how many pages were retried, how many proxy ips were used, etc.
 
+You can gain insight into the state of the entire system just by noticing a few symbols: 💯 💔 🗙 ⚡ 💿 🔃 🤺。
+
 Typical page loading logs are as the following, check [log-format](https://github.com/platonai/pulsarr/blob/master/docs/log-format.adoc) to learn how to read the logs to learn the state of the whole system at a glance.
 
 ```
@@ -119,6 +121,12 @@ Typical page loading logs are as the following, check [log-format](https://githu
 2022-09-24 11:47:18.390  INFO [r-worker-8] a.p.p.c.c.L.Task - 3732. 💔 ⚡ U for N got 1601 0 <- 0 in 32.201s, fc:1/1 Retry(1601) rsp: CRAWL, rrs: EMPTY_0B | 2zYxg52 | https://www.walmart.com/ip/Apple-iPhone-7-256GB-Jet-Black-AT-T-Locked-Smartphone-Grade-B-Used/182353175?variantFieldId=actual_color -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
 2022-09-24 11:47:13.860  INFO [-worker-60] a.p.p.c.c.L.Task - 2828. 🗙 🗙 U for SC got 200 0 <- 348.31 KiB <- 684.75 KiB in 0s, last fetched 18m55s ago, fc:2 | 34/130/52/181/5747 | 60.184.124.232 | 11zTa0r2 | https://www.walmart.com/ip/Walmart-Family-Mobile-Apple-iPhone-11-64GB-Black-Prepaid-Smartphone/209201965?athbdg=L1200 -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
 ```
+
+There three ways to see the metrics:
+
+* Check logs/pulsar.m.log
+* Open [System Glances](http://localhost:8182/api/system/status/glances)
+* Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to see the graphical report
 
 ## Q & A
 Q: How to use proxies?
