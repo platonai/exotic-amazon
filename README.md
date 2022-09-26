@@ -22,7 +22,8 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
     cd exotic-amazon && mvn
     java -jar target/exotic-amazon*.jar
     
-    # or on windows:
+Or on windows:
+    
     java -jar target/exotic-amazon-{the-actual-version}.jar
     
 Open [System Glances](http://localhost:8182/api/system/status/glances) to see the system status at a glance.
@@ -31,17 +32,20 @@ Open [System Glances](http://localhost:8182/api/system/status/glances) to see th
 
 The results are written in json:
 
-    # linux
+On linux
+
     cd /tmp/pulsar-$USER/cache/web/export/amazon/json
     ls
     
-    # windows
+On windows
+
     echo %TMP%
     echo %username%
     cd %TMP%\pulsar-%username%/cache/web/export/amazon/json
     dir
-    
-    # Mac
+
+On Mac
+
     echo $TMPDIR
     echo $USER
     echo $TMPDIR/pulsar-$USER/cache/web/export/amazon/json
