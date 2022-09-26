@@ -61,7 +61,7 @@ There are several method to persist the extect result into a database:
 2. write extect result to a RDBMS, such as MySQL, MS SQL Server, etc
 3. write several line of additional code to persist the extract result to any destination as you wish
 
-#### PageModel
+#### Default WebPage storage
 
 By default, the extracted data is also persisted as key-value pairs in WebPage.pageModel.
 
