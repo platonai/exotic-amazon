@@ -58,14 +58,14 @@ Mac:
 There are several method to persist the extect result into a database:
 
 1. persist extect result as a field of the default webpage model: WebPage.pageModel
-2. write extect result to a RDBMS, such as MySQL, MS SQL Server, etc
+2. write extect result to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
 3. write several line of additional code to persist the extract result to any destination as you wish
 
 #### Default WebPage storage
 
 By default, the extracted data is also persisted as key-value pairs in WebPage.pageModel.
 
-#### Configured RDBMS
+#### Configured JDBC compatible databases
 
 * Database config file: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
 * PageModel/Table mapping files: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
