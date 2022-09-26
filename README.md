@@ -30,7 +30,7 @@ Open [System Glances](http://localhost:8182/api/system/status/glances) to see th
 
 ## Results
 
-### Local file system
+### Save extract results in the local file system
 
 The results are written in json to local file system by default:
 
@@ -53,7 +53,7 @@ Mac:
     echo $TMPDIR/pulsar-$USER/cache/web/export/amazon/json
     ls
     
-### Database
+### Save extract results in the database
 
 There are several method to persist the extect result into a database:
 
