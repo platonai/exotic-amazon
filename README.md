@@ -85,4 +85,4 @@ Typical page loading logs are as the following, check link:docs/log-format.adoc[
 ## Q & A
 Q: How to use proxies?
 
-A: Follow [this](https://github.com/platonai/exotic/bin/tools/proxy/README.adoc) guide for proxy rotation.
+A: Follow [this](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) guide for proxy rotation.
