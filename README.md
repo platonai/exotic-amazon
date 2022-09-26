@@ -53,7 +53,7 @@ Mac:
     echo $TMPDIR/pulsar-$USER/cache/web/export/amazon/json
     ls
     
-### Save extract results in the database
+### Save extract results into a database
 
 There are several method to persist the extect result into a database:
 
