@@ -122,7 +122,7 @@ Typical page loading logs are as the following, check [log-format](https://githu
 2022-09-24 11:47:13.860  INFO [-worker-60] a.p.p.c.c.L.Task - 2828. 🗙 🗙 U for SC got 200 0 <- 348.31 KiB <- 684.75 KiB in 0s, last fetched 18m55s ago, fc:2 | 34/130/52/181/5747 | 60.184.124.232 | 11zTa0r2 | https://www.walmart.com/ip/Walmart-Family-Mobile-Apple-iPhone-11-64GB-Black-Prepaid-Smartphone/209201965?athbdg=L1200 -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
 ```
 
-There three ways to see the metrics:
+There are three ways to view metrics:
 
 * Check logs/pulsar.m.log
 * Open [System Glances](http://localhost:8182/api/system/status/glances)
