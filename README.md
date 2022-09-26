@@ -30,6 +30,10 @@ Open [System Glances](http://localhost:8182/api/system/status/glances) to see th
 
 ## Results
 
+### Extract rules
+
+All [extract rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/) are written in X-SQL. Data type conversion, data cleaning are also processed by the X-SQL, which is part of why we need X-SQL. A good example is the X-SQL for the product page: [x-asin.sql](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/x-asin.sql).
+
 ### Save extract results in the local file system
 
 The results are written in json to local file system by default:
@@ -55,7 +59,7 @@ Mac:
 
 ### Save extract results into a database
 
-There are several method to persist the extect result into a database:
+There are several method to persist the extract result into a database:
 
 1. persist extract results as a field of the default webpage model: WebPage.pageModel
 2. write extract results to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
@@ -63,42 +67,33 @@ There are several method to persist the extect result into a database:
 
 #### Default WebPage storage
 
-By default, the extracted data is also persisted as key-value pairs in WebPage.pageModel.
+By default, the extracted data is also persisted as key-value pairs in pageModel of 
+[WebPage](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
 
 #### Configured JDBC compatible databases
 
 * Database connection config: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
-* Database schema: [Schema](./src/main/resources/schema)
-* PageModel/Schema mapping: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
-* PageModel and extract rules: [SQL Extract Rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
+* Database schema: [schema](./src/main/resources/schema)
+* Page model and schema mapping: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
+* Page model and extract rules: [X-SQLs](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
 
 #### Custom destination
 
-You can write several line of additional code to persist the extract result to any destination as you wish, check [AmazonJdbcSinkSQLExtractor](./src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt).onAfterExtract() to learn how to write your own persistence layer.
+You can write several line of additional code to save the extract result to any destination as you wish, check [AmazonJdbcSinkSQLExtractor](./src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt).onAfterExtract() to learn how to write your own persistence layer.
 
 ## Technical Features
 
 * Web spider: browser rendering, ajax data crawling
-
-* High performance: highly optimized, rendering hundreds of pages in parallel on a single machine without be blocked
-
-* Low cost: scraping 100,000 browser rendered e-comm webpages, or n * 10,000,000 data points each day, only 8 core CPU/32G memory are required
-
-* Data quantity assurance: smart retry, accurate scheduling, web data lifecycle management
-
-* Large scale: fully distributed, designed for large scale crawling
-
+* RPA: robotic process automation, mimic human behaviors, SPA crawling, or do something else valuable
 * Simple API: single line of code to scrape, or single SQL to turn a website into a table
-
 * X-SQL: extended SQL to manage web data: Web crawling, scraping, Web content mining, Web BI
-
 * Bot stealth: web driver stealth, IP rotation, privacy context rotation, never get banned
-
-* RPA: simulating human behaviors, SPA crawling, or do something else awesome
-
-* Big data: various backend storage support: MongoDB/HBase/Gora
-
-* Logs & metrics: monitored closely and every event is recorded
+* High performance: highly optimized, rendering hundreds of pages in parallel on a single machine without be blocked
+* Low cost: scraping 100,000 browser rendered e-comm webpages, or n * 10,000,000 data points each day, only 8 core CPU/32G memory are required
+* Data quantity assurance: smart retry, accurate scheduling, web data lifecycle management
+* Large scale: fully distributed, designed for large scale crawling
+* Big data: various backend storage support: Local File/MongoDB/HBase/Gora
+* Logs &amp; metrics: monitored closely and every event is recorded
 
 ## Requirements
 
