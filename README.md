@@ -22,7 +22,7 @@ Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
     cd exotic-amazon && mvn
     java -jar target/exotic-amazon*.jar
     
-Or on windows:
+Or on Windows:
     
     java -jar target/exotic-amazon-{the-actual-version}.jar
     
@@ -38,7 +38,7 @@ Linux:
 
     cd /tmp/pulsar-$USER/cache/web/export/amazon/json
     ls
-    
+
 Windows:
 
     echo %TMP%
@@ -52,13 +52,13 @@ Mac:
     echo $USER
     echo $TMPDIR/pulsar-$USER/cache/web/export/amazon/json
     ls
-    
+
 ### Save extract results into a database
 
 There are several method to persist the extect result into a database:
 
-1. persist extect result as a field of the default webpage model: WebPage.pageModel
-2. write extect result to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
+1. persist extract results as a field of the default webpage model: WebPage.pageModel
+2. write extract results to a JDBC compatible database, such as MySQL, PostgreSQL, MS SQL Server, Oracle, etc
 3. write several line of additional code to persist the extract result to any destination as you wish
 
 #### Default WebPage storage
@@ -67,9 +67,10 @@ By default, the extracted data is also persisted as key-value pairs in WebPage.p
 
 #### Configured JDBC compatible databases
 
-* Database config file: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
-* PageModel/Table mapping files: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
-* PageModel and extract rules are under fold: [SQL Extract Rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
+* Database connection config: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
+* Database schema: [Schema](./src/main/resources/schema)
+* PageModel/Schema mapping: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
+* PageModel and extract rules: [SQL Extract Rules](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
 
 #### Custom destination
 
