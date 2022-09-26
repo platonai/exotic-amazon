@@ -2,6 +2,8 @@
 
 Exotic Amazon is a complete solution to crawl the entire website of amazon.com.
 
+Thanks to the perfect Web data management infrastructure provided by Pulsar, the entire solution consists of no more than 3,500 lines of kotlin code, plus less than 700 lines of X-SQL to extract more than 650 fields.
+
 ## Data
 
 * Best Seller - update every day, about 32,000 categories, about 4,000,000 product records
@@ -85,9 +87,6 @@ You can write several line of additional code to save the extract result to any 
 
 ## Technical Features
 
-* Web spider: browser rendering, ajax data crawling
-* RPA: robotic process automation, mimic human behaviors, SPA crawling, or do something else valuable
-* Simple API: single line of code to scrape, or single SQL to turn a website into a table
 * X-SQL: extended SQL to manage web data: Web crawling, scraping, Web content mining, Web BI
 * Bot stealth: web driver stealth, IP rotation, privacy context rotation, never get banned
 * High performance: highly optimized, rendering hundreds of pages in parallel on a single machine without be blocked
