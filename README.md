@@ -98,7 +98,7 @@ You can write several line of additional code to save the results to any destina
 
 ## Requirements
 
-* Memory 4G+
+* Minimum memory requirement is 4G, 8G is recommended for test environment, 32G is recommended for product environment
 * The latest version of the Java 11 JDK
 * Java and jar on the PATH
 * Google Chrome 90+
