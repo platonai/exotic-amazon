@@ -71,7 +71,7 @@ There are several methods to persist the results into a database:
 
 #### Save as WebPage.pageModel
 
-By default, the extracted fields are also saved as key-value pairs as 
+By default, the extracted fields are also saved as key-value pairs to 
 [WebPage.pageModel](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
 
 #### Save to a JDBC compatible database
