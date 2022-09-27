@@ -130,5 +130,7 @@ There are three ways to view metrics:
 
 ## Q & A
 Q: How to use proxies?
-
 A: Follow [this](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) guide for proxy rotation.
+
+Q: Why is the program stuttering when running?
+A: We recommend upgrade the machine, recommend 8 cores and 16G RAM for test environments, 8 cores and 32G RAM for production environments. Or you can consider lowering the load: open src/main/resources/config/application.properties, find out property browser.max.active.tabs and set a lower value.
