@@ -2,5 +2,6 @@
   "driver": "com.mysql.cj.jdbc.Driver",
   "url": "jdbc:mysql://localhost:3306/amazon_com?autoReconnect=true",
   "username": "",
-  "password": ""
+  "password": "",
+  "comment": "If username and password are not blank, the system will try to sync the extracted records to the database"
 }

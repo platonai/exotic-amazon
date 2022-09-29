@@ -1,11 +1,11 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
-import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.LoadingSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.getLogger

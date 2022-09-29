@@ -59,6 +59,7 @@ class AmazonEmulateEventHandler(
             AmazonUrls.isIndexPage(page.url) -> OpenPageCategory(PageCategory.INDEX)
             AmazonUrls.isItemPage(page.url) -> OpenPageCategory(PageCategory.DETAIL)
             AmazonUrls.isReviewPage(page.url) -> OpenPageCategory(PageCategory.REVIEW)
+            AmazonUrls.isSearch(page.url) -> OpenPageCategory(PageCategory.SEARCH)
             else -> super.sniffPageCategory(page)
         }
     }
