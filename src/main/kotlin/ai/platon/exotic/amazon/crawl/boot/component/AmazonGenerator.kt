@@ -24,6 +24,10 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+/**
+ * Generate fetch tasks. All fetch tasks are some form of Pulsar URLs.
+ * All urls are added to the global url pool, which is an instance of [ai.platon.pulsar.common.collect.UrlPool].
+ * */
 @Component
 class AmazonGenerator(
     private val session: ScentSession,
@@ -53,6 +57,9 @@ class AmazonGenerator(
     val confusingConfig = createConfusionConfig(label)
     val reviewGenerator = ReviewGenerator(confusingConfig, session, globalCacheFactory, trackedUrlRepository)
 
+    /**
+     * Generate tasks at startup.
+     * */
     fun generateStartupTasks() {
         val tasks = listOf(
             PredefinedTask.MOVERS_AND_SHAKERS,
@@ -67,6 +74,9 @@ class AmazonGenerator(
         generateLoadingTasks(tasks, true)
     }
 
+    /**
+     * Generate tasks at the specified time point.
+     * */
     fun generateLoadingTasksAtTimePoint(truncateUnit: ChronoUnit) {
         val now = Instant.now().truncatedTo(truncateUnit)
         val tasks = PredefinedTask.values()
@@ -80,6 +90,9 @@ class AmazonGenerator(
         generateLoadingTasks(tasks, true)
     }
 
+    /**
+     * Generate tasks from a resource file.
+     * */
     fun generateLoadingTasks(residentTasks: List<ResidentTask>, refresh: Boolean) {
         try {
             val generator = LoadingSeedsGenerator(residentTasks,

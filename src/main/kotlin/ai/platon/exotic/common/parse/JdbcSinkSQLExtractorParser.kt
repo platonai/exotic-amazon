@@ -13,8 +13,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 
 /**
- * The parser to parse parse-filters from config file, the parse-filters are extractors used to extract web data from
- * webpages.
+ * The parser to parse config file and create [ParseFilter]s, the [ParseFilter]s are used
+ * to extract data from webpages.
  * */
 class JdbcSinkSQLExtractorParser(
     private val extractConfigResource: String,
