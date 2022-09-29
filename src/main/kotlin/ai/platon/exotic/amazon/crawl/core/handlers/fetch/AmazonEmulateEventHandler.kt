@@ -44,6 +44,9 @@ class AmazonEmulateEventHandler(
         "/movers-and-shakers/" to OpenPageCategory("INDEX", "IMAS")
     )
 
+    /**
+     * Sniff page category. Page category is use only for logging purpose, currently.
+     * */
     override fun sniffPageCategory(page: WebPage): OpenPageCategory {
         if (!isRelevant(page)) {
             return OpenPageCategory(PageCategory.UNKNOWN)
@@ -59,13 +62,13 @@ class AmazonEmulateEventHandler(
             AmazonUrls.isIndexPage(page.url) -> OpenPageCategory(PageCategory.INDEX)
             AmazonUrls.isItemPage(page.url) -> OpenPageCategory(PageCategory.DETAIL)
             AmazonUrls.isReviewPage(page.url) -> OpenPageCategory(PageCategory.REVIEW)
+            AmazonUrls.isSearch(page.url) -> OpenPageCategory(PageCategory.SEARCH)
             else -> super.sniffPageCategory(page)
         }
     }
 
     /**
-     * Check if the html is integral before field extraction, a further html integrity checking can be
-     * applied after field extraction.
+     * Check if the html is good for further process.
      * */
     override fun checkHtmlIntegrity(
         pageSource: String,

@@ -34,6 +34,10 @@ object AmazonUrls {
         return isAmazon(url) && url.contains("/product-reviews/")
     }
 
+    fun isSearch(url: String): Boolean {
+        return isAmazon(url) && url.contains("s?k=")
+    }
+
     fun findAsin(url: String): String? {
         val pos = url.indexOf("/dp/") + "/dp/".length
         if (pos > AppConstants.SHORTEST_VALID_URL_LENGTH) {

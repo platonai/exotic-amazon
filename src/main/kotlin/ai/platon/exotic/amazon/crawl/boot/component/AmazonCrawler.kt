@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
+/**
+ * The main crawler.
+ * */
 @Component
 class AmazonCrawler(
     globalCacheFactory: GlobalCacheFactory,

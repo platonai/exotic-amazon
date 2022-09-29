@@ -1,12 +1,12 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
-import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.amazon.tools.common.PageTraits
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
@@ -29,7 +29,6 @@ import com.google.gson.GsonBuilder
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
-import java.time.Instant
 
 /**
  * SQL extractors use SQLs to extract fields from webpages.
@@ -67,23 +66,48 @@ class AmazonJdbcSinkSQLExtractor(
 
     private val logger = getLogger(this)
 
+    /**
+     * The global url pool, all fetch tasks are added to the pool in some form of Pulsar URLs.
+     * */
     private val urlPool get() = globalCache.urlPool
+    /**
+     * The cache for review urls
+     * */
     private val reviewFetchCache
         get() = amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+    /**
+     * The url queue for review urls
+     * */
     private val reviewQueue get() = reviewFetchCache.nonReentrantQueue
     private val amazonMetrics = AmazonMetrics.extractMetrics
 
+    /**
+     * Check if JDBC sink is available.
+     * A JDBC sink is a JDBC compatible database, which is configured in jdbc-sink-config.json.
+     * If a JDBC database is available, and the schemas are created, the system will sync the
+     * extracted result to the database.
+     * */
     override val hasSink: Boolean get() {
         val jdbcConfig = commitConfig?.jdbcConfig
         return jdbcConfig != null && jdbcConfig.username.isNotBlank()
     }
 
+    /**
+     * Initialize the extractor, should be invoked just after the object is created.
+     * */
     override fun initialize() {
         if (ClusterTools.isDevInstance() || ClusterTools.isTestInstance()) {
             commitConfig?.syncBatchSize = 10
         }
     }
 
+    /**
+     * Check if this extractor is relevant to the current fetched page, if not relevant,
+     * the execution flow will skip this executor which is a ParseFilter instance.
+     *
+     * The execution flow in a SQLExtractor is:
+     * isRelevant -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
+     * */
     override fun isRelevant(parseContext: ParseContext): CheckState {
         val page = parseContext.page
         val state = if (!AmazonUrls.isAmazon(page.url)) {
@@ -101,6 +125,12 @@ class AmazonJdbcSinkSQLExtractor(
         return state
     }
 
+    /**
+     * The event handler before filter.
+     *
+     * The execution flow in a SQLExtractor is:
+     * isRelevant -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
+     */
     override fun onBeforeFilter(page: WebPage, document: FeaturedDocument) {
         super.onBeforeFilter(page, document)
 
@@ -112,6 +142,12 @@ class AmazonJdbcSinkSQLExtractor(
 
     /**
      * The event handler after extraction.
+     *
+     * Once the page is extracted, we may want to use the extract result, save the result to some destination,
+     * and collect further hyperlinks to fetch later.
+     *
+     * The execution flow in a SQLExtractor is:
+     * isRelevant -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
      * */
     override fun onAfterExtract(page: WebPage, document: FeaturedDocument, rs: ResultSet?): ResultSet? {
         rs ?: return null
@@ -182,8 +218,8 @@ class AmazonJdbcSinkSQLExtractor(
                     amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
                 }
 
-                // Every primary portal page have a concomitant secondary one, rising the priority
-                // should be a reentrant queue since the links are fetched periodically
+                // Every primary portal page have a concomitant secondary one, rising the priority.
+                // Should be a reentrant queue since the links are fetched periodically.
                 val queue2 = urlPool.higher2Cache.reentrantQueue
                 if (!url.contains("?")) {
                     // this is a primary labeled portal url, it's supposed to be loaded from a config file or database,
