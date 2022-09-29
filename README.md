@@ -1,5 +1,7 @@
 # Exotic Amazon 自述文件
 
+[English](README.EN.md) | 简体中文
+
 Exotic Amazon 是抓取整个 amazon.com 网站的完整解决方案。
 
 得益于 PulsarR 提供的完善的 Web 数据管理基础设施，整个解决方案由不超过 3500 行的kotlin代码和不到 700 行的X-SQL组成，以提取 650 多个字段。

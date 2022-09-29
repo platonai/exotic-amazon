@@ -1,5 +1,7 @@
 # Exotic Amazon README
 
+English | [简体中文](README.md)
+
 Exotic Amazon is a complete solution to crawl the entire site of amazon.com.
 
 Thanks to the perfect Web data management infrastructure provided by Pulsar, the entire solution consists of no more than 3,500 lines of kotlin code, plus less than 700 lines of X-SQL to extract more than 650 fields.
