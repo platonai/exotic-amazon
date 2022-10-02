@@ -45,7 +45,8 @@ class CrawlApplication(
 }
 
 fun main(args: Array<String>) {
-    // uncomment this line to force use MongoDB as the backend storage
+    // Backend storage is detected automatically but not on some OS such as Mac,
+    // uncomment the following line to force MongoDB to be used as the backend storage
     // System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
 
     val additionalProfiles = mutableListOf("rest", "crawler")
