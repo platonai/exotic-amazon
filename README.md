@@ -4,9 +4,9 @@
 
 Exotic Amazon 是抓取整个 amazon.com 网站的完整解决方案。
 
-得益于 PulsarR 提供的完善的 Web 数据管理基础设施，整个解决方案由不超过 3500 行的kotlin代码和不到 700 行的X-SQL组成，以提取 650 多个字段。
+得益于 PulsarR 提供的完善的 Web 数据管理基础设施，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的X-SQL组成，以提取 650 多个字段。
 
-## Data
+### 数据简介
 
 * Best Seller - 每天更新，约 32,000 个类别，约 4,000,000 个产品记录
 * Most Wished For - 每天更新约 25,000 个类别，约 3,500,000 个产品记录
@@ -20,10 +20,10 @@ Exotic Amazon 是抓取整个 amazon.com 网站的完整解决方案。
   * 热门评论
 * Review - 每天更新
 
-## Get Started
+## 开始
 
     git clone https://github.com/platonai/exotic-amazon.git
-    cd exotic-amazon && mvn
+    cd exotic-amazon && mvn -DskipTests=true
 
     java -jar target/exotic-amazon*.jar
     # Or on Windows:
@@ -31,9 +31,9 @@ Exotic Amazon 是抓取整个 amazon.com 网站的完整解决方案。
 
 打开 [System Glances](http://localhost:8182/api/system/status/glances) 以一目了然地查看系统状态。
 
-## Results
+## 提取结果处理
 
-### Extract rules
+### 提取规则
 
 所有 [提取规则](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/) 都是用 X-SQL 编写的。数据类型转换、数据清理也由强大的 X-SQL 内联处理，这也是我们需要 X-SQL 的部分原因。
 

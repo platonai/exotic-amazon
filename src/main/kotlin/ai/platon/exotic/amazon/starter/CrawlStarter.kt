@@ -3,6 +3,8 @@ package ai.platon.exotic.amazon.starter
 import ai.platon.exotic.amazon.crawl.boot.CrawlerInitializer
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
+import ai.platon.pulsar.common.config.AppConstants
+import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.persist.HadoopUtils
@@ -43,6 +45,10 @@ class CrawlApplication(
 }
 
 fun main(args: Array<String>) {
+    // Backend storage is detected automatically but not on some OS such as Mac,
+    // uncomment the following line to force MongoDB to be used as the backend storage
+    // System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
+
     val additionalProfiles = mutableListOf("rest", "crawler")
     val prod = System.getenv("ENV")?.lowercase()
     if (prod == "prod") {

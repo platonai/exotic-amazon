@@ -23,7 +23,7 @@ Thanks to the perfect Web data management infrastructure provided by Pulsar, the
 ## Get Started
 
     git clone https://github.com/platonai/exotic-amazon.git
-    cd exotic-amazon && mvn
+    cd exotic-amazon && mvn -DskipTests=true
     java -jar target/exotic-amazon*.jar
     
 Or on Windows:
