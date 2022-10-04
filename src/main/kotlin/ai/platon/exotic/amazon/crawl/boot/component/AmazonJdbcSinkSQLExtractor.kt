@@ -155,12 +155,23 @@ class AmazonJdbcSinkSQLExtractor(
         // add the extract result to the pending result manager, who will sync all the results to the sink later
         if (hasSink) {
             pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
-        } else {
+        }
+
+        if (!hasSink || page.id < 500) {
             exportWebData(page, rs)
         }
 
-        val traits = AmazonUtils.detectTraits(page, isAsinExtractor(page), amazonMetrics, statusTracker)
+        /////////////////////////////////////////////////////////////////////////
+        // Write your own code to save extract result to any destination you wish
+
+
+        //
+        /////
+
+
+        /////
         // collect hyperlinks which will be fetched in the future
+        val traits = AmazonUtils.detectTraits(page, isAsinExtractor(page), amazonMetrics, statusTracker)
         collectHyperlinks(page, document, rs, traits)
 
         return rs
@@ -202,7 +213,7 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     /**
-     * Collect further hyperlinks after extraction.
+     * Collect hyperlinks after extraction.
      * */
     private fun collectHyperlinks(page: WebPage, document: FeaturedDocument, rs: ResultSet, traits: PageTraits) {
         val url = page.url
@@ -218,7 +229,7 @@ class AmazonJdbcSinkSQLExtractor(
                     amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
                 }
 
-                // Every primary portal page have a concomitant secondary one, rising the priority.
+                // Every primary portal page have a concomitant secondary one, rising the priority
                 // Should be a reentrant queue since the links are fetched periodically.
                 val queue2 = urlPool.higher2Cache.reentrantQueue
                 if (!url.contains("?")) {
