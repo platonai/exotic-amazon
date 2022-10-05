@@ -5,16 +5,12 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.crawl.parse.ParseFilters
-import ai.platon.scent.BasicScentSession
 import ai.platon.scent.parse.html.JdbcCommitConfig
-import ai.platon.scent.ql.h2.context.ScentSQLContext
-import ai.platon.scent.ql.h2.context.ScentSQLContexts
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 
@@ -43,7 +39,7 @@ class CrawlerConfiguration(
      * Initialize and start amazon crawler
      * */
     @Bean(initMethod = "start", destroyMethod = "stop")
-    fun crawlerRunner(): StartStopRunner {
+    fun startAmazonCrawler(): StartStopRunner {
         val extractorFactory = { conf: JdbcCommitConfig ->
             applicationContext.getBean<AmazonJdbcSinkSQLExtractor>()
         }
