@@ -1,8 +1,8 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.scent.ScentSession

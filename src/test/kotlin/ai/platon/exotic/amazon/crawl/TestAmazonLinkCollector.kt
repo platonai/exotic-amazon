@@ -7,6 +7,7 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonLinkCollector
 import ai.platon.scent.boot.autoconfigure.persist.WebNodeRepository
 import ai.platon.scent.boot.autoconfigure.persist.findByNodeAnchorUrlOrNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
@@ -44,6 +45,7 @@ class TestAmazonLinkCollector: TestBase() {
         assertEquals(1, queue.size)
     }
 
+    @Ignore("updateWebNode is not maintained currently.")
     @Test
     fun `When create node then the next page link exists`() {
         val node = amazonLinkCollector.updateWebNode(page, document)
