@@ -1,5 +1,6 @@
 package ai.platon.exotic.common.diffusing
 
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.Strings
 import ai.platon.pulsar.common.getLogger
@@ -7,6 +8,8 @@ import ai.platon.pulsar.common.message.LoadStatusFormatter
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.common.urls.UrlUtils
+import ai.platon.pulsar.crawl.DefaultLoadEventHandler
+import ai.platon.pulsar.crawl.LoadEventHandler
 import ai.platon.pulsar.crawl.common.url.StatefulListenableHyperlink
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.dom.nodes.node.ext.cleanText
@@ -17,46 +20,76 @@ import ai.platon.pulsar.persist.metadata.OpenPageCategory
 import ai.platon.pulsar.persist.metadata.PageCategory
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.WebPages
-import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
-import ai.platon.pulsar.crawl.DefaultLoadEventHandler
-import ai.platon.pulsar.crawl.LoadEventHandler
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.ConcurrentSkipListSet
 
-interface PageProcessor {
+/**
+ * Create and process hyperlink for pages by category
+ * */
+interface HyperlinkProcessor {
+    /**
+     * The label for urls and tasks created by this processor
+     * */
     val label: String
+    /**
+     * The page category for urls and pages created by this processor
+     * */
     val pageCategory: OpenPageCategory
-
+    /**
+     * The event handlers
+     * */
     @Deprecated("Set event handlers on ListenableHyperlinks instead")
     val eventHandler: LoadEventHandler
-    var dbCheck: Boolean
-    var minPageSize: Int
-    var storeContent: Boolean
-
     /**
-     * Filter an url if it's a valid item page url
+     * Whether check the database for the status of a url before fetch
+     * */
+    var dbCheck: Boolean
+    /**
+     * Indicate the minimal size of page content, if the previous size is smaller than the minimal,
+     * it should be fetched again.
+     * */
+    var minPageSize: Int
+    /**
+     * Indicate whether the page's content should be stored into the storage.
+     * We suggest that the content of the detail page need not be saved, but the index page can be saved.
+     * */
+    var storeContent: Boolean
+    /**
+     * Filter a url if it's a valid url for this processor
      * */
     fun filter(url: String): String?
+    /**
+     * Normalize a url
+     * */
     fun normalize(url: String): String?
+    /**
+     * Create a hyperlink
+     * */
     fun createHyperlink(anchor: Element): Hyperlink?
+    /**
+     * Create a hyperlink
+     * */
     fun createHyperlink(url: String, href: String? = null, referer: String? = null, deadTime: Instant? = null): Hyperlink?
+    /**
+     * Collect urls to the sink
+     * */
     fun collectTo(document: FeaturedDocument, sink: MutableCollection<UrlAware>)
 }
 
-abstract class AbstractPageProcessor(
+abstract class AbstractHyperlinkProcessor(
     val config: DiffusingCrawlerConfig,
     val session: ScentSession
-) : PageProcessor {
+) : HyperlinkProcessor {
 
     companion object {
         val globalCreatedUrls = ConcurrentSkipListSet<String>()
     }
 
-    private val logger = getLogger(AbstractPageProcessor::class)
-    private val taskLogger = getLogger(AbstractPageProcessor::class, ".Task")
+    private val logger = getLogger(AbstractHyperlinkProcessor::class)
+    private val taskLogger = getLogger(AbstractHyperlinkProcessor::class, ".Task")
 
     override val label: String get() = config.label
     override val pageCategory: OpenPageCategory = OpenPageCategory(PageCategory.UNKNOWN)
@@ -78,12 +111,18 @@ abstract class AbstractPageProcessor(
         return url
     }
 
+    /**
+     * Create a hyperlink ready to be added to the URL Pool for retrieval.
+     * */
     override fun createHyperlink(anchor: Element): Hyperlink? {
         val href = filter(anchor.absUrl("href")) ?: return null
         val url = normalize(href) ?: return null
         return createHyperlink(url, href, referer = anchor.baseUri())
     }
 
+    /**
+     * Create a hyperlink ready to be added to the URL Pool for retrieval.
+     * */
     override fun createHyperlink(url: String, href: String?, referer: String?, deadTime: Instant?): Hyperlink? {
         if (filter(url) == null) {
             return null
@@ -121,11 +160,11 @@ abstract class AbstractPageProcessor(
     }
 }
 
-open class IndexPageProcessor(
+open class IndexHyperlinkProcessor(
     config: DiffusingCrawlerConfig,
     session: ScentSession
-) : AbstractPageProcessor(config, session) {
-    private val log = LoggerFactory.getLogger(IndexPageProcessor::class.java)
+) : AbstractHyperlinkProcessor(config, session) {
+    private val log = LoggerFactory.getLogger(IndexHyperlinkProcessor::class.java)
 
     override val pageCategory: OpenPageCategory = OpenPageCategory(PageCategory.INDEX)
 
@@ -158,11 +197,11 @@ open class IndexPageProcessor(
     }
 }
 
-open class ItemPageProcessor(
+open class ItemHyperlinkProcessor(
     config: DiffusingCrawlerConfig,
     session: ScentSession
-) : AbstractPageProcessor(config, session) {
-    private val log = LoggerFactory.getLogger(ItemPageProcessor::class.java)
+) : AbstractHyperlinkProcessor(config, session) {
+    private val log = LoggerFactory.getLogger(ItemHyperlinkProcessor::class.java)
 
     override val pageCategory: OpenPageCategory = OpenPageCategory(PageCategory.DETAIL)
 
@@ -200,9 +239,9 @@ open class ItemPageProcessor(
 
 open class NavigationProcessor(
     config: DiffusingCrawlerConfig,
-    val indexPageProcessor: IndexPageProcessor,
+    val indexPageProcessor: IndexHyperlinkProcessor,
     session: ScentSession
-) : AbstractPageProcessor(config, session) {
+) : AbstractHyperlinkProcessor(config, session) {
     private val log = LoggerFactory.getLogger(NavigationProcessor::class.java)
 
     override val pageCategory: OpenPageCategory = OpenPageCategory("navigation", "N")

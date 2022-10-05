@@ -19,8 +19,8 @@ interface DiffusingCrawler {
     val defaultFetchCache: UrlCache
 
     val navigationProcessor: NavigationProcessor
-    val indexPageProcessor: IndexPageProcessor
-    val itemPageProcessor: ItemPageProcessor
+    val indexPageProcessor: IndexHyperlinkProcessor
+    val itemPageProcessor: ItemHyperlinkProcessor
 
     fun generate(): Set<UrlAware>
     fun generateTo(sink: MutableCollection<UrlAware>)
@@ -79,9 +79,9 @@ class DefaultDiffusingCrawler(
 ) : AbstractDiffusingCrawler(config, session, globalCacheFactory) {
 
     override val label: String get() = config.label
-    override val indexPageProcessor = IndexPageProcessor(config, session)
+    override val indexPageProcessor = IndexHyperlinkProcessor(config, session)
         .apply { eventHandler.onAfterHtmlParse.addLast { page, document -> onAfterHtmlParse(page, document) } }
-    override val itemPageProcessor = ItemPageProcessor(config, session)
+    override val itemPageProcessor = ItemHyperlinkProcessor(config, session)
     override val navigationProcessor = NavigationProcessor(config, indexPageProcessor, session)
 
     override fun generateTo(sink: MutableCollection<UrlAware>) {

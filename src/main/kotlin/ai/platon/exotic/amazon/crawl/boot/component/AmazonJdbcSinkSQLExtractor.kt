@@ -103,10 +103,10 @@ class AmazonJdbcSinkSQLExtractor(
 
     /**
      * Check if this extractor is relevant to the current fetched page, if not relevant,
-     * the execution flow will skip this executor which is a ParseFilter instance.
+     * this extractor will be skipped.
      *
-     * The execution flow in a SQLExtractor is:
-     * isRelevant -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
+     * If the extractor is not skipped, the execution flow shows below:
+     * isRelevant (true) -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
      * */
     override fun isRelevant(parseContext: ParseContext): CheckState {
         val page = parseContext.page
@@ -128,8 +128,8 @@ class AmazonJdbcSinkSQLExtractor(
     /**
      * The event handler before filter.
      *
-     * The execution flow in a SQLExtractor is:
-     * isRelevant -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
+     * If the extractor is not skipped, the execution flow shows below:
+     * isRelevant (true) -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
      */
     override fun onBeforeFilter(page: WebPage, document: FeaturedDocument) {
         super.onBeforeFilter(page, document)
@@ -146,8 +146,8 @@ class AmazonJdbcSinkSQLExtractor(
      * Once the page is extracted, we may want to use the extract result, save the result to some destination,
      * and collect further hyperlinks to fetch later.
      *
-     * The execution flow in a SQLExtractor is:
-     * isRelevant -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
+     * If the extractor is not skipped, the execution flow shows below:
+     * isRelevant (true) -> onBeforeFilter -> onBeforeExtract -> extract -> onAfterExtract -> onAfterFilter
      * */
     override fun onAfterExtract(page: WebPage, document: FeaturedDocument, rs: ResultSet?): ResultSet? {
         rs ?: return null
@@ -178,7 +178,7 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     /**
-     * Check if all fields are match the requirement, for example, some fields are required to be not null or not blank
+     * Check if all fields match the requirement, for example, some fields are required to be not null or not blank
      * */
     override fun checkFieldRequirement(url: String, page: WebPage, onlyRecordRs: ResultSet) {
         if (!isAsinExtractor(page)) {
@@ -213,7 +213,8 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     /**
-     * Collect hyperlinks after extraction.
+     * Collect hyperlinks after extraction, so the links can be collected from the page content, the HTML document,
+     * and the result set.
      * */
     private fun collectHyperlinks(page: WebPage, document: FeaturedDocument, rs: ResultSet, traits: PageTraits) {
         val url = page.url
