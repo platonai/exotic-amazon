@@ -1,6 +1,9 @@
 package ai.platon.exotic.amazon.tools.common
 
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.common.diffusing.IndexHyperlinkProcessor
+import ai.platon.exotic.common.diffusing.ItemHyperlinkProcessor
+import ai.platon.exotic.common.diffusing.NavigationProcessor
 import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlAware
@@ -9,10 +12,7 @@ import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.dom.select.selectFirstOrNull
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.scent.ScentSession
-import ai.platon.scent.crawl.diffusing.IndexPageProcessor
-import ai.platon.scent.crawl.diffusing.ItemPageProcessor
-import ai.platon.scent.crawl.diffusing.NavigationProcessor
-import ai.platon.scent.crawl.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.LoggerFactory
@@ -22,12 +22,12 @@ import java.time.Instant
 import java.util.*
 import java.util.concurrent.ConcurrentSkipListSet
 
-class AmazonIndexPageProcessor(
+class AmazonIndexHyperlinkProcessor(
     config: DiffusingCrawlerConfig,
     session: ScentSession
-) : IndexPageProcessor(config, session) {
+) : IndexHyperlinkProcessor(config, session) {
 
-    private val logger = LoggerFactory.getLogger(AmazonIndexPageProcessor::class.java)
+    private val logger = LoggerFactory.getLogger(AmazonIndexHyperlinkProcessor::class.java)
 
     override fun filter(url: String): String? {
         return super.filter(url)?.takeIf { !it.contains("&i=aps") }
@@ -55,11 +55,11 @@ class AmazonIndexPageProcessor(
     }
 }
 
-class AmazonItemPageProcessor(
+class AmazonItemHyperlinkProcessor(
     config: DiffusingCrawlerConfig,
     session: ScentSession
-) : ItemPageProcessor(config, session) {
-    private val logger = LoggerFactory.getLogger(AmazonItemPageProcessor::class.java)
+) : ItemHyperlinkProcessor(config, session) {
+    private val logger = LoggerFactory.getLogger(AmazonItemHyperlinkProcessor::class.java)
 
     val knownAsins = ConcurrentSkipListSet<String>()
 
@@ -86,7 +86,7 @@ class AmazonItemPageProcessor(
 
 open class AmazonNavigationProcessor(
     config: DiffusingCrawlerConfig,
-    indexPageProcessor: IndexPageProcessor,
+    indexPageProcessor: IndexHyperlinkProcessor,
     session: ScentSession
 ) : NavigationProcessor(config, indexPageProcessor, session) {
     private val log = LoggerFactory.getLogger(AmazonNavigationProcessor::class.java)
@@ -115,12 +115,12 @@ open class AmazonNavigationProcessor(
     }
 }
 
-class AmazonReviewIndexPageProcessor(
+class AmazonReviewIndexHyperlinkProcessor(
     config: DiffusingCrawlerConfig,
     session: ScentSession
-) : IndexPageProcessor(config, session) {
+) : IndexHyperlinkProcessor(config, session) {
 
-    private val log = LoggerFactory.getLogger(AmazonReviewIndexPageProcessor::class.java)
+    private val log = LoggerFactory.getLogger(AmazonReviewIndexHyperlinkProcessor::class.java)
 
     val reviewRatingCountSelector =
         "#filter-info-section div[data-hook=cr-filter-info-review-rating-count], #filter-info-section"

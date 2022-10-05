@@ -68,7 +68,11 @@ class AmazonEmulateEventHandler(
     }
 
     /**
-     * Check if the html is good for further process.
+     * Check if the HTML content is good for further process.
+     *
+     * If the page is not good, for example, it's redirected to a robot-check page, or it's empty,
+     * or it's too small, the page might need to fetch again. Especially, if the page is redirected
+     * to a robot-check page, the relevant privacy context might be dropped.
      * */
     override fun checkHtmlIntegrity(
         pageSource: String,
@@ -152,8 +156,8 @@ class AmazonEmulateEventHandler(
     }
 
     /**
-     * Check if the district of the webpage is not expected. Amazon shows different content for users from different
-     * district, for example, product stock status.
+     * Check if the district setting of the webpage is as expected.
+     * Amazon shows different content for users from different district, for example, product stock status.
      * */
     private fun isWrongDistrict(pageSource: String, page: WebPage): Boolean {
         if (!enableDistrictCheck) {
@@ -179,10 +183,16 @@ class AmazonEmulateEventHandler(
         return false
     }
 
+    /**
+     * Check if this page is redirected to a robot-check page
+     * */
     private fun isRobotCheck(pageSource: String, page: WebPage): Boolean {
         return pageSource.length < 150_000 && pageSource.contains("Type the characters you see in this image")
     }
 
+    /**
+     * Check if this page is redirected to a not-found page
+     * */
     private fun isNotFound(pageSource: String, page: WebPage): Boolean {
         return pageSource.length < 150_000 && pageSource.contains("Sorry! We couldn't find that page")
     }

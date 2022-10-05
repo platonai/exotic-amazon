@@ -27,28 +27,21 @@ import org.springframework.scheduling.annotation.EnableScheduling
 )
 class CrawlerConfiguration(
     /**
-     * The amazon crawler
+     * The amazon crawler which is the main entry for business code to crawl amazon.com
      * */
     private val amazonCrawler: AmazonCrawler,
     /**
-     * The parse filter manager
+     * The parse filter manager which is an extension point to add custom code to handle with HTML documents
      * */
     private val parseFilters: ParseFilters,
     /**
-     * Trigger amazon crawler initialization
+     * Spring's ApplicationContext
      * */
     private val applicationContext: ApplicationContext,
 ) {
-    @Bean
-    @Scope("prototype")
-    fun getScentContext(): ScentSQLContext {
-        return ScentSQLContexts.create(applicationContext)
-    }
-
-    @Bean
-    @Scope("prototype")
-    fun getScentSession(): BasicScentSession = getScentContext().createSession()
-
+    /**
+     * Initialize and start amazon crawler
+     * */
     @Bean(initMethod = "start", destroyMethod = "stop")
     fun crawlerRunner(): StartStopRunner {
         val extractorFactory = { conf: JdbcCommitConfig ->

@@ -17,13 +17,13 @@ import ai.platon.pulsar.persist.WebPage
 import ai.platon.scent.ScentSession
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.common.ClusterTools
-import ai.platon.exotic.amazon.tools.common.AmazonItemPageProcessor
+import ai.platon.exotic.amazon.tools.common.AmazonItemHyperlinkProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonNavigationProcessor
-import ai.platon.exotic.amazon.tools.common.AmazonReviewIndexPageProcessor
+import ai.platon.exotic.amazon.tools.common.AmazonReviewIndexHyperlinkProcessor
 import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
 import ai.platon.scent.common.message.ScentMiscMessageWriter
-import ai.platon.scent.crawl.diffusing.AbstractDiffusingCrawler
-import ai.platon.scent.crawl.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.exotic.common.diffusing.AbstractDiffusingCrawler
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.scent.mongo.v1.TrackedUrl
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -80,13 +80,13 @@ class ReviewGenerator(
 
     override val label: String get() = config.label
 
-    override val indexPageProcessor = AmazonReviewIndexPageProcessor(config, session).apply {
+    override val indexPageProcessor = AmazonReviewIndexHyperlinkProcessor(config, session).apply {
         dbCheck = true
         storeContent = false
         minPageSize = 0
     }
     override val navigationProcessor = AmazonNavigationProcessor(config, indexPageProcessor, session)
-    override val itemPageProcessor = AmazonItemPageProcessor(config, session)
+    override val itemPageProcessor = AmazonItemHyperlinkProcessor(config, session)
 
     private var currentSink: MutableCollection<UrlAware>? = null
 

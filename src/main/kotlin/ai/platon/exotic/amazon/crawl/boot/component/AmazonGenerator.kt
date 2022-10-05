@@ -15,7 +15,7 @@ import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
 import ai.platon.scent.crawl.ResidentTask
-import ai.platon.scent.crawl.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.scent.crawl.isRunTime
 import org.springframework.stereotype.Component
 import java.net.URLEncoder
