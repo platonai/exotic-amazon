@@ -68,7 +68,11 @@ class AmazonEmulateEventHandler(
     }
 
     /**
-     * Check if the html is good for further process.
+     * Check if the HTML content is good for further process.
+     *
+     * If the page is not good, for example, it's redirected to a robot-check page, or it's empty,
+     * or it's too small, the page might need to fetch again. Especially, if the page is redirected
+     * to a robot-check page, the relevant privacy context might be dropped.
      * */
     override fun checkHtmlIntegrity(
         pageSource: String,
