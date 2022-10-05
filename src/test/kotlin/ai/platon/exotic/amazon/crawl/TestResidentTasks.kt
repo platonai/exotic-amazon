@@ -89,35 +89,4 @@ class TestResidentTasks: TestBase() {
         logger.info("Open collectors: \n{}", formatter)
     }
 
-    @Test
-    fun testAsinGeneration() {
-        val generator = DailyAsinGenerator.getOrCreate(session, urlLoader, urlFeeder)
-        val seeds = generator.generate()
-
-        seeds.forEach {
-            assertTrue(it.toString()) { AmazonUrls.findAsin(it.url) != null }
-        }
-
-        assertTrue { seeds.isNotEmpty() }
-    }
-
-    @Test
-    fun testAsinTaskGeneration() {
-        amazonGenerator.asinGenerator.externalClear()
-        amazonGenerator.generateAsinTasks()
-
-        val collector = openCollectors.firstOrNull { PredefinedTask.ASIN.name in it.name }
-        println(PriorityDataCollectorsTableFormatter(crawlLoop.collectors))
-        assertNotNull(collector)
-        // no longer be a UrlCacheCollector
-//        assertTrue { collector is UrlCacheCollector }
-        println(collector)
-        assertTrue { collector.size > 0 }
-
-        val sink = mutableListOf<UrlAware>()
-        collector.collectTo(sink)
-        assertEquals(1, sink.size)
-        assertTrue { collector.size > 0 }
-        println(collector)
-    }
 }

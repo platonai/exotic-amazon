@@ -1,5 +1,7 @@
 package ai.platon.exotic.amazon.crawl
 
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.collect.LoadingUrlPool
 import ai.platon.pulsar.common.config.CapabilityTypes
@@ -10,8 +12,6 @@ import ai.platon.pulsar.crawl.component.FetchComponent
 import ai.platon.pulsar.crawl.component.LoadComponent
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.persist.HadoopUtils
-import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
-import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.scent.crawl.serialize.config.v1.CrawlConfig
 import ai.platon.scent.jackson.scentObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -40,7 +40,7 @@ class TestPreconditions: TestBase() {
         CapabilityTypes.LEGACY_CONFIG_PROFILE to "default",
         CapabilityTypes.PROXY_ENABLE_DEFAULT_PROVIDERS to "true",
         CapabilityTypes.PROXY_POOL_MONITOR_CLASS to "ai.platon.pulsar.common.proxy.ProxyPoolManager",
-        CapabilityTypes.PROXY_LOADER_CLASS to "ai.platon.exotic.common.proxy.ProxyVendorLoader",
+//        CapabilityTypes.PROXY_LOADER_CLASS to "ai.platon.exotic.common.proxy.ProxyVendorLoader",
         CapabilityTypes.BROWSER_EMULATOR_EVENT_HANDLER to "ai.platon.scent.protocol.browser.emulator.context.CombinedEventHandler",
         CapabilityTypes.PRIVACY_CONTEXT_ID_GENERATOR_CLASS to "ai.platon.pulsar.crawl.fetch.privacy.SequentialPrivacyContextIdGenerator",
         CapabilityTypes.H2_SESSION_FACTORY_CLASS to "ai.platon.scent.ql.h2.H2SessionFactory"
