@@ -162,7 +162,7 @@ class AmazonJdbcSinkSQLExtractor(
         }
 
         /////////////////////////////////////////////////////////////////////////
-        // Write your own code to save extract result to any destination you wish
+        // Write your own code to save extract result to any destination as you wish
 
 
         //

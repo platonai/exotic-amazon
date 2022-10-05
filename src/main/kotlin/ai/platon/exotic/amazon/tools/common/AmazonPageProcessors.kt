@@ -1,6 +1,9 @@
 package ai.platon.exotic.amazon.tools.common
 
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.common.diffusing.IndexPageProcessor
+import ai.platon.exotic.common.diffusing.ItemPageProcessor
+import ai.platon.exotic.common.diffusing.NavigationProcessor
 import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlAware
@@ -9,10 +12,7 @@ import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.dom.select.selectFirstOrNull
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.scent.ScentSession
-import ai.platon.scent.crawl.diffusing.IndexPageProcessor
-import ai.platon.scent.crawl.diffusing.ItemPageProcessor
-import ai.platon.scent.crawl.diffusing.NavigationProcessor
-import ai.platon.scent.crawl.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.LoggerFactory

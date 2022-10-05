@@ -22,8 +22,8 @@ import ai.platon.exotic.amazon.tools.common.AmazonNavigationProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonReviewIndexPageProcessor
 import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
 import ai.platon.scent.common.message.ScentMiscMessageWriter
-import ai.platon.scent.crawl.diffusing.AbstractDiffusingCrawler
-import ai.platon.scent.crawl.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.exotic.common.diffusing.AbstractDiffusingCrawler
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.scent.mongo.v1.TrackedUrl
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
