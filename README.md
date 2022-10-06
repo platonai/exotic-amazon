@@ -2,9 +2,9 @@
 
 [English](README.EN.md) | 简体中文
 
-Exotic Amazon 是抓取整个 amazon.com 网站的完整解决方案。
+Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，开箱即用，包含亚马逊大多数数据类型，它将永久免费提供并开放源代码。
 
-得益于 PulsarR 提供的完善的 Web 数据管理基础设施，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的X-SQL组成，以提取 650 多个字段。
+得益于 PulsarR 提供的完善的 Web 数据管理基础设施，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
 
 ### 数据简介
 
