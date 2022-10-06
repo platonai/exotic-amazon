@@ -13,7 +13,7 @@ Exotic Amazon 是抓取整个 amazon.com 网站的完整解决方案。
 * New Releases - 每天更新，约 25,000 个类别，约 3,000,000 条产品记录
 * Movers and Shakers - 约 20 个类别，每小时更新一次
 * Products - 约 20,000,000 个产品，每月更新
-  * 100多个字段
+  * 100 多个字段
   * 标题、价格、库存、图像、描述、规格、店铺等
   * 赞助产品、类似产品、相关产品等
   * 阅读评论
@@ -66,9 +66,9 @@ Mac:
 
 有几种方法可以将结果保存到数据库中:
 
-1.将结果序列化为键值对，并保存为 WebPage 对象的一个字段，这是整个系统的核心数据结构
-2.将结果写入 JDBC 兼容的数据库，如 MySQL、PostgreSQL、MS SQL Server、Oracle 等
-3.自行编写几行代码，将结果保存到您希望的任何目的地
+* 将结果序列化为键值对，并保存为 WebPage 对象的一个字段，这是整个系统的核心数据结构
+* 将结果写入 JDBC 兼容的数据库，如 MySQL、PostgreSQL、MS SQL Server、Oracle 等
+* 自行编写几行代码，将结果保存到您希望的任何目的地
 
 #### 保存到 WebPage.pageModel
 
@@ -127,7 +127,7 @@ PulsarR 在日志中报告每个页面加载任务执行的状态，因此很容
 有三种方法可以查看指标：
 
 * Check logs/pulsar.m.log
-* Open [System Glances](http://localhost:8182/api/system/status/glances) which is a Web UI to show the most metrics
+* Open [System Glances](http://localhost:8182/api/system/status/glances) which is a Web UI to show the most important metrics
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A

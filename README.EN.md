@@ -125,7 +125,7 @@ Typical page loading logs are as the following, check [log-format](https://githu
 There are three ways to view metrics:
 
 * Check logs/pulsar.m.log
-* Open [System Glances](http://localhost:8182/api/system/status/glances) which is a Web UI to show the most metrics
+* Open [System Glances](http://localhost:8182/api/system/status/glances) which is a Web UI to show the most important metrics
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A
