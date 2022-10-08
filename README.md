@@ -35,6 +35,8 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
         </mirror>
     </mirrors>
 
+你可以在 Q/A 章节找到关于 .m2/settings.xml 的基本介绍。
+
 现在可以开始了构建了：
 
     git clone https://github.com/platonai/exotic-amazon.git
@@ -167,3 +169,15 @@ PulsarR 在日志中报告每个页面加载任务执行的状态，因此很容
 Q: 如何使用代理IP？
 
 A: [点击查看](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) 如何管理 IP
+
+Q: .m2/settings.xml 是什么文件？
+
+A: 它是用来设置 maven 参数的配置文件。settings.xml 中包含类似本地仓储位置、修改远程仓储服务器、认证信息等配置。一般存在于两个位置：
+
+全局配置
+    
+    ${maven.home}/conf/settings.xml
+    
+用户配置
+
+    ${user.home}/.m2/settings.xml
