@@ -166,18 +166,18 @@ PulsarR 在日志中报告每个页面加载任务执行的状态，因此很容
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A
-Q: 如何使用代理IP？
+**Q: 如何使用代理IP？**
 
 A: [点击查看](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) 如何管理 IP
 
-Q: .m2/settings.xml 是什么文件？
+**Q: .m2/settings.xml 是什么文件？**
 
 A: 它是用来设置 maven 参数的配置文件。settings.xml 中包含类似本地仓储位置、修改远程仓储服务器、认证信息等配置。一般存在于两个位置：
 
 全局配置
-    
+
     ${maven.home}/conf/settings.xml
-    
+
 用户配置
 
     ${user.home}/.m2/settings.xml
