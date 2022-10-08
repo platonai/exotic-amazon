@@ -166,6 +166,7 @@ PulsarR 在日志中报告每个页面加载任务执行的状态，因此很容
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A
+
 **Q: 如何使用代理IP？**
 
 A: [点击查看](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) 如何管理 IP
@@ -181,3 +182,14 @@ A: 它是用来设置 maven 参数的配置文件。settings.xml 中包含类似
 用户配置
 
     ${user.home}/.m2/settings.xml
+
+如果你的用户目录下没有这个文件，可以创建一个并写入以下内容：
+
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+</settings>
+
+这个配置文件没有任何配置项，你可以加入自己的配置项。
