@@ -22,6 +22,19 @@ Thanks to the perfect Web data management infrastructure provided by Pulsar, the
 
 ## Get Started
 
+Add the following lines to your .m2/settings.xml:
+
+    <mirrors>
+        <mirror>
+            <id>maven-default-http-blocker</id>
+            <mirrorOf>dummy</mirrorOf>
+            <name>Dummy mirror to override default blocking mirror that blocks http</name>
+            <url>http://0.0.0.0/</url>
+        </mirror>
+    </mirrors>
+
+Now we can start building:
+
     git clone https://github.com/platonai/exotic-amazon.git
     cd exotic-amazon && mvn -DskipTests=true
     java -jar target/exotic-amazon*.jar
