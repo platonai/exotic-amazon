@@ -185,11 +185,13 @@ A: 它是用来设置 maven 参数的配置文件。settings.xml 中包含类似
 
 如果你的用户目录下没有这个文件，可以创建一个并写入以下内容：
 
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
 </settings>
+```
 
 这个配置文件没有任何配置项，你可以加入自己的配置项。
