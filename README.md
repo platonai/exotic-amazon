@@ -50,9 +50,13 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 ## 困难和挑战
 
-亚马逊在反爬虫方面，常用的反爬手段基本都用了，譬如 Cookie 跟踪，IP 跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
+现在主流网站常用的反爬手段基本都用了，譬如Cookie跟踪，IP跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
 
-使用浏览器自动化工具如 selenium, playwright, puppeteer 等采集亚马逊数据，会被检测出来。像 puppeteer-extra, apify-crawlee 这样的工具，提供了 WebDriver 隐身特性，缓解了这个问题，但没有完全解决。
+使用基本的 HTTP 协议采集的话，会陷入无穷无尽的爬虫/反爬虫对抗中，得不偿失，并且未必能解决，譬如说采用了动态自定义字体的站点就不可能解决。
+
+使用浏览器自动化工具如 selenium, playwright, puppeteer 等进行数据采集，会被检测出来并直接屏蔽。
+
+使用 puppeteer-extra, apify/crawlee 这样的工具，虽然提供了 WebDriver 隐身特性，一定程度上缓解了这个问题，但仍然没有完全解决。
 
 1. 上述工具没有解决访问轨迹跟踪问题
 2. Headless 模式能够被检测出来。云端爬虫通常以 headless 模式运行，即使做了 WebDriver 隐身, headless 模式也能够被检测出来
