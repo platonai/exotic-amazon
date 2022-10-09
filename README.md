@@ -101,9 +101,9 @@ Mac:
 
 有几种方法可以将结果保存到数据库中:
 
-1.将结果序列化为键值对，并保存为 WebPage 对象的一个字段，这是整个系统的核心数据结构
-2.将结果写入 JDBC 兼容的数据库，如 MySQL、PostgreSQL、MS SQL Server、Oracle 等
-3.自行编写几行代码，将结果保存到您希望的任何目的地
+1. 将结果序列化为键值对，并保存为 WebPage 对象的一个字段，这是整个系统的核心数据结构
+2. 将结果写入 JDBC 兼容的数据库，如 MySQL、PostgreSQL、MS SQL Server、Oracle 等
+3. 自行编写几行代码，将结果保存到您希望的任何目的地
 
 #### 保存到 WebPage.pageModel
 
