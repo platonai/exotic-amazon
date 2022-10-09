@@ -145,6 +145,7 @@ Mac:
 * Minimum memory requirement is 4G, 8G is recommended for test environment, 32G is recommended for product environment
 * The latest version of the Java 11 JDK
 * Java and jar on the PATH
+* Maven 3.2+
 * Google Chrome 90+
 * MongoDB started
 
