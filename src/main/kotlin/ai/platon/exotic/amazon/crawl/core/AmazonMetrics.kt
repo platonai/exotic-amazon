@@ -5,11 +5,11 @@ import ai.platon.pulsar.common.metrics.AppMetrics
 class AmazonMetrics(val ident: String) {
     companion object {
         /**
-         * Metrics for load phrase
+         * Metrics for load phase
          * */
         val loadMetrics = AmazonMetrics("l")
         /**
-         * Metrics for extract phrase
+         * Metrics for extract phase
          * */
         val extractMetrics = AmazonMetrics("x")
     }
