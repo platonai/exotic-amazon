@@ -24,7 +24,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 ## 开始
 
-在 .m2/settings.xml 文件中加入如下代码：
+如果 maven 版本号是 3.8.1 或以上，需要在 .m2/settings.xml 文件中加入如下代码：
 
     <mirrors>
         <mirror>
@@ -145,6 +145,7 @@ Mac:
 * Minimum memory requirement is 4G, 8G is recommended for test environment, 32G is recommended for product environment
 * The latest version of the Java 11 JDK
 * Java and jar on the PATH
+* Maven 3.2+
 * Google Chrome 90+
 * MongoDB started
 
