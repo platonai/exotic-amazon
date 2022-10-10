@@ -36,11 +36,11 @@ enum class PredefinedTask(
      * */
     var fileName: String? = null,
     /**
-     * Ignore run time restriction, always be OK to run
+     * Ignore the run time restriction, if set to true, the task can run at any time
      * */
     var ignoreTTL: Boolean = false,
     /**
-     * Do not store content if the page store is very large
+     * Do not store the pages' content if they are large
      * */
     var storeContent: Boolean = false
 ) {

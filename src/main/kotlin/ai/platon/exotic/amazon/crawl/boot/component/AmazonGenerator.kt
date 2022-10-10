@@ -71,7 +71,7 @@ class AmazonGenerator(
             .filter { it.isRunTime() }
 
         logger.info("Generating startup tasks ...")
-        generateLoadingTasks(tasks, true)
+        // generateLoadingTasks(tasks, true)
     }
 
     /**
