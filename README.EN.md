@@ -22,7 +22,7 @@ Thanks to the perfect Web data management infrastructure provided by Pulsar, the
 
 ## Get Started
 
-Add the following lines to your .m2/settings.xml:
+If the maven version number is 3.8.1 or above, you need to add the following code to `.m2/settings.xml`:
 
     <mirrors>
         <mirror>
@@ -32,6 +32,8 @@ Add the following lines to your .m2/settings.xml:
             <url>http://0.0.0.0/</url>
         </mirror>
     </mirrors>
+
+If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to `.m2` directory. A basic introduction to `.m2/settings.xml` can be found in the Q/A section.
 
 Now we can start building:
 
@@ -142,6 +144,20 @@ There are three ways to view metrics:
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A
-Q: How to use proxies?
+### **Q: How to use proxies?**
 
 A: Follow [this](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) guide for proxy rotation.
+
+### **Q: What is `.m2/settings.xml`?**
+
+A: It is a configuration file for maven. Settings.xml contains configuration like local repository location, remote repository server, authentication information, etc. It generally exists in two locations:
+
+Global settings:
+
+    ${maven.home}/conf/settings.xml
+
+User settings:
+
+    ${user.home}/.m2/settings.xml
+
+If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to the `.m2` directory.

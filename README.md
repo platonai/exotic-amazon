@@ -24,7 +24,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 ## 开始
 
-如果 maven 版本号是 3.8.1 或以上，需要在 .m2/settings.xml 文件中加入如下代码：
+如果 maven 版本号是 3.8.1 或以上，需要在 `.m2/settings.xml` 文件中加入如下代码：
 
     <mirrors>
         <mirror>
@@ -35,7 +35,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
         </mirror>
     </mirrors>
 
-你可以在 Q/A 章节找到关于 .m2/settings.xml 的基本介绍。
+或者如果这个文件不存在，可以直接拷贝 [settings.xml](docs/settings.xml) 到 .m2 目录下。在 Q/A 章节可以找到关于 .m2/settings.xml 的基本介绍。
 
 现在可以开始了构建了：
 
@@ -181,25 +181,14 @@ A: [点击查看](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/R
 
 ### **Q: .m2/settings.xml 是什么文件？**
 
-A: 它是用来设置 maven 参数的配置文件。settings.xml 中包含类似本地仓储位置、修改远程仓储服务器、认证信息等配置。一般存在于两个位置：
+A: 它是用来设置 maven 参数的配置文件。`Settings.xml` 中包含本地仓库位置、修改远程仓库服务器、认证信息等配置。一般存在于两个位置：
 
-全局配置
+全局配置：
 
     ${maven.home}/conf/settings.xml
 
-用户配置
+用户配置：
 
     ${user.home}/.m2/settings.xml
 
-如果你的用户目录下没有这个文件，可以创建一个并写入以下内容：
-
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-
-</settings>
-```
-
-这个配置文件没有任何配置项，你可以加入自己的配置项。
+如果这个文件不存在，你可以拷贝 [`settings.xml`](docs/settings.xml) 到 `.m2` 目录下。
