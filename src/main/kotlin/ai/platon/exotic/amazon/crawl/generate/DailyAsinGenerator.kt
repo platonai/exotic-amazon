@@ -86,7 +86,7 @@ class DailyAsinGenerator(
         }
 
         /**
-         * Check if this host is the supervisor node, only the supervisor node generates ths tasks.
+         * Check if this host is the supervisor node, only the supervisor node generates the tasks.
          * All nodes take turns serving as the supervisor.
          * */
         fun isSupervisor(): Boolean {
@@ -192,7 +192,7 @@ class DailyAsinGenerator(
 
     /**
      * Seed urls, with load arguments are stored in a file, here we read them and parse all configured seed urls into a
-     * queue of NormUrl.
+     * url queue.
      *
      * We will fetch each seed page, parse it into a document, extract all required hyperlinks from it,
      * keep all the links into WebPage.vividLinks. We do not write the page content to database, which is useless and

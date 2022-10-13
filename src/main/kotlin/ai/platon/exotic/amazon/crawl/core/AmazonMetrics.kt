@@ -5,11 +5,11 @@ import ai.platon.pulsar.common.metrics.AppMetrics
 class AmazonMetrics(val ident: String) {
     companion object {
         /**
-         * Metrics for load phrase
+         * Metrics for load phase
          * */
         val loadMetrics = AmazonMetrics("l")
         /**
-         * Metrics for extract phrase
+         * Metrics for extract phase
          * */
         val extractMetrics = AmazonMetrics("x")
     }
@@ -24,21 +24,21 @@ class AmazonMetrics(val ident: String) {
     val zgbs = multiMetric("zgbs")
     // number of secondary best-seller (zgbs) pages
     val szgbs = multiMetric("zgbsS")
-    // number of primary zgbs pages without secondary ones
+    // number of primary zgbs pages that have no secondary ones
     val noszgbs = multiMetric("zgbsNoS")
 
     // number of primary most-wished-for pages (the first page)
     val mWishedF = multiMetric("mWishedF")
     // number of secondary most-wished-for pages
     val smWishedF = multiMetric("mWishedFS")
-    // number of primary most-wished-for pages without secondary ones
+    // number of primary most-wished-for pages that have no secondary ones
     val nosmWishedF = multiMetric("mWishedFNoS")
 
     // number of primary new-release pages (the first page)
     val nRelease = multiMetric("nRelease")
     // number of secondary new-release pages
     val snRelease = multiMetric("nReleaseS")
-    // number of primary new-release pages without secondary ones
+    // number of primary new-release pages that have no secondary ones
     val nosnRelease = multiMetric("nReleaseNoS")
 
     /**

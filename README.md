@@ -24,6 +24,21 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 ## 开始
 
+如果 maven 版本号是 3.8.1 或以上，需要在 `.m2/settings.xml` 文件中加入如下代码：
+
+    <mirrors>
+        <mirror>
+            <id>maven-default-http-blocker</id>
+            <mirrorOf>dummy</mirrorOf>
+            <name>Dummy mirror to override default blocking mirror that blocks http</name>
+            <url>http://0.0.0.0/</url>
+        </mirror>
+    </mirrors>
+
+或者如果这个文件不存在，可以直接拷贝 [settings.xml](docs/settings.xml) 到 .m2 目录下。在 Q/A 章节可以找到关于 .m2/settings.xml 的基本介绍。
+
+现在可以开始了构建了：
+
     git clone https://github.com/platonai/exotic-amazon.git
     cd exotic-amazon && mvn -DskipTests=true
 
@@ -31,7 +46,32 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
     # Or on Windows:
     java -jar target/exotic-amazon-{the-actual-version}.jar
 
-打开 [System Glances](http://localhost:8182/api/system/status/glances) 以一目了然地查看系统状态。
+一旦运行成功，你可以打开 [System Glances](http://localhost:8182/api/system/status/glances) 以一目了然地查看系统状态。
+
+## 困难和挑战
+
+现在主流网站常用的反爬手段基本都用了，譬如Cookie跟踪，IP跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
+
+使用基本的 HTTP 协议采集的话，会陷入无穷无尽的爬虫/反爬虫对抗中，得不偿失，并且未必能解决，譬如说采用了动态自定义字体的站点就不可能解决。
+
+使用浏览器自动化工具如 selenium, playwright, puppeteer 等进行数据采集，会被检测出来并直接屏蔽。
+
+使用 puppeteer-extra, apify/crawlee 这样的工具，虽然提供了 WebDriver 隐身特性，一定程度上缓解了这个问题，但仍然没有完全解决。
+
+1. 上述工具没有解决访问轨迹跟踪问题
+2. Headless 模式能够被检测出来。云端爬虫通常以 headless 模式运行，即使做了 WebDriver 隐身, headless 模式也能够被检测出来
+3. 其他爬虫对抗问题
+
+即使解决完上述问题，也仅仅是入门而已。在大规模采集下，仍然面临诸多困难：
+
+1. 如何正确轮换IP？事实上，仅轮换IP是不够的，我们提出“**隐私上下文轮换**”
+1. 如何使用单台机器每天提取**数千万数据点**？
+1. 如何保证**数据准确性**？
+1. 如何保证**调度准确性**？
+1. 如何保证**分布式系统弹性**？
+1. 如何正确提取 **CSS 混淆** 的字段，它的 CSSPath/XPath/Regex 每个网页都不同，有什么技术解决？
+1. 如何采集数百个电商站点并避免爬虫失效？
+1. 如何降低**总体拥有成本**？
 
 ## 困难和挑战
 
@@ -86,9 +126,9 @@ Mac:
 
 有几种方法可以将结果保存到数据库中:
 
-1.将结果序列化为键值对，并保存为 WebPage 对象的一个字段，这是整个系统的核心数据结构
-2.将结果写入 JDBC 兼容的数据库，如 MySQL、PostgreSQL、MS SQL Server、Oracle 等
-3.自行编写几行代码，将结果保存到您希望的任何目的地
+1. 将结果序列化为键值对，并保存为 WebPage 对象的一个字段，这是整个系统的核心数据结构
+2. 将结果写入 JDBC 兼容的数据库，如 MySQL、PostgreSQL、MS SQL Server、Oracle 等
+3. 自行编写几行代码，将结果保存到您希望的任何目的地
 
 #### 保存到 WebPage.pageModel
 
@@ -123,6 +163,7 @@ Mac:
 * Minimum memory requirement is 4G, 8G is recommended for test environment, 32G is recommended for product environment
 * The latest version of the Java 11 JDK
 * Java and jar on the PATH
+* Maven 3.2+
 * Google Chrome 90+
 * MongoDB started
 
@@ -151,6 +192,44 @@ PulsarR 在日志中报告每个页面加载任务执行的状态，因此很容
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A
-Q: 如何使用代理IP？
+
+### **Q: 如何使用代理IP？**
 
 A: [点击查看](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) 如何管理 IP
+
+### **Q: .m2/settings.xml 是什么文件？**
+
+A: 它是用来设置 maven 参数的配置文件。`Settings.xml` 中包含本地仓库位置、修改远程仓库服务器、认证信息等配置。一般存在于两个位置：
+
+全局配置：
+
+    ${maven.home}/conf/settings.xml
+
+用户配置：
+
+    ${user.home}/.m2/settings.xml
+
+如果这个文件不存在，你可以拷贝 [`settings.xml`](docs/settings.xml) 到 `.m2` 目录下。
+
+### **Q: 先抓取详情页，再根据详情页抓取评论页，这一块处理的逻辑在哪里？**
+
+A: 你可以看看下面几个调用的 [代码](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt) 逻辑：
+
+````
+AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
+ amazonLinkCollector.collectReviewLinksFromProductPage,
+ amazonLinkCollector.collectSecondaryReviewLinks,
+ amazonLinkCollector.collectSecondaryReviewLinksFromPagination
+````
+
+### **Q: 怎样设置任务的启动时间、结束时间和采集周期？**
+
+A: 
+
+1. 阅读 [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) 文档，它描述一个任务该怎么处理
+2. 参考 [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt)，它定义了亚马逊特定任务。PredefinedTask 的设置最终会被转换 LoadOptions 参数
+3. 定时任务在 [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt) 中设置
+
+### **Q: 怎么保存抓取结果？**
+
+A: 参看本文档 [将提取结果保存到数据库中](#将提取结果保存到数据库中) 章节。

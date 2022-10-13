@@ -22,6 +22,21 @@ Thanks to the perfect Web data management infrastructure provided by Pulsar, the
 
 ## Get Started
 
+If the maven version number is 3.8.1 or above, you need to add the following code to `.m2/settings.xml`:
+
+    <mirrors>
+        <mirror>
+            <id>maven-default-http-blocker</id>
+            <mirrorOf>dummy</mirrorOf>
+            <name>Dummy mirror to override default blocking mirror that blocks http</name>
+            <url>http://0.0.0.0/</url>
+        </mirror>
+    </mirrors>
+
+If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to `.m2` directory. A basic introduction to `.m2/settings.xml` can be found in the Q/A section.
+
+Now we can start building:
+
     git clone https://github.com/platonai/exotic-amazon.git
     cd exotic-amazon && mvn -DskipTests=true
     java -jar target/exotic-amazon*.jar
@@ -129,6 +144,43 @@ There are three ways to view metrics:
 * Install [graphite](https://graphiteapp.org/) on the same machine, and open http://127.0.0.1/ to view the graphical report
 
 ## Q & A
-Q: How to use proxies?
+### **Q: How to use proxies?**
 
 A: Follow [this](https://github.com/platonai/exotic/blob/main/bin/tools/proxy/README.adoc) guide for proxy rotation.
+
+### **Q: What is `.m2/settings.xml`?**
+
+A: It is a configuration file for maven. Settings.xml contains configuration like local repository location, remote repository server, authentication information, etc. It generally exists in two locations:
+
+Global settings:
+
+    ${maven.home}/conf/settings.xml
+
+User settings:
+
+    ${user.home}/.m2/settings.xml
+
+If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to the `.m2` directory.
+
+### **Q: First scrape the detail page and then scrape the comment pages from the detail page, where is the code? **
+
+A: You can see the [code logic](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt) for the following calls:
+
+````
+AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
+ amazonLinkCollector.collectReviewLinksFromProductPage,
+ amazonLinkCollector.collectSecondaryReviewLinks,
+ amazonLinkCollector.collectSecondaryReviewLinksFromPagination
+````
+
+### **Q: How to set the start time, end time and period of tasks?**
+
+A:
+
+1. Read [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) which describes what to do with a task
+2. Refer to [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt), which defines Amazon specific tasks. The settings of PredefinedTask will eventually be converted to LoadOptions
+3. Scheduled tasks are defined in [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt)
+
+### **Q: How to store the scraping results?**
+
+A: Refer to [Save extract results into a database](#Save extract results into a database)
