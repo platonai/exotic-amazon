@@ -161,3 +161,26 @@ User settings:
     ${user.home}/.m2/settings.xml
 
 If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to the `.m2` directory.
+
+### **Q: First scrape the detail page and then scrape the comment pages from the detail page, where is the code? **
+
+A: You can see the [code logic](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt) for the following calls:
+
+````
+AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
+ amazonLinkCollector.collectReviewLinksFromProductPage,
+ amazonLinkCollector.collectSecondaryReviewLinks,
+ amazonLinkCollector.collectSecondaryReviewLinksFromPagination
+````
+
+### **Q: How to set the start time, end time and scrape period of tasks?**
+
+A:
+
+1. Read [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) which describe tasks
+2. Refer to [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt), which defines Amazon specific tasks. The settings of PredefinedTask will eventually be converted to LoadOptions
+3. Scheduled tasks are set in [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt)
+
+### **Q: How to store the scraping results?**
+
+A: Refer to [Save extract results into a database](#Save extract results into a database)

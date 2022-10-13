@@ -192,3 +192,26 @@ A: 它是用来设置 maven 参数的配置文件。`Settings.xml` 中包含本�
     ${user.home}/.m2/settings.xml
 
 如果这个文件不存在，你可以拷贝 [`settings.xml`](docs/settings.xml) 到 `.m2` 目录下。
+
+### **Q: 先抓取详情页，再根据详情页抓取评论页，这一块处理的逻辑在哪里？**
+
+A: 你可以看看下面几个调用的 [代码](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/component/AmazonJdbcSinkSQLExtractor.kt) 逻辑：
+
+````
+AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
+ amazonLinkCollector.collectReviewLinksFromProductPage,
+ amazonLinkCollector.collectSecondaryReviewLinks,
+ amazonLinkCollector.collectSecondaryReviewLinksFromPagination
+````
+
+### **Q: 怎样设置任务的启动时间、结束时间和采集周期？**
+
+A: 
+
+1. 阅读 [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) 文档，它描述所有任务该怎么做
+2. 参考 [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt)，它定义了亚马逊特定任务。PredefinedTask 的设置最终会被转换 LoadOptions 参数
+3. 定时任务在 [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt) 中设置
+
+### **Q: 怎么保存抓取结果？**
+
+A: 参看本文档 [将提取结果保存到数据库中](#将提取结果保存到数据库中) 章节。
