@@ -208,7 +208,7 @@ AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
 
 A: 
 
-1. 阅读 [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) 文档，它描述所有任务该怎么做
+1. 阅读 [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) 文档，它描述一个任务该怎么处理
 2. 参考 [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt)，它定义了亚马逊特定任务。PredefinedTask 的设置最终会被转换 LoadOptions 参数
 3. 定时任务在 [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt) 中设置
 

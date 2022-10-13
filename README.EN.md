@@ -173,13 +173,13 @@ AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
  amazonLinkCollector.collectSecondaryReviewLinksFromPagination
 ````
 
-### **Q: How to set the start time, end time and scrape period of tasks?**
+### **Q: How to set the start time, end time and period of tasks?**
 
 A:
 
-1. Read [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) which describe tasks
+1. Read [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) which describes what to do with a task
 2. Refer to [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt), which defines Amazon specific tasks. The settings of PredefinedTask will eventually be converted to LoadOptions
-3. Scheduled tasks are set in [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt)
+3. Scheduled tasks are defined in [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt)
 
 ### **Q: How to store the scraping results?**
 
