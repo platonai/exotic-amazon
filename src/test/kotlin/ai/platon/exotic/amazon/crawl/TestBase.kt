@@ -5,6 +5,7 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
+import ai.platon.pulsar.persist.WebDb
 import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.test.ScentBootTest
@@ -33,6 +34,9 @@ open class TestBase {
     lateinit var session: ScentSession
 
     @Autowired
+    lateinit var webDb: WebDb
+
+    @Autowired
     lateinit var globalCacheFactory: GlobalCacheFactory
 
     @Autowired
@@ -41,8 +45,9 @@ open class TestBase {
     @Autowired
     lateinit var crawlLoop: ScentCrawlLoop
 
-    @Autowired
-    lateinit var crawler: AmazonCrawler
+    // should not load startup tasks
+//    @Autowired
+//    lateinit var crawler: AmazonCrawler
 
     @Autowired
     lateinit var amazonGenerator: AmazonGenerator
@@ -57,6 +62,8 @@ open class TestBase {
 
     @Before
     fun setup() {
+        assertTrue { webDb.dataStore.schemaExists() }
+
         assertEquals("ScentCrawlLoop", crawlLoop.name)
 
         assertTrue { crawlLoops.loops.isNotEmpty() }
@@ -72,6 +79,8 @@ open class TestBase {
         crawlLoop.urlFeeder.clear()
         // ensure the clear removes fetch items, not collectors
         assertTrue { crawlLoop.urlFeeder.openCollectors.size == collectorCount }
+
+
 
         if (enableCrawlLoop) {
             crawlLoops.restart()

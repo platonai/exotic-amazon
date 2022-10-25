@@ -26,9 +26,6 @@ class TestPeriodicalCrawlTasks: TestBase() {
     private lateinit var urlLoader: ExternalUrlLoader
 
     @Autowired
-    private lateinit var webDb: WebDb
-
-    @Autowired
     private lateinit var parseFilters: ParseFilters
 
     override var enableCrawlLoop = false
