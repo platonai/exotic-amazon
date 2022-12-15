@@ -16,16 +16,10 @@ object AmazonUrls {
         return url.contains(".amazon.")
     }
 
-    /**
-     * Site specific, should be moved to a better place
-     * */
     fun isIndexPage(url: String): Boolean {
         return isAmazon(url) && (indexPageUrlContains.any { url.contains(it) })
     }
 
-    /**
-     * Site specific, should be moved to a better place
-     * */
     fun isItemPage(url: String): Boolean {
         return isAmazon(url) && url.contains("/dp/")
     }
