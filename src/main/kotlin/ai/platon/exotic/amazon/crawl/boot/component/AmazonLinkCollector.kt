@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
+import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.FatLinkExtractor
 import ai.platon.pulsar.common.getLogger
@@ -20,7 +20,6 @@ import ai.platon.scent.ScentSession
 import ai.platon.exotic.amazon.tools.category.CategoryProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
-import ai.platon.pulsar.common.AppPaths
 import ai.platon.scent.boot.autoconfigure.persist.WebNodeRepository
 import ai.platon.scent.boot.autoconfigure.persist.findByNodeAnchorUrlOrNull
 import ai.platon.scent.common.ScentStatusTracker
@@ -54,14 +53,6 @@ class AmazonLinkCollector(
     private val registry = AppMetrics.defaultMetricRegistry
     private val updatedNodes = registry.counterAndGauge(this, "updatedNodes")
     private val recoveredNodes = registry.counterAndGauge(this, "updatedNodes")
-    private val fetchedBestSellerUrlPath = AppPaths.REPORT_DIR.resolve("fetch/fetched-best-sellers")
-
-    init {
-        if (!Files.exists(fetchedBestSellerUrlPath)) {
-            Files.createDirectories(fetchedBestSellerUrlPath.parent)
-            Files.createFile(fetchedBestSellerUrlPath)
-        }
-    }
 
     /**
      * Extract product links from best-seller pages
@@ -80,7 +71,9 @@ class AmazonLinkCollector(
             // log.warn("Should has zgbs label, actual <{}> | {}", page.label, page.configuredUrl)
         }
 
-        Files.writeString(fetchedBestSellerUrlPath, url, StandardOpenOption.APPEND)
+        Files.createDirectories(PATH_FETCHED_BEST_SELLER_URLS.parent)
+        Files.writeString(PATH_FETCHED_BEST_SELLER_URLS, "$url\n",
+            StandardOpenOption.CREATE, StandardOpenOption.APPEND)
 
         val args = "-itemExpires PT30D -outLinkSelector \"div.p13n-gridRow > div[id~=Item] a[href~=/dp/]\" -l asin"
         val options = session.options(args)

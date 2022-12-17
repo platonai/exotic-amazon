@@ -3,6 +3,9 @@ package ai.platon.exotic.amazon.starter
 import ai.platon.exotic.amazon.crawl.boot.CrawlerInitializer
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
+import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.common.ClusterTools
+import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.getLogger
@@ -48,6 +51,18 @@ fun main(args: Array<String>) {
     // Backend storage is detected automatically but not on some OS such as Mac,
     // uncomment the following line to force MongoDB to be used as the backend storage
     System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
+
+    val isDev = ClusterTools.isDevInstance()
+    // In dev mode, we trigger every kind of tasks immediately.
+    if (isDev) {
+        PredefinedTask.values().forEach {
+//            it.refresh = true
+            it.ignoreTTL = true
+            it.deadTime = { DateTimes.doomsday }
+            it.startTime = { DateTimes.startOfDay() }
+            it.endTime = { DateTimes.endOfDay() }
+        }
+    }
 
     val additionalProfiles = mutableListOf("rest", "crawler")
     val prod = System.getenv("ENV")?.lowercase()

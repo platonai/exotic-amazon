@@ -1,39 +1,40 @@
 package ai.platon.exotic.amazon.crawl.generate
 
-import ai.platon.exotic.common.ResourceWalker
+import ai.platon.exotic.amazon.crawl.core.CollectedResidentTask
+import ai.platon.exotic.amazon.crawl.core.ResidentTask
+import ai.platon.exotic.amazon.crawl.core.createOptions
+import ai.platon.exotic.amazon.crawl.core.isSupervised
 import ai.platon.exotic.common.ClusterTools
-import ai.platon.pulsar.common.DateTimes
+import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.LocalFileHyperlinkCollector
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
 import ai.platon.pulsar.common.collect.queue.LoadingQueue
-import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.common.measureTimedValueJvm
-import ai.platon.pulsar.common.sleepSeconds
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.persist.WebDb
 import ai.platon.pulsar.persist.gora.generated.GWebPage
+import ai.platon.scent.ScentSession
 import ai.platon.scent.common.WebDbLongTimeTask
-import ai.platon.scent.crawl.CollectedResidentTask
-import ai.platon.scent.crawl.ResidentTask
-import ai.platon.scent.crawl.createArgs
-import ai.platon.scent.crawl.isSupervised
+import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
+import kotlin.io.path.isRegularFile
 
-class LoadingSeedsGenerator(
+class PeriodicalSeedsGenerator(
     val tasks: List<ResidentTask>,
-    val searchDirectories: List<String>,
-    val collectorHelper: CollectorHelper,
-    val urlLoader: ExternalUrlLoader,
-    val webDb: WebDb
+    private val searchDirectories: List<Path>,
+    private val collectorHelper: CollectorHelper,
+    private val urlLoader: ExternalUrlLoader,
+    private val session: ScentSession,
+    private val webDb: WebDb
 ) {
     private val logger = getLogger(this)
     private val taskTime = DateTimes.startOfDay()
     private val taskId = taskTime.toString()
     private val isDev = ClusterTools.isDevInstance()
 
-    private val loadedTasks = mutableListOf<CollectedResidentTask>()
+    private val seedCache = mutableListOf<CollectedResidentTask>()
 
     private val fields = listOf(
         GWebPage.Field.PREV_FETCH_TIME,
@@ -43,11 +44,11 @@ class LoadingSeedsGenerator(
     fun generate(refresh: Boolean): List<UrlCacheCollector> {
         loadTasksFromResources()
 
-        logger.info("Collected tasks: {}", loadedTasks.joinToString { it.task.name })
+        logger.info("Collected tasks: {}", seedCache.joinToString { it.task.name })
 
         // for loading tasks
         val collectors = mutableListOf<UrlCacheCollector>()
-        loadedTasks.forEach { task ->
+        seedCache.forEach { task ->
             collectors.add(createUrlCacheCollector(task, refresh))
             // have a rest to reduce database pressure
             sleepSeconds(15)
@@ -90,14 +91,10 @@ class LoadingSeedsGenerator(
 
         val readyQueue = collector.urlCache.nonReentrantQueue as LoadingQueue
         logger.info("Checking {} links for task <{}> in database", links.size, task.name)
-        val (fetchedUrls, time) = measureTimedValueJvm {
-            WebDbLongTimeTask(webDb, task.name).getAll(links, fields)
-                .filter { it.prevFetchTime >= task.startTime() }
-                .mapTo(HashSet()) { it.url }
-        }
+        val (fetchedUrls, time) = loadFetchedUrls(links, task)
 
         links.asSequence().filterNot { it.url in fetchedUrls }
-            .onEach { it.args = task.createArgs(taskId, taskTime).toString() }
+            .onEach { it.args = task.createOptions(taskId, taskTime, session).toString() }
             .toCollection(readyQueue)
 
         logger.info(
@@ -106,6 +103,19 @@ class LoadingSeedsGenerator(
         )
 
         return collector
+    }
+
+    private fun loadFetchedUrls(links: Collection<Hyperlink>, task: ResidentTask): JvmTimedValue<Set<String>> {
+        logger.info("Checking {} links for task <{}> in database", links.size, task.name)
+        if (task.refresh) {
+            return JvmTimedValue(setOf(), Duration.ZERO)
+        }
+
+        return measureTimedValueJvm {
+            WebDbLongTimeTask(webDb, task.name).getAll(links, fields)
+                .filter { it.prevFetchTime >= task.startTime() } // already fetch during this period
+                .mapTo(HashSet()) { it.url }
+        }
     }
 
     private fun getRelevantCollectors(task: ResidentTask): List<UrlCacheCollector> {
@@ -135,23 +145,41 @@ class LoadingSeedsGenerator(
     }
 
     private fun loadTasksFromResources() {
-        loadedTasks.clear()
+        seedCache.clear()
 
-        searchDirectories.forEach {
-            ResourceWalker().walk(it, 3) { path ->
-                loadTasksIfMatch(path)
+        searchDirectories.forEach { dir ->
+            val fileName = dir.fileName.toString()
+            val period = runCatching { Duration.parse(fileName) }.getOrNull()
+            if (period != null) {
+                loadSeedsInDirectory(dir, period)
             }
+
+//            ResourceWalker().walk(it.toAbsolutePath().toString(), 3) { path ->
+//                loadTasksIfMatch(path)
+//            }
         }
     }
 
-    private fun loadTasksIfMatch(path: Path) {
-        val collectedResidentTasks = tasks
-            .filter { isSupervisor(it) }
-            .filter { !it.fileName.isNullOrBlank() }
-            .filter { path.endsWith(it.fileName!!) }
-            .map { CollectedResidentTask(it, collectHyperlinks(path)) }
+    private fun loadSeedsInDirectory(dir: Path, period: Duration) {
+        Files.list(dir)
+            .filter { it.isRegularFile() }
+            .filter { it.fileName.toString().endsWith(".txt") }.forEach { seedPath ->
+                loadSeedsFromFile(seedPath, period)
+            }
+    }
 
-        loadedTasks.addAll(collectedResidentTasks)
+    private fun loadSeedsFromFile(seedPath: Path, period: Duration) {
+        val propsFileName = seedPath.fileName.toString().substringBeforeLast(".") + "properties"
+        val propsFilePath = seedPath.resolveSibling(propsFileName)
+        // TODO: parse props
+
+        tasks.asSequence()
+            .filter { it.taskPeriod == period }
+            .filter { isSupervisor(it) }
+            .filterNot { it.fileName.isNullOrBlank() }
+//            .onEach { println(it.label + " " + it.taskPeriod + " " + period + " fileName: " + it.fileName + " " + seedPath) }
+            .filter { seedPath.toString().endsWith(it.fileName!!) }
+            .mapTo(seedCache) { CollectedResidentTask(it, collectHyperlinks(seedPath)) }
     }
 
     private fun isSupervisor(task: ResidentTask) = isDev || task.isSupervised()

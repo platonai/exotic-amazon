@@ -37,33 +37,4 @@ class TestPeriodicalCrawlTasks: TestBase() {
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)
         super.setup()
     }
-
-    @Test
-    fun `When periodical tasks generated then the args are correct`() {
-        val predefinedTasks = listOf(PredefinedTask.BEST_SELLERS, PredefinedTask.NEW_RELEASES, PredefinedTask.MOST_WISHED_FOR)
-        val tasks = predefinedTasks.map { it.toResidentTask() }.onEach { it.ignoreTTL = true }.take(10)
-        val generator = LoadingSeedsGenerator(tasks, amazonGenerator.periodicalSeedDirectories, collectorHelper, urlLoader, webDb)
-        val collectors = generator.generate(true).shuffled()
-        val now = DateTimes.startOfDay()
-
-        collectors.forEach {
-            // for this test
-            val args = it.urlCache.nonReentrantQueue.peek().args
-            assertNotNull(args)
-            assertTrue { args.contains("-parse") }
-            assertTrue { args.contains(now.toString()) }
-            logger.info("Running periodical crawl task <{} {}>", it.name, args)
-        }
-
-        assertTrue { collectors.isNotEmpty() }
-        assertTrue { collectors.sumBy { it.size } > 0 }
-
-        collectorHelper.addAll(collectors)
-        var i = 10
-        while (i-- > 0 && collectors.sumBy { it.size } > 0) {
-            sleepSeconds(1)
-        }
-
-        println(PriorityDataCollectorsTableFormatter(collectors))
-    }
 }

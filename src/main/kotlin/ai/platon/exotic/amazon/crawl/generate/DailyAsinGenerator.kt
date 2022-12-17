@@ -1,5 +1,6 @@
 package ai.platon.exotic.amazon.crawl.generate
 
+import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
@@ -131,8 +132,6 @@ class DailyAsinGenerator(
     // The leaf categories of best-sellers
     private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
     private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/seeds.properties"
-    // The path of the file to store fetched best-seller urls, for dev mode only
-    private val fetchedBestSellerUrlPath = AppPaths.REPORT_DIR.resolve("fetch/fetched-best-sellers")
     private val normalizer = AsinUrlNormalizer()
     private val expires = PredefinedTask.ASIN.expires
     private val deadTime = PredefinedTask.ASIN.deadTime()
@@ -310,7 +309,8 @@ class DailyAsinGenerator(
         zgbsNextCheckTime += zgbsMinimalCheckInterval
 
         val primaryZgbs = if (isDev) {
-            LinkExtractors.fromFile(fetchedBestSellerUrlPath).filter { "zgbs" in it && "pg=2" !in it }
+            LinkExtractors.fromFile(PATH_FETCHED_BEST_SELLER_URLS)
+                .filter { "zgbs" in it && "pg=2" !in it }
         } else {
             LinkExtractors.fromResource(bestSellerResource)
         }
@@ -319,7 +319,7 @@ class DailyAsinGenerator(
         var unorderedZgbs = (primaryZgbs + secondaryZgbs).toList()
 
         if (isDev) {
-            unorderedZgbs = unorderedZgbs.take(30)
+            unorderedZgbs = unorderedZgbs.take(3000)
             logger.info("Checking {} best sellers in database (development mode)", unorderedZgbs.size)
         } else {
             logger.info("Checking {} best sellers in database", unorderedZgbs.size)

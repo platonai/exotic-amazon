@@ -2,6 +2,7 @@ package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.pulsar.common.collect.ExternalUrlLoader

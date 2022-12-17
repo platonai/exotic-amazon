@@ -142,6 +142,15 @@
       "transpose": true,
       "collection": "asin_buy_choice_sync",
       "parentId": 1
+    },
+    {
+      "id": 10001,
+      "name": "asin-customer-hui",
+      "urlPattern": ".+/dp/.+",
+      "minContentSize": 500000,
+      "minNumNonBlankFields": 20,
+      "sqlTemplate": "x-asin-customer-hui.sql",
+      "collection": "asin_customer_hui_sync"
     }
   ]
 }

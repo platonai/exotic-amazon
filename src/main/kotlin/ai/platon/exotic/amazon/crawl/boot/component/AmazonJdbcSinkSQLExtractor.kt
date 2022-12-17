@@ -10,6 +10,8 @@ import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
+import ai.platon.pulsar.common.collect.UrlCache
+import ai.platon.pulsar.common.collect.UrlPool
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.message.LoadStatusFormatter
@@ -23,8 +25,10 @@ import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.ScentStatusTracker
+import ai.platon.scent.jackson.scentObjectMapper
 import ai.platon.scent.parse.html.AbstractJdbcSinkSQLExtractor
 import com.codahale.metrics.Gauge
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
@@ -70,15 +74,21 @@ class AmazonJdbcSinkSQLExtractor(
      * The global url pool, all fetch tasks are added to the pool in some form of Pulsar URLs.
      * */
     private val urlPool get() = globalCache.urlPool
+
+    private val enableReviews = conf.getBoolean("amazon.enable.reviews", true)
+
     /**
      * The cache for review urls
      * */
-    private val reviewFetchCache
-        get() = amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+    private val reviewFetchCache: UrlCache?
+        get() = if (enableReviews) {
+            amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+        } else null
     /**
      * The url queue for review urls
      * */
-    private val reviewQueue get() = reviewFetchCache.nonReentrantQueue
+    private val reviewQueue get() = reviewFetchCache?.nonReentrantQueue
+
     private val amazonMetrics = AmazonMetrics.extractMetrics
 
     /**
@@ -157,7 +167,9 @@ class AmazonJdbcSinkSQLExtractor(
             pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
         }
 
-        if (!hasSink || page.id < 500) {
+//println("Config: " + Gson().toJson(this.commitConfig))
+
+        if (!hasSink || page.id < 2000) {
             exportWebData(page, rs)
         }
 
@@ -197,19 +209,6 @@ class AmazonJdbcSinkSQLExtractor(
         if (shouldReport) {
             statusTracker.messageWriter.reportExtractedNullFields("$nullColumns | $url")
         }
-    }
-
-    private fun exportWebData(page: WebPage, rs: ResultSet) {
-        val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
-        val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
-        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
-        val label = if (page.label.isNotBlank()) page.label else "other"
-        val path = AppPaths.DOC_EXPORT_DIR
-            .resolve("amazon")
-            .resolve("json")
-            .resolve(label)
-            .resolve(filename)
-        AppFiles.saveTo(json, path, true)
     }
 
     /**
@@ -253,21 +252,40 @@ class AmazonJdbcSinkSQLExtractor(
             }
             traits.isItem && isAsinExtractor(page) -> {
                 // collect prime review pages (resultset.reviewsurl)
-                amazonLinkCollector.collectReviewLinksFromProductPage(page, sqlTemplate.template, rs, reviewQueue)
+                reviewQueue?.let { queue ->
+                    amazonLinkCollector.collectReviewLinksFromProductPage(page, sqlTemplate.template, rs, queue)
+                }
             }
             traits.isPrimaryReview -> {
                 // collect the all review urls
                 // NOTE: actually, primary review is not collected by default
-                amazonLinkCollector.collectSecondaryReviewLinks(page, document, rs, reviewQueue)
+                reviewQueue?.let { queue ->
+                    amazonLinkCollector.collectSecondaryReviewLinks(page, document, rs, queue)
+                }
             }
             traits.isSecondaryReview -> {
                 // collect the all the review urls
-                amazonLinkCollector.collectSecondaryReviewLinksFromPagination(page, document, reviewQueue)
+                reviewQueue?.let { queue ->
+                    amazonLinkCollector.collectSecondaryReviewLinksFromPagination(page, document, queue)
+                }
             }
         }
     }
 
     private fun isAsinExtractor(page: WebPage): Boolean {
         return isRoot && AmazonPageTraitsDetector.isProductPage(page.url)
+    }
+
+    private fun exportWebData(page: WebPage, rs: ResultSet) {
+        val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
+        val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
+        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
+        val label = commitConfig?.name?.ifBlank { "other" } ?: "other"
+        val path = AppPaths.DOC_EXPORT_DIR
+            .resolve("amazon")
+            .resolve("json")
+            .resolve(label)
+            .resolve(filename)
+        AppFiles.saveTo(json, path, true)
     }
 }

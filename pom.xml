@@ -196,7 +196,15 @@
 					<executable>true</executable>
 				</configuration>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
 	</build>
 
 	<dependencies>
@@ -338,7 +346,7 @@
 		<distributed.lock.version>1.4.3</distributed.lock.version>
 
 		<pulsar.kotlin.driver.version>1.6.14</pulsar.kotlin.driver.version>
-		<pulsar.version>1.9.9</pulsar.version>
-		<scent.version>1.9.7</scent.version>
+		<pulsar.version>1.9.17-SNAPSHOT</pulsar.version>
+		<scent.version>1.9.10</scent.version>
 	</properties>
 </project>

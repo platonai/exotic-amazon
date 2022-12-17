@@ -32,7 +32,6 @@ class AmazonCrawler(
 ) : ConfigurableStreamingCrawler(session, globalCacheFactory, crawlLoops, scentStatusTracker) {
 
     private val logger = LoggerFactory.getLogger(AmazonCrawler::class.java)
-    private val isDev get() = ClusterTools.isDevInstance()
 
     override var name = "sites/amazon"
 
@@ -52,16 +51,6 @@ class AmazonCrawler(
      * */
     override fun generate() {
         super.generate()
-
-        // In dev mode, we trigger every kind of tasks immediately.
-        if (isDev) {
-            PredefinedTask.values().forEach {
-                it.ignoreTTL = true
-                it.deadTime = { DateTimes.doomsday }
-                it.startTime = { DateTimes.startOfDay() }
-                it.endTime = { DateTimes.endOfDay() }
-            }
-        }
 
         amazonGenerator.generateStartupTasks()
 

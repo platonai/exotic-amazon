@@ -80,8 +80,6 @@ open class TestBase {
         // ensure the clear removes fetch items, not collectors
         assertTrue { crawlLoop.urlFeeder.openCollectors.size == collectorCount }
 
-
-
         if (enableCrawlLoop) {
             crawlLoops.restart()
         } else {

@@ -2,10 +2,12 @@ package ai.platon.exotic.amazon.crawl.core
 
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.Priority13
-import ai.platon.scent.crawl.ResidentTask
 import java.time.Duration
 import java.time.Instant
 
+/**
+ * TODO: configurable
+ * */
 enum class PredefinedTask(
     val label: String,
     var priority: Priority13,
@@ -39,6 +41,10 @@ enum class PredefinedTask(
      * Ignore the run time restriction, if set to true, the task can run at any time
      * */
     var ignoreTTL: Boolean = false,
+    /**
+     * Refresh pages
+     * */
+    var refresh: Boolean = false,
     /**
      * Do not store the pages' content if they are large
      * */
@@ -98,8 +104,18 @@ enum class PredefinedTask(
         startTime = { DateTimes.timePointOfDay(23, 30) },
         endTime = { DateTimes.endOfDay().plusSeconds(DateTimes.SECONDS_PER_DAY) },
     ),
+
+    BEST_SELLERS7D("zgbs", Priority13.NORMAL,
+        Duration.ofDays(7),
+        Duration.ofDays(7),
+        deadTime = { DateTimes.endOfDay() },
+        startTime = { DateTimes.startOfDay() },
+        endTime = { Instant.now().plusSeconds(7 * 24 * 3600) },
+        "best-sellers.txt",
+        storeContent = true
+    ),
 }
 
 fun PredefinedTask.toResidentTask() = ResidentTask(ordinal, name, label, priority,
-    taskPeriod, expires, deadTime,
-    startTime, endTime, fileName, ignoreTTL, storeContent = storeContent)
+    taskPeriod, expires, deadTime, startTime, endTime, fileName,
+    ignoreTTL = ignoreTTL, refresh = refresh, storeContent = storeContent)
