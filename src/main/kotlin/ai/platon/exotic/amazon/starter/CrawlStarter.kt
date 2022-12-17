@@ -4,7 +4,9 @@ import ai.platon.exotic.amazon.crawl.boot.CrawlerInitializer
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.exotic.common.ClusterTools
+import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.LinkExtractors
 import ai.platon.pulsar.common.StartStopRunner
@@ -12,6 +14,9 @@ import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
+import ai.platon.pulsar.common.urls.Hyperlink
+import ai.platon.pulsar.crawl.DefaultPulsarEventHandler
+import ai.platon.pulsar.crawl.common.url.ListenableHyperlink
 import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.pulsar.persist.HadoopUtils
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
@@ -40,7 +45,7 @@ class CrawlApplication(
 ) {
     private val logger = getLogger(CrawlApplication::class.java)
     private var submittedProductUrlCount = 0
-
+    private val globalCache = session.globalCacheFactory.globalCache
 
     @Bean
     fun checkConfiguration() {
@@ -64,18 +69,25 @@ class CrawlApplication(
      * */
     @Bean
     fun injectSeeds() {
-        val options = session.options()
-        options.ensureEventHandler().loadEventHandler.onHTMLDocumentParsed.addFirst { page, document ->
-            val links = document.document.selectHyperlinks(".p13n-gridRow a[href*=/dp/]:has(img)").distinct()
-            session.submitAll(links)
+        val eventHandler = DefaultPulsarEventHandler()
+        eventHandler.loadEventHandler.onHTMLDocumentParsed.addFirst { page, document ->
+            val normalizer = AsinUrlNormalizer()
+            val args = "-expires 100d -requireSize 300000 -parse -label asin"
+            val urls = document.document.selectHyperlinks(".p13n-gridRow a[href*=/dp/]:has(img)")
+                .distinct()
+                .map { Hyperlink(normalizer.invoke(it.url)!!, args = args).apply { href = it.url } }
 
-            submittedProductUrlCount += links.size
-            logger.info("{}.\tSubmitted {}/{} product links", page.id, links.size, submittedProductUrlCount)
+            val queue = globalCache.urlPool.normalCache.nonReentrantQueue
+            urls.forEach { queue.add(it) }
+
+            submittedProductUrlCount += urls.size
+            logger.info("{}.\tSubmitted {}/{} product links", page.id, urls.size, submittedProductUrlCount)
         }
 
         val resource = "sites/amazon/crawl/generate/periodical/p7d/best-sellers.txt"
-        val urls = LinkExtractors.fromResource(resource)
-        urls.map { session.load("$it -requireSize 300000 -parse", options) }
+        val urls = LinkExtractors.fromResource(resource).map { "$it -requireSize 300000 -parse" }
+        val queue = globalCache.urlPool.normalCache.nonReentrantQueue
+        urls.map { ListenableHyperlink(it, eventHandler = eventHandler) }.forEach { queue.add(it) }
     }
 }
 
@@ -83,6 +95,7 @@ fun main(args: Array<String>) {
     // Backend storage is detected automatically but not on some OS such as Mac,
     // uncomment the following line to force MongoDB to be used as the backend storage
     System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
+//    BrowserSettings.privacy(2).maxTabs(8)
 
     val isDev = ClusterTools.isDevInstance()
     // In dev mode, we trigger every kind of tasks immediately.

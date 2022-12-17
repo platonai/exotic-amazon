@@ -40,8 +40,8 @@ select
     cast(dom_all_attrs(dom, '#imageBlock img', 'src') as varchar) as `gallery_links`,
 
     -- buy box
-    dom_first_minimal_html(dom, '#qualifiedBuybox') as `buy_box_html`,
-    dom_first_text(dom, '#qualifiedBuybox') as `buy_box_text`,
+    dom_first_minimal_html(dom, '#buybox, #desktop_buybox, #qualifiedBuybox, div[data-feature-name=desktop_buybox]') as `buy_box_html`,
+    dom_first_text(dom, '#buybox, #desktop_buybox, #qualifiedBuybox, div[data-feature-name=desktop_buybox]') as `buy_box_text`,
 
     dom_first_text(dom, '#qualifiedBuybox .a-price, #corePrice_feature_div, div[data-feature-name=corePrice]') as `buy_box_price`,
 
@@ -50,27 +50,36 @@ select
                             ' #tabular-buybox tr:has(td:contains(Sold by)) td a[href~=seller],' ||
                             ' #usedbuyBox div:contains(Sold by) a[href~=seller],' ||
                             ' #merchant-info a[href~=seller],' ||
-                            ' #buybox-tabular a[href~=seller]') as varchar) as `buy_box_sold_by`,
+                            ' #tabular-buybox a[href~=seller],' ||
+                            ' #buybox-tabular a[href~=seller]' ||
+                            ' div.tabular-buybox-text[tabular-attribute-name*="Sold by"]'
+        ) as varchar) as `buy_box_sold_by`,
     cast(dom_all_hrefs(dom, ' a#sellerProfileTriggerId[href~=seller],' ||
                             ' #tabular-buybox tr:has(td:contains(Sold by)) td a[href~=seller],' ||
                             ' #usedbuyBox div:contains(Sold by) a[href~=seller],' ||
                             ' #merchant-info a[href~=seller],' ||
-                            ' #buybox-tabular a[href~=seller]') as varchar) as `buy_box_seller_id`,
+                            ' #buybox-tabular a[href~=seller]'
+        ) as varchar) as `buy_box_seller_id`,
     cast(dom_all_hrefs(dom, ' a#sellerProfileTriggerId[href~=seller],' ||
                             ' #tabular-buybox tr:has(td:contains(Sold by)) td a[href~=seller],' ||
                             ' #usedbuyBox div:contains(Sold by) a[href~=seller],' ||
                             ' #merchant-info a[href~=seller],' ||
-                            ' #buybox-tabular a[href~=seller]') as varchar) as `buy_box_marketplace_id`,
+                            ' #buybox-tabular a[href~=seller]'
+        ) as varchar) as `buy_box_marketplace_id`,
     cast(dom_all_texts(dom, ' #tabular-buybox div.tabular-buybox-text[tabular-attribute-name=Ships from],' ||
                             ' #tabular-buybox tr:has(td:contains(Ships from)) td,' ||
-                            ' #buybox-tabular tr:has(td:contains(Ships from)) td') as varchar) as `buy_box_ships_from`,
+                            ' #buybox-tabular tr:has(td:contains(Ships from)) td' ||
+                            ' div.tabular-buybox-text[tabular-attribute-name*="Ships from"]'
+        ) as varchar) as `buy_box_ships_from`,
     cast(dom_all_texts(dom, ' #tabular-buybox div.tabular-buybox-text[tabular-attribute-name=Dispatches from],' ||
                             ' #tabular-buybox tr:has(td:contains(Dispatches from)) td,' ||
-                            ' #buybox-tabular tr:has(td:contains(Dispatches from)) td') as varchar) as `buy_box_dispatches_from`,
+                            ' #buybox-tabular tr:has(td:contains(Dispatches from)) td' ||
+                            ' div.tabular-buybox-text[tabular-attribute-name=Dispatches from]'
+        ) as varchar) as `buy_box_dispatches_from`,
 
     -- variations
-    dom_first_minimal_html(dom, '#variation_color_name') as `variations_html`,
-    dom_first_text(dom, '#variation_color_name') as `variations_text`,
+    dom_first_minimal_html(dom, '#twister_feature_div, div[data-feature-name=twister], #variation_color_name') as `variations_html`,
+    dom_first_text(dom, '#twister_feature_div, div[data-feature-name=twister], #variation_color_name') as `variations_text`,
 
     -- special flags
     str_is_not_empty(dom_first_text(dom, '#acBadge_feature_div i:contains(Best Seller)')) as `is_best_seller`,
@@ -167,7 +176,9 @@ select
     -- variables from javascript
     dom_first_text(dom_owner_body(dom), '#pulsarJsVariables pre.jsVariables') as `js_variables`,
     dom_first_text(dom_owner_body(dom), '#pulsarJsVariables pre.parentAsin') as `js_pasin`,
-    dom_first_text(dom_owner_body(dom), '#pulsarJsVariables pre.num_total_variations') as `js_total_variations`,
+    dom_first_text(dom_owner_body(dom), '#pulsarJsVariables pre.variationValues') as `js_variation_values`,
+    dom_first_text(dom_owner_body(dom), '#pulsarJsVariables pre.asinVariationValues') as `js_asin_variation_values`,
+    dom_first_text(dom_owner_body(dom), '#pulsarJsVariables pre.num_total_variations') as `js_num_total_variations`,
 
     -- variables from input
     dom_all_attrs(dom, 'input[type=hidden]', 'name') as `input_names`,

@@ -16,11 +16,18 @@ import org.jsoup.select.NodeTraversor
  * Calculate amazon.com specific features
  * */
 class AmazonFeatureCalculator : AbstractFeatureCalculator() {
-    val jsVariableNames = listOf("parentAsin", "num_total_variations", "dimensionValuesDisplayData", "dimensionsDisplay")
+    val jsVariableNames = listOf(
+        "jsVariables",
+        "parentAsin",
+        "variationValues",
+        "asinVariationValues",
+        "num_total_variations",
+        "dimensionValuesDisplayData",
+        "dimensionsDisplay"
+    )
 
     override fun calculate(document: Document) {
         val url = document.baseUri()
-
         if (AmazonUrls.isItemPage(url)) {
             extractVariablesInScripts(document)
         }
@@ -30,23 +37,20 @@ class AmazonFeatureCalculator : AbstractFeatureCalculator() {
      * Extract valuable data in the inlined scripts.
      * */
     private fun extractVariablesInScripts(document: Document) {
-        var variablesStart: Int = -1
-        var variablesEnd: Int = -1
-
         var variables: String? = null
         val jsVariableValues = mutableMapOf<String, String?>()
         NodeTraversor.filter(object : NodeFilter {
             override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
-                if (node is Element && node.tagName() == "script") {
+                if (node is Element && node.tagName().lowercase() == "script") {
                     val data = node.data()
 
-                    if (variablesStart == -1 && variablesEnd == -1) {
-                        variablesStart = data.indexOfAny(listOf("dpEnvironment", "ajaxUrlParams", "currentAsin"))
-                        variablesEnd = data.indexOfAny(listOf("isIconPresentForDimensionValue", "hierarchicalPivoting", "topHierarchicalDimensionIndex"))
-                    }
+                    val variablesStart = data.indexOfAny(listOf("dpEnvironment", "ajaxUrlParams", "currentAsin"))
+                    val variablesEnd = data.indexOfAny(listOf("isIconPresentForDimensionValue",
+                        "hierarchicalPivoting", "topHierarchicalDimensionIndex", "pwUnavailableMessage", "variationDisplayLabels"))
 
                     if (variablesStart > 0 && variablesEnd > 0) {
                         variables = data.substring(variablesStart - 1, variablesEnd - 1)
+                            .split("\n").joinToString("\n")
 
                         jsVariableNames.forEach { name ->
                             jsVariableValues.computeIfAbsent(name) {
