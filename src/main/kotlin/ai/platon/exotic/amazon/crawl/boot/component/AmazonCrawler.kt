@@ -4,6 +4,8 @@ import ai.platon.exotic.amazon.crawl.core.handlers.crawl.CrawlerBeforeLoadHandle
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.ConfigurableStreamingCrawler
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.crawl.core.isRunTime
+import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.formatAsTable
 import ai.platon.pulsar.common.urls.UrlAware
@@ -52,7 +54,7 @@ class AmazonCrawler(
     override fun generate() {
         super.generate()
 
-        amazonGenerator.generateStartupTasks()
+        // amazonGenerator.generateStartupTasks()
 
         logger.info("Registered collectors: \n{}", formatAsTable(crawlLoop.collectors))
     }

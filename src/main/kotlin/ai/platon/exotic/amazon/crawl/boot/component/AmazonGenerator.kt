@@ -87,9 +87,6 @@ class AmazonGenerator(
 
         logger.info("Generating startup tasks ...")
         generateLoadingTasks(tasks, true)
-
-        // TODO: this is enabled temporary
-        generateAsinTasks()
     }
 
     /**

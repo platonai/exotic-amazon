@@ -55,6 +55,8 @@ class DailyAsinGenerator(
         private var reviewCollector: UrlCacheCollector? = null
 
         var testMode = false
+        var injectAllAsinUrls = true
+
         var minAsinTasks = if (isDev) 0 else 200
         var maxAsinTasks = if (isDev) 200 else Int.MAX_VALUE
 
@@ -350,7 +352,7 @@ class DailyAsinGenerator(
         // every best seller has less than 50 pages, so we need about 36000 / 50 = 720 best seller pages
         val fields = arrayOf(GWebPage.Field.PREV_CRAWL_TIME1.toString(), GWebPage.Field.VIVID_LINKS.toString())
 
-        if (testMode) {
+        if (injectAllAsinUrls) {
             bsPageCount = sortedBestSellers.size
             sortedBestSellers.parallelStream().forEach {
                 val page = session.load(it.url, "-storeContent true -requireSize 1000")

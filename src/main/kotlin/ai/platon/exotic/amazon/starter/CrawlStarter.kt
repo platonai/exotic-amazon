@@ -6,10 +6,13 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.DateTimes
+import ai.platon.pulsar.common.LinkExtractors
+import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
+import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.pulsar.persist.HadoopUtils
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
 import ai.platon.scent.ScentSession
@@ -35,7 +38,9 @@ class CrawlApplication(
     private val amazonCrawler: AmazonCrawler,
     private val session: ScentSession
 ) {
-    private val logger = getLogger(this)
+    private val logger = getLogger(CrawlApplication::class.java)
+    private var submittedProductUrlCount = 0
+
 
     @Bean
     fun checkConfiguration() {
@@ -44,6 +49,33 @@ class CrawlApplication(
         logger.info("{}", conf)
         val hadoopConf = HadoopUtils.toHadoopConfiguration(conf)
         logger.info("{}", hadoopConf)
+    }
+
+    /**
+     * Initialize and start amazon crawler
+     * */
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    fun startAmazonCrawler(): StartStopRunner {
+        return StartStopRunner(amazonCrawler)
+    }
+
+    /**
+     * Initialize and start amazon crawler
+     * */
+    @Bean
+    fun injectSeeds() {
+        val options = session.options()
+        options.ensureEventHandler().loadEventHandler.onHTMLDocumentParsed.addFirst { page, document ->
+            val links = document.document.selectHyperlinks(".p13n-gridRow a[href*=/dp/]:has(img)").distinct()
+            session.submitAll(links)
+
+            submittedProductUrlCount += links.size
+            logger.info("{}.\tSubmitted {}/{} product links", page.id, links.size, submittedProductUrlCount)
+        }
+
+        val resource = "sites/amazon/crawl/generate/periodical/p7d/best-sellers.txt"
+        val urls = LinkExtractors.fromResource(resource)
+        urls.map { session.load("$it -requireSize 300000 -parse", options) }
     }
 }
 

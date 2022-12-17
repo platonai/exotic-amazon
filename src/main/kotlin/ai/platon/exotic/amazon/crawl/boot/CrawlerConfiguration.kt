@@ -50,8 +50,8 @@ class CrawlerConfiguration(
     /**
      * Initialize and start amazon crawler
      * */
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    fun startAmazonCrawler(): StartStopRunner {
+    @Bean
+    fun initializeCrawler() {
         val conf = session.sessionConfig
         responseHandler.htmlIntegrityChecker.addLast(AmazonDetailPageHtmlChecker(conf))
         responseHandler.pageCategorySniffer.addLast(AmazonPageCategorySniffer(conf))
@@ -61,7 +61,5 @@ class CrawlerConfiguration(
         }
 
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)
-
-        return StartStopRunner(amazonCrawler)
     }
 }
