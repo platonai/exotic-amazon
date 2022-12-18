@@ -48,6 +48,12 @@
 		</repository>
 
 		<repository>
+			<id>AsposeJavaAPI</id>
+			<name>Aspose Java API</name>
+			<url>https://repository.aspose.com/repo/</url>
+		</repository>
+
+		<repository>
 			<id>platon.ai</id>
 			<url>http://static.platonic.fun/repo/</url>
 			<releases>
@@ -265,6 +271,13 @@
 			<groupId>ai.platon.commons</groupId>
 			<artifactId>distributed-lock-mongo</artifactId>
 			<version>${distributed.lock.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.aspose</groupId>
+			<artifactId>aspose-cells</artifactId>
+			<version>22.9</version>
+<!--			<classifier>jdk11</classifier>-->
 		</dependency>
 
 		<dependency>
