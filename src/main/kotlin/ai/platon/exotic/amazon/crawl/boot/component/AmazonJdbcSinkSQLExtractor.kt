@@ -122,6 +122,9 @@ class AmazonJdbcSinkSQLExtractor(
         val page = parseContext.page
         val state = if (!AmazonUrls.isAmazon(page.url)) {
             CheckState(1010, "not amazon")
+        } else if (parseContext.parseResult.isFailed) {
+            logger.warn("Parse failure, ignore this extractor ({}) ... | {}", this.javaClass.simpleName, page.url)
+            CheckState(1010, "parse failure")
         } else {
             super.isRelevant(parseContext)
         }

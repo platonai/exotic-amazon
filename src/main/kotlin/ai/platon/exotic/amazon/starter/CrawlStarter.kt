@@ -69,13 +69,15 @@ class CrawlApplication(
      * */
     @Bean
     fun injectSeeds() {
+        val args = "-requireSize 300000 -parse"
+        val itemArgs = "-expires 100d -requireSize 300000 -parse -label asin"
+
         val eventHandler = DefaultPulsarEventHandler()
         eventHandler.loadEventHandler.onHTMLDocumentParsed.addFirst { page, document ->
             val normalizer = AsinUrlNormalizer()
-            val args = "-expires 100d -requireSize 300000 -parse -label asin"
             val urls = document.document.selectHyperlinks(".p13n-gridRow a[href*=/dp/]:has(img)")
                 .distinct()
-                .map { Hyperlink(normalizer.invoke(it.url)!!, args = args).apply { href = it.url } }
+                .map { Hyperlink(normalizer.invoke(it.url)!!, args = itemArgs).apply { href = it.url } }
 
             val queue = globalCache.urlPool.normalCache.nonReentrantQueue
             urls.forEach { queue.add(it) }
@@ -85,7 +87,7 @@ class CrawlApplication(
         }
 
         val resource = "sites/amazon/crawl/generate/periodical/p7d/best-sellers.txt"
-        val urls = LinkExtractors.fromResource(resource).map { "$it -requireSize 300000 -parse" }
+        val urls = LinkExtractors.fromResource(resource).map { "$it $args" }
         val queue = globalCache.urlPool.normalCache.nonReentrantQueue
         urls.map { ListenableHyperlink(it, eventHandler = eventHandler) }.forEach { queue.add(it) }
     }
@@ -95,7 +97,7 @@ fun main(args: Array<String>) {
     // Backend storage is detected automatically but not on some OS such as Mac,
     // uncomment the following line to force MongoDB to be used as the backend storage
     System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
-//    BrowserSettings.privacy(2).maxTabs(8)
+    BrowserSettings.privacy(2).maxTabs(8)
 
     val isDev = ClusterTools.isDevInstance()
     // In dev mode, we trigger every kind of tasks immediately.
