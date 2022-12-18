@@ -1,4 +1,4 @@
-package ai.platon.exotic.amazon.tools.trial
+package ai.platon.exotic.amazon.tools.scrapers
 
 import ai.platon.pulsar.common.sql.ResultSetFormatter
 import ai.platon.pulsar.ql.context.SQLContexts

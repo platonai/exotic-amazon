@@ -1,4 +1,4 @@
-package ai.platon.exotic.amazon.tools.trial
+package ai.platon.exotic.amazon.tools.scrapers
 
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.AmazonFeatureCalculator
 import ai.platon.pulsar.common.ResourceLoader

@@ -50,7 +50,7 @@ object AmazonUrls {
 }
 
 class AsinUrlNormalizer: AbstractUrlNormalizer() {
-    override fun invoke(url: String?): String? {
+    override operator fun invoke(url: String?): String? {
         if (url == null) return null
 
         if (!AmazonUrls.isAmazon(url)) {

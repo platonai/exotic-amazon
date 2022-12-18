@@ -2,6 +2,7 @@ package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.crawl.core.SECONDARY_BS_LINK_SELECTOR_IN_BS_PAGE
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.FatLinkExtractor
 import ai.platon.pulsar.common.getLogger
@@ -224,7 +225,7 @@ class AmazonLinkCollector(
         label: String, page: WebPage, document: FeaturedDocument, queue: Queue<UrlAware>
     ): Hyperlink? {
         // Collect the hyperlink of the next page
-        val url = document.selectFirstOrNull("ul.a-pagination li.a-last a:contains(Next page)")
+        val url = document.selectFirstOrNull(SECONDARY_BS_LINK_SELECTOR_IN_BS_PAGE)
             ?.attr("abs:href")
             ?.takeIf { UrlUtils.isValidUrl(it) }
 
