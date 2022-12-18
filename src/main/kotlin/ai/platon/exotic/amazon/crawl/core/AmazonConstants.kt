@@ -3,6 +3,8 @@ package ai.platon.exotic.amazon.crawl.core
 import ai.platon.pulsar.common.AppPaths
 import java.nio.file.Path
 
+const val VAR_FILTER_DEPTH = "FilterDepth"
+
 /**
  * The path of the file to store fetched best-seller urls, for dev mode only
  * */

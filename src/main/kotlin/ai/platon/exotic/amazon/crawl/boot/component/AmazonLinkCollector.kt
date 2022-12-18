@@ -61,7 +61,7 @@ class AmazonLinkCollector(
         it.normalizer.addFirst(AsinUrlNormalizer())
     }
 
-    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument) {
+    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument): Collection<String> {
         // a typical option:
         // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
         // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
@@ -75,10 +75,13 @@ class AmazonLinkCollector(
         Files.writeString(PATH_FETCHED_BEST_SELLER_URLS, "$url\n",
             StandardOpenOption.CREATE, StandardOpenOption.APPEND)
 
-        val args = "-itemExpires PT30D -outLinkSelector \"div.p13n-gridRow > div[id~=Item] a[href~=/dp/]\" -l asin"
+        // "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
+        val args = "-itemExpires PT30D -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -l asin"
         val options = session.options(args)
         // extract asin
         fatLinkExtractor.parse(page, document, options)
+
+        return page.simpleVividLinks
     }
 
     fun collectReviewLinksFromProductPage(
@@ -221,14 +224,18 @@ class AmazonLinkCollector(
         label: String, page: WebPage, document: FeaturedDocument, queue: Queue<UrlAware>
     ): Hyperlink? {
         // Collect the hyperlink of the next page
-        val url = document.selectFirstOrNull("ul.a-pagination li.a-last a[href~=$label]")
+        val url = document.selectFirstOrNull("ul.a-pagination li.a-last a:contains(Next page)")
             ?.attr("abs:href")
             ?.takeIf { UrlUtils.isValidUrl(it) }
+
         if (url != null) {
             // Notice: very important to inherit the page's load argument
             val nextMidnight = DateTimes.midnight.plusDays(1).toInstant(DateTimes.zoneOffset)
-            val args = if (page.args.isBlank()) "-deadTime $nextMidnight" else "${page.args} -deadTime $nextMidnight"
+            var args = if (page.args.isBlank()) "-deadTime $nextMidnight" else "${page.args} -deadTime $nextMidnight"
+            args += " -label $label"
             val hyperlink = Hyperlink(url, args = args, referer = page.url)
+
+//println("" + page.id + "\t" + hyperlink.configuredUrl)
 
             queue.add(hyperlink)
 

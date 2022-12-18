@@ -2,6 +2,7 @@ package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.crawl.core.VAR_FILTER_DEPTH
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
@@ -18,10 +19,17 @@ import ai.platon.pulsar.common.message.LoadStatusFormatter
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.persist.ext.options
+import ai.platon.pulsar.common.urls.PlainUrl
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
+import ai.platon.pulsar.crawl.parse.FilterResult
+import ai.platon.pulsar.crawl.parse.ParseResult
+import ai.platon.pulsar.crawl.parse.html.JsoupUtils
 import ai.platon.pulsar.crawl.parse.html.ParseContext
+import ai.platon.pulsar.dom.Documents
 import ai.platon.pulsar.dom.FeaturedDocument
+import ai.platon.pulsar.persist.ParseStatus
 import ai.platon.pulsar.persist.WebPage
+import ai.platon.pulsar.persist.metadata.ParseStatusCodes
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.ScentStatusTracker
@@ -30,6 +38,7 @@ import ai.platon.scent.parse.html.AbstractJdbcSinkSQLExtractor
 import com.codahale.metrics.Gauge
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import org.jsoup.nodes.Document
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
@@ -120,11 +129,17 @@ class AmazonJdbcSinkSQLExtractor(
      * */
     override fun isRelevant(parseContext: ParseContext): CheckState {
         val page = parseContext.page
+
+        var filterDepth = page.getVar(VAR_FILTER_DEPTH) as? Int ?: 0
+        page.setVar(VAR_FILTER_DEPTH, ++filterDepth)
+
         val state = if (!AmazonUrls.isAmazon(page.url)) {
             CheckState(1010, "not amazon")
         } else if (parseContext.parseResult.isFailed) {
             logger.warn("Parse failure, ignore this extractor ({}) ... | {}", this.javaClass.simpleName, page.url)
-            CheckState(1010, "parse failure")
+            CheckState(1020, "parse failure")
+        } else if (filterDepth > 2) {
+            CheckState(1021, "Recursive Invocation")
         } else {
             super.isRelevant(parseContext)
         }
@@ -170,14 +185,14 @@ class AmazonJdbcSinkSQLExtractor(
             pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
         }
 
-//println("Config: " + Gson().toJson(this.commitConfig))
+// println("Config: " + Gson().toJson(this.commitConfig))
 
         if (!hasSink || page.id < 2000) {
             exportWebData(page, rs)
         }
 
         /////////////////////////////////////////////////////////////////////////
-        // Write your own code to save extract result to any destination as you wish
+        // Write your own code to save extract result to any destination as your wish
 
 
         //
@@ -215,6 +230,16 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     /**
+     * Fix: ERROR a.p.pulsar.crawl.parse.PageParser - java.lang.StackOverflowError [#4](https://github.com/platonai/exotic-amazon/issues/4)
+     * */
+    override fun onAfterFilter(page: WebPage, document: FeaturedDocument, parseResult: ParseResult) {
+        var filterDepth = page.getVar(VAR_FILTER_DEPTH) as? Int ?: 1
+        page.setVar(VAR_FILTER_DEPTH, --filterDepth)
+
+        super.onAfterFilter(page, document, parseResult)
+    }
+
+    /**
      * Collect hyperlinks after extraction, so the links can be collected from the page content, the HTML document,
      * and the result set.
      * */
@@ -224,13 +249,9 @@ class AmazonJdbcSinkSQLExtractor(
         when {
             traits.isLabeledPortal -> {
                 val label = AmazonPageTraitsDetector.getLabelOfPortal(url)
-                // a typical option:
-                // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
-                // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
-                // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
-                if (label == PredefinedTask.BEST_SELLERS.label) {
-                    amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
-                }
+
+                // generate ASIN tasks immediately
+                collectAndSubmitASINLinks(label, page, document)
 
                 // Every primary portal page have a concomitant secondary one, rising the priority
                 // Should be a reentrant queue since the links are fetched periodically.
@@ -275,6 +296,24 @@ class AmazonJdbcSinkSQLExtractor(
         }
     }
 
+    private fun collectAndSubmitASINLinks(label: String, page: WebPage, document: FeaturedDocument) {
+        if (label != PredefinedTask.BEST_SELLERS.label) {
+            return
+        }
+
+        val queue = urlPool.normalCache.reentrantQueue
+        // TODO: load from config file
+        val itemArgs = "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
+
+        // a typical option:
+        // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
+        // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
+        // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
+        val links = amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
+        // generate ASIN tasks immediately
+        links.mapTo(queue) { PlainUrl("$it $itemArgs") }
+    }
+
     private fun isAsinExtractor(page: WebPage): Boolean {
         return isRoot && AmazonPageTraitsDetector.isProductPage(page.url)
     }
@@ -282,8 +321,8 @@ class AmazonJdbcSinkSQLExtractor(
     private fun exportWebData(page: WebPage, rs: ResultSet) {
         val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
         val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
-        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
         val label = commitConfig?.name?.ifBlank { "other" } ?: "other"
+        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
         val path = AppPaths.DOC_EXPORT_DIR
             .resolve("amazon")
             .resolve("json")
