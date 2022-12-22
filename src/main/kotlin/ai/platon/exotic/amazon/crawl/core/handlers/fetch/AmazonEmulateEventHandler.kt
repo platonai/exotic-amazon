@@ -111,6 +111,7 @@ open class AmazonPageCategorySniffer(
 
     val categories = mapOf(
         "/zgbs/" to OpenPageCategory(PageCategory.INDEX),
+        "/bestsellers/" to OpenPageCategory(PageCategory.INDEX),
         "/most-wished-for/" to OpenPageCategory("INDEX", "IMWF"),
         "/new-releases/" to OpenPageCategory("INDEX", "INR"),
         "/movers-and-shakers/" to OpenPageCategory("INDEX", "IMAS")

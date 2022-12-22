@@ -10,7 +10,11 @@ import java.nio.charset.Charset
 object AmazonUrls {
     val charset = Charset.defaultCharset()
 
-    val indexPageUrlContains = arrayOf("/zgbs/", "/most-wished-for/", "/new-releases/", "/movers-and-shakers/")
+    val indexPageUrlContains = arrayOf(
+        "/zgbs/", "/bestsellers/",
+        "/most-wished-for/", "/new-releases/",
+        "/movers-and-shakers/"
+    )
 
     fun isAmazon(url: String): Boolean {
         return url.contains(".amazon.")

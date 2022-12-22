@@ -6,7 +6,9 @@ import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonDetailPageHtmlChe
 import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonPageCategorySniffer
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.pulsar.common.StartStopRunner
+import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.crawl.parse.ParseFilters
+import ai.platon.pulsar.persist.HadoopUtils
 import ai.platon.pulsar.protocol.browser.emulator.BrowserResponseHandler
 import ai.platon.scent.ScentSession
 import ai.platon.scent.parse.html.JdbcCommitConfig
@@ -47,6 +49,17 @@ class CrawlerConfiguration(
      * */
     private val applicationContext: ApplicationContext,
 ) {
+    private val logger = getLogger(CrawlerConfiguration::javaClass)
+
+    @Bean
+    fun checkConfiguration() {
+        val conf = session.unmodifiedConfig
+
+        logger.info("{}", conf)
+        val hadoopConf = HadoopUtils.toHadoopConfiguration(conf)
+        logger.info("{}", hadoopConf)
+    }
+
     /**
      * Initialize and start amazon crawler
      * */

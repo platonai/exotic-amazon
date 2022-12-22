@@ -1,8 +1,6 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
-import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
-import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.core.SECONDARY_BS_LINK_SELECTOR_IN_BS_PAGE
+import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.FatLinkExtractor
 import ai.platon.pulsar.common.getLogger
@@ -21,6 +19,7 @@ import ai.platon.scent.ScentSession
 import ai.platon.exotic.amazon.tools.category.CategoryProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
+import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.scent.boot.autoconfigure.persist.WebNodeRepository
 import ai.platon.scent.boot.autoconfigure.persist.findByNodeAnchorUrlOrNull
 import ai.platon.scent.common.ScentStatusTracker
@@ -62,27 +61,30 @@ class AmazonLinkCollector(
         it.normalizer.addFirst(AsinUrlNormalizer())
     }
 
-    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument): Collection<String> {
+    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument): List<Hyperlink> {
         // a typical option:
         // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
         // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
         // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
-        val url = page.url
-        if (page.label != PredefinedTask.BEST_SELLERS.label) {
-            // log.warn("Should has zgbs label, actual <{}> | {}", page.label, page.configuredUrl)
-        }
-
-        Files.createDirectories(PATH_FETCHED_BEST_SELLER_URLS.parent)
-        Files.writeString(PATH_FETCHED_BEST_SELLER_URLS, "$url\n",
-            StandardOpenOption.CREATE, StandardOpenOption.APPEND)
 
         // "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
-        val args = "-itemExpires PT30D -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -l asin"
-        val options = session.options(args)
+//        val itemArgs = "-itemExpires PT30D -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -l asin"
+//        val options = session.options(itemArgs)
         // extract asin
-        fatLinkExtractor.parse(page, document, options)
+//        fatLinkExtractor.parse(page, document, options)
 
-        return page.simpleVividLinks
+        // fieldCount in logs: numNonBlankFields, numNonNullFields, numFields
+        // js status: i/a/nm/st/h
+        // TODO: load from a file
+        val itemArgs = ASIN_LOAD_ARGUMENTS
+        val normalizer = AsinUrlNormalizer()
+        val links = document.document.selectHyperlinks(ASIN_LINK_SELECTOR_IN_BS_PAGE)
+            .distinct()
+            .map { l -> Hyperlink(normalizer(l.url)!!, args = itemArgs).apply { href = l.url } }
+
+        logger.info("Collected {} asin links from bestseller | {}", links.size, page.url)
+
+        return links
     }
 
     fun collectReviewLinksFromProductPage(

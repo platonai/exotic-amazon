@@ -68,6 +68,15 @@ enum class PredefinedTask(
         "best-sellers.txt",
         storeContent = true
     ),
+    BEST_SELLERS2("bestsellers", Priority13.NORMAL,
+        Duration.ofDays(1),
+        Duration.ofDays(1),
+        deadTime = { DateTimes.endOfDay() },
+        startTime = { DateTimes.timePointOfDay(9) },
+        endTime = { DateTimes.timePointOfDay(23, 30) },
+        "best-sellers.txt",
+        storeContent = true
+    ),
     MOST_WISHED_FOR("most-wished-for", Priority13.NORMAL,
         Duration.ofDays(1),
         Duration.ofDays(1),

@@ -1,8 +1,8 @@
 package ai.platon.exotic.amazon.tools.export
 
+import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.AppPaths
-import ai.platon.scent.ScentSession
-import ai.platon.scent.ql.h2.context.ScentSQLContexts
+import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_STR
 import com.aspose.cells.Workbook
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.nio.file.Files
@@ -12,7 +12,7 @@ import kotlin.io.path.listDirectoryEntries
 typealias AsposeLoadOptions = com.aspose.cells.LoadOptions
 
 class AssetsExporter {
-    private val session: ScentSession = ScentSQLContexts.createSession()
+    private val ident = AppContext.APP_IDENT
     private val exportDir = AppPaths.DOC_EXPORT_DIR
         .resolve("amazon")
         .resolve("json")
@@ -22,6 +22,9 @@ class AssetsExporter {
         val bigJsonBuilder = StringBuilder("[")
         val taskName = "asin-customer-hui"
         val asinDir = exportDir.resolve(taskName)
+
+        println(asinDir)
+
         var i = 0
         asinDir.listDirectoryEntries("*.json").forEach {
             ++i
@@ -39,24 +42,21 @@ class AssetsExporter {
         }
         bigJsonBuilder.append(']')
 
-        val exportPath = asinDir.resolveSibling("$taskName.json")
-        Files.writeString(exportPath, bigJsonBuilder)
-        println("Big json for [$taskName] exported to:\nfile://$exportPath")
+        val jsonPath = asinDir.resolveSibling("$taskName.json")
+        Files.writeString(jsonPath, bigJsonBuilder)
+        println("Big json for [$taskName] saved to:\nfile://$jsonPath")
 
         val options = AsposeLoadOptions()
         options.checkExcelRestriction = false
 
-        val html = Workbook(exportPath.absolutePathString(), options)
-        html.save("Output.html")
-        println("Html exported to:\nfile${html.absolutePath}")
-
-        val excel = Workbook(exportPath.absolutePathString(), options)
-        excel.save("Output.xlsx")
-        println("Excel exported to:\nfile${excel.absolutePath}")
+        val excel = Workbook(jsonPath.absolutePathString(), options)
+        excel.save("asin.amazon.$ident.xlsx")
+//        println("Excel exported to:\nfile://${excel.absolutePath}")
     }
 }
 
-fun main() {
+fun main(args: Array<String>) {
+    System.setProperty(APP_ID_STR, "com")
     val exporter = AssetsExporter()
     exporter.generateAsinAssets()
 }

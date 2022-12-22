@@ -312,7 +312,7 @@ class DailyAsinGenerator(
 
         val primaryZgbs = if (isDev) {
             LinkExtractors.fromFile(PATH_FETCHED_BEST_SELLER_URLS)
-                .filter { "zgbs" in it && "pg=2" !in it }
+                .filter { ("zgbs" in it || "bestsellers" in it) && "pg=2" !in it }
         } else {
             LinkExtractors.fromResource(bestSellerResource)
         }

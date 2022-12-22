@@ -1,0 +1,100 @@
+数据校验方法
+
+vincent@regulus:/tmp/pulsar-fr/cache/web/export/amazon/json$ pwd
+/tmp/pulsar-fr/cache/web/export/amazon/json
+
+vincent@regulus:/tmp/pulsar-fr/cache/web/export/amazon/json$ ll best-sellers-fr/
+total 1992
+drwxrwxr-x  2 vincent vincent  4096 Dec 21 19:14 ./
+drwxrwxr-x 11 vincent vincent  4096 Dec 21 16:14 ../
+-rw-rw-r--  1 vincent vincent 49247 Dec 21 19:11 amazon-fr-09067666e4cf143522e746e19f2a5dcf.json
+-rw-rw-r--  1 vincent vincent 49259 Dec 21 19:10 amazon-fr-105b95f0f4621e51913eaa54003325ea.json
+-rw-rw-r--  1 vincent vincent 57489 Dec 21 19:13 amazon-fr-14502d930a8f53b2e46816965c6ad719.json
+-rw-rw-r--  1 vincent vincent 48318 Dec 21 19:10 amazon-fr-1b5c0368a2136c6eee14a5282e927c74.json
+-rw-rw-r--  1 vincent vincent 52318 Dec 21 19:11 amazon-fr-1c3dddb360acacdaff580a29360126fc.json
+...
+
+vincent@regulus:/tmp/pulsar-fr/cache/web/export/amazon/json$ ls -lth asin-customer-hui | head -n 10
+-rw-rw-r-- 1 vincent vincent  80K Dec 21 17:20 amazon-fr-e1ef2b69d6d6bb58716971fa750ebf3b.json
+-rw-rw-r-- 1 vincent vincent  73K Dec 21 17:20 amazon-fr-2541a576311bfc50fb62b76e377cb554.json
+-rw-rw-r-- 1 vincent vincent  78K Dec 21 17:20 amazon-fr-26d4d03c587eb8b83bc6a4cd2b2d2183.json
+-rw-rw-r-- 1 vincent vincent  71K Dec 21 17:20 amazon-fr-b9ba7f7b27b9b49476ccb31eba925375.json
+-rw-rw-r-- 1 vincent vincent  74K Dec 21 17:20 amazon-fr-b70364303d0a00522ac33c9a78a937d1.json
+-rw-rw-r-- 1 vincent vincent  75K Dec 21 17:20 amazon-fr-11fa217ea0c3c25afd1ee6a0b3526edb.json
+-rw-rw-r-- 1 vincent vincent  78K Dec 21 17:20 amazon-fr-9b7289b37cb0d2d84246f6175d466f0c.json
+-rw-rw-r-- 1 vincent vincent  80K Dec 21 17:20 amazon-fr-ded2e907f4da88511b4fe366e739ebe3.json
+-rw-rw-r-- 1 vincent vincent  79K Dec 21 17:20 amazon-fr-3d95a7cac1c31614641ee2a6f09a9eba.json
+-rw-rw-r-- 1 vincent vincent  67K Dec 21 17:20 amazon-fr-01ebc351a0b672916a6997e2656d5fd4.json
+
+...
+
+vincent@regulus:/tmp/pulsar-fr/cache/web/export/amazon/json$ cat asin-customer-hui/amazon-fr-01ebc351a0b672916a6997e2656d5fd4.json | egrep "price|deliverto"
+    "deliver_to": "{\"globaldeliverto\":\"STRINGDECODE(\\u0027Votre adresse de livraison: 75008\\\\u200c\\u0027)\",\"deliverto\":\"STRINGDECODE(\\u0027Votre adresse de livraison: 75008\\\\u200c\\u0027)\"}",
+
+
+vincent@regulus:/tmp/pulsar-fr/report$ cd /tmp/pulsar-fr/report
+vincent@regulus:/tmp/pulsar-fr/report$ tail -n 1000 fetch/fetched-best-sellers | uniq 
+https://www.amazon.fr/gp/bestsellers/hi/2678714031/ref=zg_bs_nav_hi_4_1854994031
+https://www.amazon.fr/gp/bestsellers/industrial/14897198031/ref=zg_bs_nav_industrial_3_2686787031
+https://www.amazon.fr/gp/bestsellers/automotive/2429961031/ref=zg_bs_nav_automotive_3_5190433031
+https://www.amazon.fr/gp/bestsellers/industrial/6606230031/ref=zg_bs_nav_industrial_3_6606200031
+https://www.amazon.fr/gp/bestsellers/pet-supplies/2036686031/ref=zg_bs_nav_pet-supplies_3_2036685031
+https://www.amazon.fr/gp/bestsellers/industrial/6606230031/ref=zg_bs_nav_industrial_3_6606200031
+https://www.amazon.fr/gp/bestsellers/pet-supplies/2036686031/ref=zg_bs_nav_pet-supplies_3_2036685031
+https://www.amazon.fr/gp/bestsellers/industrial/6606248031/ref=zg_bs_nav_industrial_3_6606201031
+https://www.amazon.fr/gp/bestsellers/industrial/21684424031/ref=zg_bs_nav_industrial_5_21726054031
+https://www.amazon.fr/gp/bestsellers/industrial/6606359031/ref=zg_bs_nav_industrial_3_6606209031
+https://www.amazon.fr/gp/bestsellers/industrial/21684424031/ref=zg_bs_nav_industrial_5_21726054031
+...
+
+vincent@regulus:/tmp/pulsar-fr/report$ tail -n 1000 fetch/fetched-best-sellers | grep "pg" | uniq 
+https://www.amazon.fr/gp/bestsellers/industrial/6606230031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+https://www.amazon.fr/gp/bestsellers/pet-supplies/2036686031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+https://www.amazon.fr/gp/bestsellers/hi/2690928031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+https://www.amazon.fr/gp/bestsellers/pet-supplies/2036686031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+https://www.amazon.fr/gp/bestsellers/industrial/14897198031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+https://www.amazon.fr/gp/bestsellers/pet-supplies/2036686031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+https://www.amazon.fr/gp/bestsellers/industrial/14897198031/ref=zg_bs_pg_2?ie=UTF8&pg=2
+...
+
+
+vincent@regulus:~/workspace/exotic-amazon$ cd /home/vincent/workspace/exotic-amazon
+vincent@regulus:~/workspace/exotic-amazon$ tail -n 1000 logs/pulsar.m.log | grep Amazon | grep asin | grep daily
+2022-12-21 19:49:14,113 --- [GAUGE] c.c.AmazonMetrics.l.daily.g.asin |  value=2028
+2022-12-21 19:49:14,113 --- [GAUGE] c.c.AmazonMetrics.l.daily.g.asin/s |  value=0.8644501278772379
+2022-12-21 19:49:14,134 --- [GAUGE] c.c.AmazonMetrics.x.daily.g.asin |  value=3841
+2022-12-21 19:49:14,135 --- [GAUGE] c.c.AmazonMetrics.x.daily.g.asin/s |  value=1.6372549019607843
+2022-12-21 19:49:14,276 --- [COUNTER] c.c.AmazonMetrics.l.daily.c.asin |  count=2028
+2022-12-21 19:49:14,277 --- [COUNTER] c.c.AmazonMetrics.x.daily.c.asin |  count=3841
+
+
+vincent@regulus:~/workspace/exotic-amazon$ tail -n 1000 logs/pulsar.m.log | grep retries | grep daily
+2022-12-21 20:59:14,134 --- [GAUGE] p.c.StreamingCrawlerMetrics.daily.g.retries |  value=578
+2022-12-21 20:59:14,134 --- [GAUGE] p.c.StreamingCrawlerMetrics.daily.g.retries/s |  value=0.08829819737244118
+2022-12-21 20:59:14,142 --- [COUNTER] p.c.StreamingCrawlerMetrics.daily.c.retries |  count=578
+
+
+vincent@regulus:~/workspace/exotic-amazon$ tail -n 1000 logs/pulsar.m.log | grep Amazon | grep asin
+2022-12-21 19:47:14,115 --- [GAUGE] c.c.AmazonMetrics.l.daily.g.asin |  value=1925
+2022-12-21 19:47:14,115 --- [GAUGE] c.c.AmazonMetrics.l.daily.g.asin/s |  value=0.8647798742138365
+2022-12-21 19:47:14,116 --- [GAUGE] c.c.AmazonMetrics.l.g.asin |  value=1925
+2022-12-21 19:47:14,116 --- [GAUGE] c.c.AmazonMetrics.l.g.asin/s |  value=0.8647798742138365
+2022-12-21 19:47:14,118 --- [GAUGE] c.c.AmazonMetrics.l.hourly.g.asin |  value=1925
+2022-12-21 19:47:14,118 --- [GAUGE] c.c.AmazonMetrics.l.hourly.g.asin/s |  value=0.8647798742138365
+2022-12-21 19:47:14,118 --- [GAUGE] c.c.AmazonMetrics.x.daily.g.asin |  value=3658
+2022-12-21 19:47:14,118 --- [GAUGE] c.c.AmazonMetrics.x.daily.g.asin/s |  value=1.6433063791554359
+2022-12-21 19:47:14,119 --- [GAUGE] c.c.AmazonMetrics.x.g.asin |  value=3658
+2022-12-21 19:47:14,119 --- [GAUGE] c.c.AmazonMetrics.x.g.asin/s |  value=1.6433063791554359
+2022-12-21 19:47:14,120 --- [GAUGE] c.c.AmazonMetrics.x.hourly.g.asin |  value=3658
+2022-12-21 19:47:14,120 --- [GAUGE] c.c.AmazonMetrics.x.hourly.g.asin/s |  value=1.6433063791554359
+2022-12-21 19:47:14,132 --- [COUNTER] c.c.AmazonMetrics.l.c.asin |  count=1925
+2022-12-21 19:47:14,132 --- [COUNTER] c.c.AmazonMetrics.l.daily.c.asin |  count=1925
+2022-12-21 19:47:14,132 --- [COUNTER] c.c.AmazonMetrics.l.hourly.c.asin |  count=1925
+2022-12-21 19:47:14,132 --- [COUNTER] c.c.AmazonMetrics.x.c.asin |  count=3658
+2022-12-21 19:47:14,132 --- [COUNTER] c.c.AmazonMetrics.x.daily.c.asin |  count=3658
+2022-12-21 19:47:14,132 --- [COUNTER] c.c.AmazonMetrics.x.hourly.c.asin |  count=3658
+2022-12-21 19:47:14,134 --- [METER] c.c.AmazonMetrics.l.m.asin |  count=1925 m1_rate=0.2741 m5_rate=0.5932 m15_rate=0.7594 mean_rate=0.8691 rate_unit=events/second
+2022-12-21 19:47:14,135 --- [METER] c.c.AmazonMetrics.x.m.asin |  count=3658 m1_rate=0.4059 m5_rate=1.0429 m15_rate=1.4096 mean_rate=1.6514 rate_unit=events/second
+
+
+
