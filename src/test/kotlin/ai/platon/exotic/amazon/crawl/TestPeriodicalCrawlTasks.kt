@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl
 
 import ai.platon.pulsar.common.DateTimes
-import ai.platon.pulsar.common.collect.CollectorHelper
+import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.PriorityDataCollectorsTableFormatter
 import ai.platon.pulsar.common.getLogger
@@ -30,7 +30,7 @@ class TestPeriodicalCrawlTasks: TestBase() {
 
     override var enableCrawlLoop = false
 
-    private val collectorHelper get() = CollectorHelper(crawlLoop.urlFeeder)
+    private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
 
     @Before
     override fun setup() {

@@ -8,8 +8,6 @@ import ai.platon.pulsar.common.message.LoadStatusFormatter
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.common.urls.UrlUtils
-import ai.platon.pulsar.crawl.DefaultLoadEventHandler
-import ai.platon.pulsar.crawl.LoadEventHandler
 import ai.platon.pulsar.crawl.common.url.StatefulListenableHyperlink
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.dom.nodes.node.ext.cleanText
@@ -41,8 +39,8 @@ interface HyperlinkProcessor {
     /**
      * The event handlers
      * */
-    @Deprecated("Set event handlers on ListenableHyperlinks instead")
-    val eventHandler: LoadEventHandler
+//    @Deprecated("Set event handlers on ListenableHyperlinks instead")
+//    val eventHandler: LoadEventHandler
     /**
      * Whether check the database for the status of a url before fetch
      * */
@@ -72,7 +70,7 @@ interface HyperlinkProcessor {
     /**
      * Create a hyperlink
      * */
-    fun createHyperlink(url: String, href: String? = null, referer: String? = null, deadTime: Instant? = null): Hyperlink?
+    fun createHyperlink(url: String, href: String? = null, referrer: String? = null, deadTime: Instant? = null): Hyperlink?
     /**
      * Collect urls to the sink
      * */
@@ -93,7 +91,7 @@ abstract class AbstractHyperlinkProcessor(
 
     override val label: String get() = config.label
     override val pageCategory: OpenPageCategory = OpenPageCategory(PageCategory.UNKNOWN)
-    override val eventHandler = DefaultLoadEventHandler()
+//    override val eventHandler = DefaultLoadEventHandler()
     override var dbCheck: Boolean = false
     override var minPageSize = 1_000
     override var storeContent = false
@@ -117,13 +115,13 @@ abstract class AbstractHyperlinkProcessor(
     override fun createHyperlink(anchor: Element): Hyperlink? {
         val href = filter(anchor.absUrl("href")) ?: return null
         val url = normalize(href) ?: return null
-        return createHyperlink(url, href, referer = anchor.baseUri())
+        return createHyperlink(url, href, referrer = anchor.baseUri())
     }
 
     /**
      * Create a hyperlink ready to be added to the URL Pool for retrieval.
      * */
-    override fun createHyperlink(url: String, href: String?, referer: String?, deadTime: Instant?): Hyperlink? {
+    override fun createHyperlink(url: String, href: String?, referrer: String?, deadTime: Instant?): Hyperlink? {
         if (filter(url) == null) {
             return null
         }
@@ -152,7 +150,7 @@ abstract class AbstractHyperlinkProcessor(
             args += " -deadTime $deadTime"
         }
 
-        return StatefulListenableHyperlink(url, args = args, referer = referer, href = href)
+        return StatefulListenableHyperlink(url, args = args, referer = referrer, href = href)
     }
 
     override fun collectTo(document: FeaturedDocument, sink: MutableCollection<UrlAware>) {

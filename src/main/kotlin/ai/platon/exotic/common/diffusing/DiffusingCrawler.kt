@@ -80,7 +80,7 @@ class DefaultDiffusingCrawler(
 
     override val label: String get() = config.label
     override val indexPageProcessor = IndexHyperlinkProcessor(config, session)
-        .apply { eventHandler.onAfterHtmlParse.addLast { page, document -> onAfterHtmlParse(page, document) } }
+//        .apply { eventHandler.onAfterHtmlParse.addLast { page, document -> onAfterHtmlParse(page, document) } }
     override val itemPageProcessor = ItemHyperlinkProcessor(config, session)
     override val navigationProcessor = NavigationProcessor(config, indexPageProcessor, session)
 

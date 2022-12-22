@@ -50,8 +50,8 @@ class AmazonIndexHyperlinkProcessor(
      * The primary index hyperlink, e.g.
      * https://www.amazon.com/s?k=insomnia&i=instant-video
      * */
-    fun createPrimaryIndexHyperlink(url: String, referer: String? = null): Hyperlink? {
-        return createHyperlink(url, null, referer)
+    fun createPrimaryIndexHyperlink(url: String, referrer: String? = null): Hyperlink? {
+        return createHyperlink(url, null, referrer)
     }
 }
 
@@ -105,7 +105,7 @@ open class AmazonNavigationProcessor(
             log.info("Generating $pageCount secondary index hyperlinks from url | $url")
             IntRange(2, pageCount).asSequence()
                 .map { "$urlTemplate&page=$it" }
-                .mapIndexedNotNullTo(sink) { i, u -> indexPageProcessor.createHyperlink(u, referer = url) }
+                .mapIndexedNotNullTo(sink) { i, u -> indexPageProcessor.createHyperlink(u, referrer = url) }
         } else {
             // in case the last page is not available
             navigation.selectFirstOrNull(config.nextPageCss)
@@ -143,9 +143,9 @@ class AmazonReviewIndexHyperlinkProcessor(
     /**
      * Create an item link from a selected anchor of item link
      * */
-    fun createPrimaryReviewIndexLink(primaryReviewUrl: String, referer: String? = null): Hyperlink? {
+    fun createPrimaryReviewIndexLink(primaryReviewUrl: String, referrer: String? = null): Hyperlink? {
         val deadTime = PredefinedTask.REVIEW.deadTime()
-        return createHyperlink(primaryReviewUrl, referer = referer, deadTime = deadTime)
+        return createHyperlink(primaryReviewUrl, referrer = referrer, deadTime = deadTime)
     }
 
     /**
@@ -158,7 +158,7 @@ class AmazonReviewIndexHyperlinkProcessor(
         val prefix = primaryReviewUrl.replace("/ref=.+\\?".toRegex(), ref)
         val url = "$prefix&sortBy=recent&pageNumber=$pageNo"
         val deadTime = PredefinedTask.REVIEW.deadTime()
-        return createHyperlink(url, referer = primaryReviewUrl, deadTime = deadTime)?.apply { order = pageNo }
+        return createHyperlink(url, referrer = primaryReviewUrl, deadTime = deadTime)?.apply { order = pageNo }
     }
 
     /**
@@ -248,7 +248,7 @@ class AmazonReviewIndexHyperlinkProcessor(
             return document.selectFirstOrNull("ul.a-pagination li.a-last a[href~=$urlLabel]")
                 ?.attr("abs:href")?.trim()
                 ?.let { UrlUtils.getURLOrNull(it)?.toString() }
-                ?.let { Hyperlink(it, args = args, referer = page.url) }
+                ?.let { Hyperlink(it, args = args, referrer = page.url) }
         }
 
         return null

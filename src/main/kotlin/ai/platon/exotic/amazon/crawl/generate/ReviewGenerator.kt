@@ -8,7 +8,6 @@ import ai.platon.pulsar.common.options.LoadOptions
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.common.urls.UrlUtils
 import ai.platon.pulsar.context.support.AbstractPulsarContext
-import ai.platon.pulsar.crawl.DefaultLoadEventHandler
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.pulsar.crawl.common.url.CompletableListenableHyperlink
 import ai.platon.pulsar.crawl.common.url.ListenableHyperlink
@@ -24,6 +23,7 @@ import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
 import ai.platon.scent.common.message.ScentMiscMessageWriter
 import ai.platon.exotic.common.diffusing.AbstractDiffusingCrawler
 import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.pulsar.crawl.event.impl.DefaultLoadEvent
 import ai.platon.scent.mongo.v1.TrackedUrl
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -126,7 +126,7 @@ class ReviewGenerator(
             }
             .filterIsInstance<ListenableHyperlink>()
             .onEach {
-                it.eventHandler.loadEventHandler.onAfterHtmlParse.addLast { page, document ->
+                it.event.loadEvent.onHTMLDocumentParsed.addLast { page, document ->
                     calculateAndReportPrimaryReviewLink(page, document)
                 }
             }
@@ -227,9 +227,9 @@ class ReviewGenerator(
         val filteredUrls = unfilteredUrls.filterNot { TrackedUrl(it.url) in fetchedUrls }
 
         filteredUrls.filterIsInstance<ListenableHyperlink>().forEach {
-            val eventHandler = it.eventHandler.loadEventHandler as DefaultLoadEventHandler
+            val eventHandler = it.event.loadEvent as DefaultLoadEvent
             eventHandler.onFilter.addLast { filterNotComplete(it) }
-            eventHandler.onAfterHtmlParse.addLast { page, document -> checkIfFatLinkIsComplete(page, document) }
+            eventHandler.onHTMLDocumentParsed.addLast { page, document -> checkIfFatLinkIsComplete(page, document) }
         }
 
         filteredUrls.sortedBy { it.order }.groupBy { it.order }.forEach { (_, urls) ->
@@ -257,8 +257,8 @@ class ReviewGenerator(
             val b = url.numTotalTailLinks.coerceAtMost(1)
             indexPageProcessor.createSecondaryReviewIndexLinks(url.url, IntRange(a, b))
         }.filterIsInstance<CompletableListenableHyperlink<WebPage>>().onEach {
-            val loadEventHandler = it.eventHandler.loadEventHandler as DefaultLoadEventHandler
-            loadEventHandler.onAfterHtmlParse.addLast { page, document -> checkIfFatLinkIsComplete(page, document) }
+            val loadEventHandler = it.event.loadEvent as DefaultLoadEvent
+            loadEventHandler.onHTMLDocumentParsed.addLast { page, document -> checkIfFatLinkIsComplete(page, document) }
         }.sortedBy { it.order }.groupBy { it.order }.forEach { (_, urls) ->
             urls.shuffled().toCollection(sink)
         }

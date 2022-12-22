@@ -5,7 +5,7 @@ import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.pulsar.common.*
-import ai.platon.pulsar.common.collect.CollectorHelper
+import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.UrlFeeder
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
@@ -46,7 +46,7 @@ class DailyAsinGenerator(
 
         private var generator: DailyAsinGenerator? = null
 
-        private lateinit var collectorHelper: CollectorHelper
+        private lateinit var urlFeederHelper: UrlFeederHelper
 
         private lateinit var lastUrlLoader: ExternalUrlLoader
 
@@ -68,7 +68,7 @@ class DailyAsinGenerator(
         ): DailyAsinGenerator {
             val dayOfMonth = MonthDay.now().dayOfMonth
             lastUrlLoader = urlLoader
-            collectorHelper = CollectorHelper(urlFeeder)
+            urlFeederHelper = UrlFeederHelper(urlFeeder)
 
             val oldGenerator = generator
             val isNewCollector = generator?.dayOfMonth != dayOfMonth || testMode
@@ -119,11 +119,11 @@ class DailyAsinGenerator(
 
         private fun createCollector(task: PredefinedTask, urlLoader: ExternalUrlLoader): UrlCacheCollector {
             val priority = task.priority.value
-            collectorHelper.remove(task.name)
+            urlFeederHelper.remove(task.name)
 
             logger.info("Creating collector for {}", task.name)
 
-            return collectorHelper.addUrlPoolCollector(task.name, priority, urlLoader).also {
+            return urlFeederHelper.create(task.name, priority, urlLoader).also {
                 it.labels.add(task.name)
             }
         }
@@ -263,12 +263,12 @@ class DailyAsinGenerator(
 
     @Synchronized
     fun writeAsinTasks(page: WebPage): Int {
-        val referer = page.url
+        val referrer = page.url
 
         val urls = page.vividLinks.keys.mapNotNullTo(HashSet()) { normalizer(it.toString()) }
 
         try {
-            val text = urls.joinToString("\n") { "$it $referer" }
+            val text = urls.joinToString("\n") { "$it $referrer" }
             Files.writeString(generatePath, text, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
             Files.writeString(generatePath, "\n", StandardOpenOption.APPEND)
         } catch (e: IOException) {
@@ -291,7 +291,7 @@ class DailyAsinGenerator(
                 .filter { it.size == 2 }
                 .associate { normalizeOrEmpty(it[0]) to it[1] }
                 .filter { it.key.matches(urlRegex) }
-                .map { Hyperlink(it.key, args = args, referer = it.value) }
+                .map { Hyperlink(it.key, args = args, referrer = it.value) }
                 .toList()
 
             logger.info("Read {} asins from file | {}", asins.size, generatePath)

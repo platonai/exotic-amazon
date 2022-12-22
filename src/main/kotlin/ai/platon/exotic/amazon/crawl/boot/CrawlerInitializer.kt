@@ -5,7 +5,7 @@ import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.options.LoadOptionDefaults
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.dom.FeatureCalculatorFactory
-import ai.platon.pulsar.dom.features.CombinedFeatureCalculator
+import ai.platon.pulsar.dom.features.ChainedFeatureCalculator
 import ai.platon.pulsar.protocol.browser.emulator.BrowserResponseHandler
 import ai.platon.scent.ScentEnvironment
 import org.slf4j.LoggerFactory
@@ -37,7 +37,7 @@ class CrawlerInitializer: ApplicationContextInitializer<AbstractApplicationConte
 
         logger.info("Initializing feature calculator, append AmazonFeatureCalculator")
 
-        val calculator = FeatureCalculatorFactory.calculator as? CombinedFeatureCalculator
+        val calculator = FeatureCalculatorFactory.calculator as? ChainedFeatureCalculator
         calculator?.calculators?.add(AmazonFeatureCalculator())
 
         // ignore the default crawl loop, ScentCrawlLoop is expected

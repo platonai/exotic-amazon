@@ -110,8 +110,8 @@ class TestPreconditions: TestBase() {
 
         val url = "https://www.amazon.com/Best-Sellers-Beauty/zgbs/beauty"
         val hyperlink = StatefulListenableHyperlink(url, args = "-parse -i 0s")
-        hyperlink.eventHandler.loadEventHandler.onAfterLoad.addLast { page ->
-            assertTrue { metrics.tasks.count > 0 }
+        hyperlink.event.loadEvent.onLoaded.addLast { page ->
+            assertTrue { metrics.fetchTasks.count > 0 }
         }
 
         session.load(hyperlink)

@@ -12,7 +12,7 @@ import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_STR
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.PlainUrl
-import ai.platon.pulsar.crawl.DefaultPulsarEventHandler
+import ai.platon.pulsar.crawl.event.impl.DefaultPageEvent
 import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
 import ai.platon.scent.ScentSession
@@ -62,8 +62,8 @@ class CrawlApplication(
         val args = BESTSELLER_LOAD_ARGUMENTS
         val itemArgs = ASIN_LOAD_ARGUMENTS
 
-        val eventHandler = DefaultPulsarEventHandler()
-        eventHandler.loadEventHandler.onHTMLDocumentParsed.addFirst { page, document ->
+        val event = DefaultPageEvent()
+        event.loadEvent.onHTMLDocumentParsed.addFirst { page, document ->
             val normalizer = AsinUrlNormalizer()
             val urls = document.document.selectHyperlinks(ASIN_LINK_SELECTOR_IN_BS_PAGE)
                 .distinct()

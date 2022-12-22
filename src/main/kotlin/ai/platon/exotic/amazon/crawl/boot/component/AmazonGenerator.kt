@@ -8,8 +8,6 @@ import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.PeriodicalSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
 import ai.platon.exotic.common.ClusterTools
-import ai.platon.exotic.common.ResourceWalker
-import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
@@ -20,18 +18,16 @@ import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
 
 import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.pulsar.common.ResourceLoader
-import ai.platon.scent.crawl.isRunTime
+import ai.platon.pulsar.common.collect.UrlFeederHelper
 import org.springframework.stereotype.Component
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.io.path.toPath
-import kotlin.streams.toList
 
 /**
  * Generate fetch tasks. All fetch tasks are some form of Pulsar URLs.
@@ -52,7 +48,7 @@ class AmazonGenerator(
 
     private val logger = getLogger(AmazonGenerator::class)
     private val charset = Charset.defaultCharset()
-    private val collectorHelper get() = CollectorHelper(crawlLoop.urlFeeder)
+    private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
     private val isDev get() = ClusterTools.isDevInstance()
 
     val name = "amazon"
@@ -111,7 +107,7 @@ class AmazonGenerator(
     fun generateLoadingTasks(residentTasks: List<ResidentTask>, refresh: Boolean) {
         try {
             val generator = PeriodicalSeedsGenerator(residentTasks,
-                periodicalSeedDirectories, collectorHelper, urlLoader, session, webDb)
+                periodicalSeedDirectories, urlFeederHelper, urlLoader, session, webDb)
 
             generator.generate(refresh)
         } catch (t: Throwable) {
@@ -133,7 +129,7 @@ class AmazonGenerator(
             .map { it.toResidentTask() }
             .filterNot { it.isRunTime() }
 
-        tasks.forEach { collectorHelper.removeAllLike(it.name) }
+        tasks.forEach { urlFeederHelper.removeAllLike(it.name) }
     }
 
     private fun createConfusionConfig(label: String): DiffusingCrawlerConfig {

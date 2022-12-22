@@ -8,8 +8,8 @@ import ai.platon.pulsar.persist.PageDatum
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.persist.metadata.OpenPageCategory
 import ai.platon.pulsar.persist.metadata.PageCategory
-import ai.platon.pulsar.protocol.browser.emulator.HtmlIntegrityChecker
-import ai.platon.pulsar.protocol.browser.emulator.PageCategorySniffer
+import ai.platon.pulsar.protocol.browser.emulator.util.HtmlIntegrityChecker
+import ai.platon.pulsar.protocol.browser.emulator.util.PageCategorySniffer
 
 class AmazonDetailPageHtmlChecker(
     private val conf: ImmutableConfig
