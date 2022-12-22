@@ -96,6 +96,10 @@ class CrawlApplication(
 }
 
 fun main(args: Array<String>) {
+    // supported websites and postcode:
+    // Amazon.co.uk S99 3AD Amazon.com 30301 Amazon.de 10317 Amazon.fr 75008
+    // use app.id.str to be one of uk,com,de,fr to crawl each website.
+    // you should set the website's delivery area to gain the correct data.
     System.setProperty(APP_ID_STR, "com")
 //    BrowserSettings.privacy(2).maxTabs(4)
 

@@ -6,6 +6,13 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 其他电商平台数据采集，其方法和流程基本类似，可以在该项目基础上修改调整业务逻辑即可，其基础设施解决了所有大规模数据采集面临的难题。
 
+本版本支持多个国家版本的亚马逊网站采集，包括：
+
+1. amazon.com 
+2. amazon.co.uk 
+3. amazon.de 
+4. amazon.fr
+
 得益于 [PulsarR](https://github.com/platonai/pulsarr/README.adoc) ([中文](https://github.com/platonai/pulsarr/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
 
 ### 数据简介
