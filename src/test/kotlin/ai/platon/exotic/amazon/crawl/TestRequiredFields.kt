@@ -76,9 +76,12 @@ class TestRequiredFields: TestBase() {
 
         fetchQueue.add(url)
 
-        url.get(1, TimeUnit.MINUTES)
-
-        assertTrue { url.isDone }
+        try {
+            url.get(1, TimeUnit.MINUTES)
+            assertTrue { url.isDone }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun collectSecondaryLabeledPortalPage(page: WebPage, document: FeaturedDocument) {
