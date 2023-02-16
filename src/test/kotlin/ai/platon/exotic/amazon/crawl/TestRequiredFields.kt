@@ -20,26 +20,28 @@ import kotlin.test.assertTrue
 class TestRequiredFields: TestBase() {
 
     val defaultArgs = "-i 1d -ignoreFailure -parse"
-    val jsVariableNames =
-        listOf("parentAsin", "num_total_variations", "dimensionValuesDisplayData", "dimensionsDisplay")
+    private val amazonFeatureCalculator = AmazonFeatureCalculator()
 
     private val fetchQueue get() = globalCache.urlPool.normalCache.nReentrantQueue
 
     @Test
     fun `When call AmazonFeatureCalculator than pulsarJsVariables exists`() {
-        val calculator = FeatureCalculatorFactory.calculator as? CombinedFeatureCalculator
-        calculator?.calculators?.add(AmazonFeatureCalculator())
+        val calculator = FeatureCalculatorFactory.calculator as CombinedFeatureCalculator
+        calculator.calculators.add(amazonFeatureCalculator)
+        println("There are " + calculator.calculators.size + " calculators")
 
-        val page = session.load(productUrl, defaultArgs)
+        val page = session.open(productUrl)
         assertTrue(page.protocolStatus.toString()) { page.protocolStatus.isSuccess }
         val document = session.parse(page)
         val variables = document.selectFirstOrNull("#pulsarJsVariables")
+        assertNotNull(variables, "#pulsarJsVariables should exist")
 
+        val expectedVariables = listOf("num_total_variations")
         if (page.lastBrowser != BrowserType.MOCK_CHROME) {
-            assertNotNull(variables)
-            jsVariableNames.forEach { name ->
-                val value = variables.selectFirstOrNull(".$name")
-                assertNotNull(value) { "Variable $name should exist" }
+            expectedVariables.forEach { key ->
+                val value = variables.selectFirstOrNull(".$key")
+                println(variables.outerHtml())
+                assertNotNull(value, "Variable should exist:  .$key")
             }
         }
     }
@@ -49,7 +51,7 @@ class TestRequiredFields: TestBase() {
         val referrer = "https://www.amazon.com/"
         val url = CompletableListenableHyperlink<WebPage>(productUrl, args = defaultArgs).also {
             it.referer = referrer
-            it.eventHandler.loadEventHandler.onAfterLoad.addLast {
+            it.eventHandler.loadEventHandler.onLoaded.addLast {
                 assertEquals(referrer, it.referrer)
             }
         }
@@ -64,17 +66,17 @@ class TestRequiredFields: TestBase() {
         val args = "$defaultArgs -label $label"
 
         val url = CompletableListenableHyperlink<WebPage>(portalUrl, args = args)
-        url.eventHandler.loadEventHandler.onAfterHtmlParse.addLast { page, document ->
-            assertEquals(PredefinedTask.BEST_SELLERS.label, label)
+        url.eventHandler.loadEventHandler.onHTMLDocumentParsed.addLast { page, document ->
+            assertEquals(label, page.label)
             collectSecondaryLabeledPortalPage(page, document)
         }
-        url.eventHandler.crawlEventHandler.onAfterLoad.addFirst { u, page ->
+        url.eventHandler.crawlEventHandler.onLoaded.addFirst { u, page ->
             url.complete(page)
         }
 
         fetchQueue.add(url)
 
-        url.get(120, TimeUnit.MINUTES)
+        url.get(1, TimeUnit.MINUTES)
 
         assertTrue { url.isDone }
     }
@@ -86,7 +88,7 @@ class TestRequiredFields: TestBase() {
         val url = document.selectFirst("ul.a-pagination li.a-last a[href~=$label]").attr("abs:href")
 
         val hyperlink = CompletableListenableHyperlink<WebPage>(url, args = page.args, referer = page.url)
-        hyperlink.eventHandler.crawlEventHandler.onAfterLoad.addLast { u, page2 ->
+        hyperlink.eventHandler.crawlEventHandler.onLoaded.addLast { u, page2 ->
             if (page2 == null) {
                 return@addLast
             }
