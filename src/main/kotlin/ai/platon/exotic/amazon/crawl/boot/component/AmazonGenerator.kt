@@ -76,11 +76,10 @@ class AmazonGenerator(
      * */
     fun generateStartupTasks() {
         val tasks = listOf(
-//            PredefinedTask.MOVERS_AND_SHAKERS,
-//            PredefinedTask.BEST_SELLERS,
-//            PredefinedTask.MOST_WISHED_FOR,
-//            PredefinedTask.NEW_RELEASES,
-            PredefinedTask.BEST_SELLERS7D
+            PredefinedTask.MOVERS_AND_SHAKERS,
+            PredefinedTask.BEST_SELLERS,
+            PredefinedTask.MOST_WISHED_FOR,
+            PredefinedTask.NEW_RELEASES
         )
             .map { it.toResidentTask() }
             .filter { it.isRunTime() }

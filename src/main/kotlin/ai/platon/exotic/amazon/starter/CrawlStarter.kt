@@ -5,10 +5,10 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
-import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.*
-import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_STR
+import ai.platon.pulsar.common.config.AppConstants
+import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.PlainUrl
@@ -53,12 +53,12 @@ class CrawlApplication(
     }
 
     /**
-     * Initialize and start amazon crawler
+     * A very simple example to start crawling
      * */
     @Bean
-    fun injectBestsellerSeeds() {
+    fun injectExampleSeeds() {
         // Top level domain
-        val ident = AppContext.APP_IDENT
+        val ident = "com"
         val args = BESTSELLER_LOAD_ARGUMENTS
         val itemArgs = ASIN_LOAD_ARGUMENTS
 
@@ -96,29 +96,18 @@ class CrawlApplication(
 }
 
 fun main(args: Array<String>) {
-    // supported websites and postcode:
-    // Amazon.co.uk S99 3AD Amazon.com 30301 Amazon.de 10317 Amazon.fr 75008
-    // use app.id.str to be one of uk,com,de,fr to crawl each website.
-    // you should set the website's delivery area to gain the correct data.
-    System.setProperty(APP_ID_STR, "com")
-//    BrowserSettings.privacy(2).maxTabs(4)
-
-    val isDev = ClusterTools.isDevInstance()
-    // In dev mode, we trigger every kind of tasks immediately.
-    if (isDev) {
-        PredefinedTask.values().forEach {
-//            it.refresh = true
-            it.ignoreTTL = true
-            it.deadTime = { DateTimes.doomsday }
-            it.startTime = { DateTimes.startOfDay() }
-            it.endTime = { DateTimes.endOfDay() }
-        }
-    }
+    // Backend storage is detected automatically but not on some OS such as Mac,
+    // uncomment the following line to force MongoDB to be used as the backend storage
+    System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
 
     val additionalProfiles = mutableListOf("rest", "crawler")
     val prod = System.getenv("ENV")?.lowercase()
     if (prod == "prod") {
+        // product environment, the best speed is required
         additionalProfiles.add("prod")
+    } else {
+        // development environment
+        BrowserSettings.privacy(2).maxTabs(8).headed()
     }
 
     runApplication<CrawlApplication>(*args) {
