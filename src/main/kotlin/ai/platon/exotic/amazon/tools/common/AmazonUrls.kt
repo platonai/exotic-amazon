@@ -10,22 +10,20 @@ import java.nio.charset.Charset
 object AmazonUrls {
     val charset = Charset.defaultCharset()
 
-    val indexPageUrlContains = arrayOf("/zgbs/", "/most-wished-for/", "/new-releases/", "/movers-and-shakers/")
+    val indexPageUrlContains = arrayOf(
+        "/zgbs/", "/bestsellers/",
+        "/most-wished-for/", "/new-releases/",
+        "/movers-and-shakers/"
+    )
 
     fun isAmazon(url: String): Boolean {
         return url.contains(".amazon.")
     }
 
-    /**
-     * Site specific, should be moved to a better place
-     * */
     fun isIndexPage(url: String): Boolean {
         return isAmazon(url) && (indexPageUrlContains.any { url.contains(it) })
     }
 
-    /**
-     * Site specific, should be moved to a better place
-     * */
     fun isItemPage(url: String): Boolean {
         return isAmazon(url) && url.contains("/dp/")
     }
@@ -56,7 +54,7 @@ object AmazonUrls {
 }
 
 class AsinUrlNormalizer: AbstractUrlNormalizer() {
-    override fun invoke(url: String?): String? {
+    override operator fun invoke(url: String?): String? {
         if (url == null) return null
 
         if (!AmazonUrls.isAmazon(url)) {

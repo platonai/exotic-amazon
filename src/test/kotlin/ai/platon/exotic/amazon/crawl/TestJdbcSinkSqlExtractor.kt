@@ -8,6 +8,7 @@ import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.exotic.amazon.crawl.crawl.common.SimpleParseFilter
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
+import ai.platon.pulsar.crawl.parse.ParseResult
 import org.junit.Ignore
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +43,7 @@ class TestJdbcSinkSqlExtractor: TestBase() {
 
         sqlExtractor.sqlTemplate = SQLTemplate.load(sqlSource, "asin")
         val parseFilter = SimpleParseFilter().apply { addLast(sqlExtractor) }
-        val parseContext = ParseContext(page, document = document)
+        val parseContext = ParseContext(page, ParseResult().also { it.document = document })
         val relevant = sqlExtractor.isRelevant(parseContext)
         assertTrue(relevant.message) { relevant.isOK }
 

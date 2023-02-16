@@ -1,11 +1,14 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.crawl.core.ResidentTask
+import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
-import ai.platon.exotic.amazon.crawl.generate.LoadingSeedsGenerator
+import ai.platon.exotic.amazon.crawl.generate.PeriodicalSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
 import ai.platon.exotic.common.ClusterTools
+import ai.platon.exotic.common.ResourceWalker
 import ai.platon.pulsar.common.collect.CollectorHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.getLogger
@@ -14,15 +17,21 @@ import ai.platon.pulsar.persist.WebDb
 import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
-import ai.platon.scent.crawl.ResidentTask
+
 import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.scent.crawl.isRunTime
 import org.springframework.stereotype.Component
 import java.net.URLEncoder
 import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.io.path.toPath
+import kotlin.streams.toList
 
 /**
  * Generate fetch tasks. All fetch tasks are some form of Pulsar URLs.
@@ -38,20 +47,25 @@ class AmazonGenerator(
     private val webDb: WebDb,
 ) {
     companion object {
-        const val periodicalSeedResourceDirectoryTemplate = "sites/{project}/crawl/generate/periodical/{period}"
+        const val PERIODICAL_SEED_RESOURCE_BASE = "sites/amazon/crawl/generate/periodical"
     }
 
     private val logger = getLogger(AmazonGenerator::class)
     private val charset = Charset.defaultCharset()
     private val collectorHelper get() = CollectorHelper(crawlLoop.urlFeeder)
     private val isDev get() = ClusterTools.isDevInstance()
-    private val periods = listOf("pt30m", "pt1h", "pt12h", "pt24h")
 
     val name = "amazon"
     val label = "20220801"
 
-    val periodicalSeedDirectories get() = periods.map { buildPeriodicalSeedDirectory(name, it) }
-    val globalCache get() = globalCacheFactory.globalCache
+    val periodicalSeedDirectories: List<Path> get() {
+        val uri = ResourceLoader.getResource(PERIODICAL_SEED_RESOURCE_BASE)?.toURI() ?: return listOf()
+
+        return Files.list(uri.toPath())
+            .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
+            .toList()
+    }
+
     // create a new instant every day for that day
     val asinGenerator get() = DailyAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
     val confusingConfig = createConfusionConfig(label)
@@ -62,10 +76,11 @@ class AmazonGenerator(
      * */
     fun generateStartupTasks() {
         val tasks = listOf(
-            PredefinedTask.MOVERS_AND_SHAKERS,
-            PredefinedTask.BEST_SELLERS,
-            PredefinedTask.MOST_WISHED_FOR,
-            PredefinedTask.NEW_RELEASES
+//            PredefinedTask.MOVERS_AND_SHAKERS,
+//            PredefinedTask.BEST_SELLERS,
+//            PredefinedTask.MOST_WISHED_FOR,
+//            PredefinedTask.NEW_RELEASES,
+            PredefinedTask.BEST_SELLERS7D
         )
             .map { it.toResidentTask() }
             .filter { it.isRunTime() }
@@ -95,8 +110,8 @@ class AmazonGenerator(
      * */
     fun generateLoadingTasks(residentTasks: List<ResidentTask>, refresh: Boolean) {
         try {
-            val generator = LoadingSeedsGenerator(residentTasks,
-                periodicalSeedDirectories, collectorHelper, urlLoader, webDb)
+            val generator = PeriodicalSeedsGenerator(residentTasks,
+                periodicalSeedDirectories, collectorHelper, urlLoader, session, webDb)
 
             generator.generate(refresh)
         } catch (t: Throwable) {
@@ -139,11 +154,5 @@ class AmazonGenerator(
         }
 
         return config
-    }
-
-    private fun buildPeriodicalSeedDirectory(projectName: String, duration: String): String {
-        return periodicalSeedResourceDirectoryTemplate
-            .replace("{project}", projectName)
-            .replace("{period}", duration)
     }
 }

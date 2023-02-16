@@ -1,6 +1,7 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
+import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
@@ -10,13 +11,16 @@ import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
+import ai.platon.pulsar.common.collect.UrlCache
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.message.LoadStatusFormatter
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.persist.ext.label
 import ai.platon.pulsar.common.persist.ext.options
+import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
+import ai.platon.pulsar.crawl.parse.ParseResult
 import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.persist.WebPage
@@ -28,7 +32,10 @@ import com.codahale.metrics.Gauge
 import com.google.gson.GsonBuilder
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.sql.ResultSet
+import java.util.*
 
 /**
  * SQL extractors use SQLs to extract fields from webpages.
@@ -70,15 +77,21 @@ class AmazonJdbcSinkSQLExtractor(
      * The global url pool, all fetch tasks are added to the pool in some form of Pulsar URLs.
      * */
     private val urlPool get() = globalCache.urlPool
+
+    private val enableReviews = conf.getBoolean("amazon.enable.reviews", true)
+
     /**
      * The cache for review urls
      * */
-    private val reviewFetchCache
-        get() = amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+    private val reviewFetchCache: UrlCache?
+        get() = if (enableReviews) {
+            amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+        } else null
     /**
      * The url queue for review urls
      * */
-    private val reviewQueue get() = reviewFetchCache.nonReentrantQueue
+    private val reviewQueue get() = reviewFetchCache?.nonReentrantQueue
+
     private val amazonMetrics = AmazonMetrics.extractMetrics
 
     /**
@@ -110,17 +123,37 @@ class AmazonJdbcSinkSQLExtractor(
      * */
     override fun isRelevant(parseContext: ParseContext): CheckState {
         val page = parseContext.page
-        val state = if (!AmazonUrls.isAmazon(page.url)) {
-            CheckState(1010, "not amazon")
-        } else {
-            super.isRelevant(parseContext)
+
+        var state = super.isRelevant(parseContext)
+        if (!state.isOK && state.code == 60) {
+            // Loaded page, we need to extract loaded pages in this project
+            state = CheckState()
+        }
+
+        if (state.isOK) {
+            state = when {
+                !AmazonUrls.isAmazon(page.url) -> CheckState(1010, "not amazon")
+                parseContext.parseResult.isFailed -> {
+                    logger.warn("Parse failure, ignore this extractor ({}) ... | {}", this.javaClass.simpleName, page.url)
+                    CheckState(1020, "parse failure")
+                }
+                parseContext.document == null -> {
+                    logger.warn("Document is null, ignore this extractor ({}) ... | {}", this.javaClass.simpleName, page.url)
+                    CheckState(1021, "invalid document")
+                }
+                else -> state
+            }
         }
 
         lastRelevantState = state
-        if (!state.isOK && state.code >= 40 && state.code !in listOf(60, 1601)) {
+        if (!state.isOK && state.code >= 40 && state.code !in listOf(0, 60, 1601)) {
             val report = LoadStatusFormatter(page, withOptions = true).toString()
             irrLogger.info("Irrelevant page({}) in extractor <{}> | {}", state.message, name, report)
         }
+
+//        if (urlFilter.toString().contains("zgbs")) {
+//            println("CheckState " + urlFilter + " " + state.message + " | " + page.url)
+//        }
 
         return state
     }
@@ -157,12 +190,12 @@ class AmazonJdbcSinkSQLExtractor(
             pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
         }
 
-        if (!hasSink || page.id < 500) {
+        if (!hasSink || page.id < 20000) {
             exportWebData(page, rs)
         }
 
         /////////////////////////////////////////////////////////////////////////
-        // Write your own code to save extract result to any destination as you wish
+        // Write your own code to save extract result to any destination as your wish
 
 
         //
@@ -199,17 +232,11 @@ class AmazonJdbcSinkSQLExtractor(
         }
     }
 
-    private fun exportWebData(page: WebPage, rs: ResultSet) {
-        val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
-        val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
-        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
-        val label = if (page.label.isNotBlank()) page.label else "other"
-        val path = AppPaths.DOC_EXPORT_DIR
-            .resolve("amazon")
-            .resolve("json")
-            .resolve(label)
-            .resolve(filename)
-        AppFiles.saveTo(json, path, true)
+    /**
+     * Fix: ERROR a.p.pulsar.crawl.parse.PageParser - java.lang.StackOverflowError [#4](https://github.com/platonai/exotic-amazon/issues/4)
+     * */
+    override fun onAfterFilter(page: WebPage, document: FeaturedDocument, parseResult: ParseResult) {
+        super.onAfterFilter(page, document, parseResult)
     }
 
     /**
@@ -222,13 +249,9 @@ class AmazonJdbcSinkSQLExtractor(
         when {
             traits.isLabeledPortal -> {
                 val label = AmazonPageTraitsDetector.getLabelOfPortal(url)
-                // a typical option:
-                // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
-                // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
-                // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
-                if (label == PredefinedTask.BEST_SELLERS.label) {
-                    amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
-                }
+
+                // archive fetched bestseller link to a file
+                archiveFetchedBestSellerLink(page, document)
 
                 // Every primary portal page have a concomitant secondary one, rising the priority
                 // Should be a reentrant queue since the links are fetched periodically.
@@ -240,12 +263,15 @@ class AmazonJdbcSinkSQLExtractor(
                     // amazonLinkCollector.updateWebNode(page, document, queue2)
                 }
 
+                // generate ASIN tasks immediately
+                collectAndSubmitASINLinks(label, page, document, queue2)
+
                 val queue3 = urlPool.higher3Cache.reentrantQueue
                 val hyperlink = amazonLinkCollector.collectSecondaryLinksFromLabeledPortal(label, page, document, queue3)
                 val isPrimary = AmazonPageTraitsDetector.isPrimaryLabeledPortalPage(page.url)
                 if (isPrimary && hyperlink == null) {
                     when (label) {
-                        "zgbs" -> amazonMetrics.noszgbs.mark()
+                        "zgbs", "bestsellers" -> amazonMetrics.noszgbs.mark()
                         "most-wished-for" -> amazonMetrics.nosmWishedF.mark()
                         "new-releases" -> amazonMetrics.nosnRelease.mark()
                     }
@@ -253,21 +279,72 @@ class AmazonJdbcSinkSQLExtractor(
             }
             traits.isItem && isAsinExtractor(page) -> {
                 // collect prime review pages (resultset.reviewsurl)
-                amazonLinkCollector.collectReviewLinksFromProductPage(page, sqlTemplate.template, rs, reviewQueue)
+                reviewQueue?.let { queue ->
+                    amazonLinkCollector.collectReviewLinksFromProductPage(page, sqlTemplate.template, rs, queue)
+                }
             }
             traits.isPrimaryReview -> {
                 // collect the all review urls
                 // NOTE: actually, primary review is not collected by default
-                amazonLinkCollector.collectSecondaryReviewLinks(page, document, rs, reviewQueue)
+                reviewQueue?.let { queue ->
+                    amazonLinkCollector.collectSecondaryReviewLinks(page, document, rs, queue)
+                }
             }
             traits.isSecondaryReview -> {
                 // collect the all the review urls
-                amazonLinkCollector.collectSecondaryReviewLinksFromPagination(page, document, reviewQueue)
+                reviewQueue?.let { queue ->
+                    amazonLinkCollector.collectSecondaryReviewLinksFromPagination(page, document, queue)
+                }
             }
         }
     }
 
+    private fun collectAndSubmitASINLinks(
+        label: String, page: WebPage, document: FeaturedDocument, queue: Queue<UrlAware>
+    ) {
+        // some site uses "bestsellers" in the url
+        // https://www.amazon.fr/gp/bestsellers/hpc/3160863031/ref=zg_bs_nav_hpc_2_3160836031
+        if (label != PredefinedTask.BEST_SELLERS.label && label != "bestsellers") {
+            logger.warn("Not bestseller | {}", page.url)
+            // return
+        }
+
+        // a typical option:
+        // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
+        // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
+        // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
+        val links = amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
+        // generate ASIN tasks immediately
+        links.forEach { queue.add(it) }
+    }
+
+    private fun archiveFetchedBestSellerLink(page: WebPage, document: FeaturedDocument) {
+        if (page.label != PredefinedTask.BEST_SELLERS.label) {
+            // log.warn("Should has zgbs label, actual <{}> | {}", page.label, page.configuredUrl)
+        }
+
+        val url = page.url
+
+        Files.createDirectories(PATH_FETCHED_BEST_SELLER_URLS.parent)
+        Files.writeString(
+            PATH_FETCHED_BEST_SELLER_URLS, "$url\n",
+            StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+    }
+
     private fun isAsinExtractor(page: WebPage): Boolean {
         return isRoot && AmazonPageTraitsDetector.isProductPage(page.url)
+    }
+
+    private fun exportWebData(page: WebPage, rs: ResultSet) {
+        val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
+        val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
+        val label = commitConfig?.name?.ifBlank { "other" } ?: "other"
+        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
+        val path = AppPaths.DOC_EXPORT_DIR
+            .resolve("amazon")
+            .resolve("json")
+            .resolve(label)
+            .resolve(filename)
+        AppFiles.saveTo(json, path, true)
     }
 }

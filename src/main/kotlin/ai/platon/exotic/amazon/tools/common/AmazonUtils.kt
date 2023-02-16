@@ -64,7 +64,7 @@ object AmazonUtils {
 
                 val label = AmazonPageTraitsDetector.getLabelOfPortal(url)
                 when (label) {
-                    "zgbs" -> amazonMetrics.zgbs.mark()
+                    "zgbs", "bestsellers" -> amazonMetrics.zgbs.mark()
                     "most-wished-for" -> amazonMetrics.mWishedF.mark()
                     "new-releases" -> amazonMetrics.nRelease.mark()
                     "movers-and-shakers" -> amazonMetrics.mas.mark()
@@ -72,7 +72,7 @@ object AmazonUtils {
 
                 if (AmazonPageTraitsDetector.isSecondaryLabeledPortalPage(url)) {
                     when (label) {
-                        "zgbs" -> amazonMetrics.szgbs.mark()
+                        "zgbs", "bestsellers" -> amazonMetrics.szgbs.mark()
                         "most-wished-for" -> amazonMetrics.smWishedF.mark()
                         "new-releases" -> amazonMetrics.snRelease.mark()
                         "movers-and-shakers" -> amazonMetrics.smas.mark()

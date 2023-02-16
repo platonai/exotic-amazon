@@ -2,9 +2,15 @@ package ai.platon.exotic.amazon.crawl.boot
 
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
+import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonDetailPageHtmlChecker
+import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonPageCategorySniffer
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
 import ai.platon.pulsar.common.StartStopRunner
+import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.crawl.parse.ParseFilters
+import ai.platon.pulsar.persist.HadoopUtils
+import ai.platon.pulsar.protocol.browser.emulator.BrowserResponseHandler
+import ai.platon.scent.ScentSession
 import ai.platon.scent.parse.html.JdbcCommitConfig
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
@@ -23,6 +29,10 @@ import org.springframework.scheduling.annotation.EnableScheduling
 )
 class CrawlerConfiguration(
     /**
+     * The scent session
+     * */
+    private val session: ScentSession,
+    /**
      * The amazon crawler which is the main entry for business code to crawl amazon.com
      * */
     private val amazonCrawler: AmazonCrawler,
@@ -31,21 +41,38 @@ class CrawlerConfiguration(
      * */
     private val parseFilters: ParseFilters,
     /**
+     * The browser's response handler
+     * */
+    private val responseHandler: BrowserResponseHandler,
+    /**
      * Spring's ApplicationContext
      * */
     private val applicationContext: ApplicationContext,
 ) {
+    private val logger = getLogger(CrawlerConfiguration::javaClass)
+
+    @Bean
+    fun checkConfiguration() {
+        val conf = session.unmodifiedConfig
+
+        logger.info("{}", conf)
+        val hadoopConf = HadoopUtils.toHadoopConfiguration(conf)
+        logger.info("{}", hadoopConf)
+    }
+
     /**
      * Initialize and start amazon crawler
      * */
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    fun startAmazonCrawler(): StartStopRunner {
+    @Bean
+    fun initializeCrawler() {
+        val conf = session.sessionConfig
+        responseHandler.htmlIntegrityChecker.addLast(AmazonDetailPageHtmlChecker(conf))
+        responseHandler.pageCategorySniffer.addLast(AmazonPageCategorySniffer(conf))
+
         val extractorFactory = { conf: JdbcCommitConfig ->
             applicationContext.getBean<AmazonJdbcSinkSQLExtractor>()
         }
 
         WebDataExtractorInstaller(extractorFactory).install(parseFilters)
-
-        return StartStopRunner(amazonCrawler)
     }
 }

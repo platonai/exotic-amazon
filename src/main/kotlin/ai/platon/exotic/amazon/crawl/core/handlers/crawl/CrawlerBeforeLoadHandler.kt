@@ -46,7 +46,7 @@ class CrawlerBeforeLoadHandler(
 
                 val label = AmazonPageTraitsDetector.getLabelOfPortal(url)
                 when (label) {
-                    "zgbs" -> amazonMetrics.zgbs.mark()
+                    "zgbs", "bestsellers" -> amazonMetrics.zgbs.mark()
                     "most-wished-for" -> amazonMetrics.mWishedF.mark()
                     "new-releases" -> amazonMetrics.nRelease.mark()
                     "movers-and-shakers" -> amazonMetrics.mas.mark()
@@ -54,7 +54,7 @@ class CrawlerBeforeLoadHandler(
 
                 if (AmazonPageTraitsDetector.isSecondaryLabeledPortalPage(url)) {
                     when (label) {
-                        "zgbs" -> amazonMetrics.szgbs.mark()
+                        "zgbs", "bestsellers" -> amazonMetrics.szgbs.mark()
                         "most-wished-for" -> amazonMetrics.smWishedF.mark()
                         "new-releases" -> amazonMetrics.snRelease.mark()
                         "movers-and-shakers" -> amazonMetrics.smas.mark()

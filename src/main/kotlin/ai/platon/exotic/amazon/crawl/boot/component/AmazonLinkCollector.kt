@@ -1,7 +1,6 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
-import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
+import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.FatLinkExtractor
 import ai.platon.pulsar.common.getLogger
@@ -20,7 +19,7 @@ import ai.platon.scent.ScentSession
 import ai.platon.exotic.amazon.tools.category.CategoryProcessor
 import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
-import ai.platon.pulsar.common.AppPaths
+import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.scent.boot.autoconfigure.persist.WebNodeRepository
 import ai.platon.scent.boot.autoconfigure.persist.findByNodeAnchorUrlOrNull
 import ai.platon.scent.common.ScentStatusTracker
@@ -54,14 +53,6 @@ class AmazonLinkCollector(
     private val registry = AppMetrics.defaultMetricRegistry
     private val updatedNodes = registry.counterAndGauge(this, "updatedNodes")
     private val recoveredNodes = registry.counterAndGauge(this, "updatedNodes")
-    private val fetchedBestSellerUrlPath = AppPaths.REPORT_DIR.resolve("fetch/fetched-best-sellers")
-
-    init {
-        if (!Files.exists(fetchedBestSellerUrlPath)) {
-            Files.createDirectories(fetchedBestSellerUrlPath.parent)
-            Files.createFile(fetchedBestSellerUrlPath)
-        }
-    }
 
     /**
      * Extract product links from best-seller pages
@@ -70,22 +61,30 @@ class AmazonLinkCollector(
         it.normalizer.addFirst(AsinUrlNormalizer())
     }
 
-    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument) {
+    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument): List<Hyperlink> {
         // a typical option:
         // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
         // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
         // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
-        val url = page.url
-        if (page.label != PredefinedTask.BEST_SELLERS.label) {
-            // log.warn("Should has zgbs label, actual <{}> | {}", page.label, page.configuredUrl)
-        }
 
-        Files.writeString(fetchedBestSellerUrlPath, url, StandardOpenOption.APPEND)
-
-        val args = "-itemExpires PT30D -outLinkSelector \"div.p13n-gridRow > div[id~=Item] a[href~=/dp/]\" -l asin"
-        val options = session.options(args)
+        // "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
+//        val itemArgs = "-itemExpires PT30D -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -l asin"
+//        val options = session.options(itemArgs)
         // extract asin
-        fatLinkExtractor.parse(page, document, options)
+//        fatLinkExtractor.parse(page, document, options)
+
+        // fieldCount in logs: numNonBlankFields, numNonNullFields, numFields
+        // js status: i/a/nm/st/h
+        // TODO: load from a file
+        val itemArgs = ASIN_LOAD_ARGUMENTS
+        val normalizer = AsinUrlNormalizer()
+        val links = document.document.selectHyperlinks(ASIN_LINK_SELECTOR_IN_BS_PAGE)
+            .distinct()
+            .map { l -> Hyperlink(normalizer(l.url)!!, args = itemArgs).apply { href = l.url } }
+
+        logger.info("Collected {} asin links from bestseller | {}", links.size, page.url)
+
+        return links
     }
 
     fun collectReviewLinksFromProductPage(
@@ -228,14 +227,18 @@ class AmazonLinkCollector(
         label: String, page: WebPage, document: FeaturedDocument, queue: Queue<UrlAware>
     ): Hyperlink? {
         // Collect the hyperlink of the next page
-        val url = document.selectFirstOrNull("ul.a-pagination li.a-last a[href~=$label]")
+        val url = document.selectFirstOrNull(SECONDARY_BS_LINK_SELECTOR_IN_BS_PAGE)
             ?.attr("abs:href")
             ?.takeIf { UrlUtils.isValidUrl(it) }
+
         if (url != null) {
             // Notice: very important to inherit the page's load argument
             val nextMidnight = DateTimes.midnight.plusDays(1).toInstant(DateTimes.zoneOffset)
-            val args = if (page.args.isBlank()) "-deadTime $nextMidnight" else "${page.args} -deadTime $nextMidnight"
+            var args = if (page.args.isBlank()) "-deadTime $nextMidnight" else "${page.args} -deadTime $nextMidnight"
+            args += " -label $label"
             val hyperlink = Hyperlink(url, args = args, referer = page.url)
+
+//println("" + page.id + "\t" + hyperlink.configuredUrl)
 
             queue.add(hyperlink)
 

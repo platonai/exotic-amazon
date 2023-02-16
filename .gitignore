@@ -101,3 +101,5 @@ derby.log
 /.jpb/jpb-settings.xml
 .pulsar/
 .private/
+
+/*.xlsx

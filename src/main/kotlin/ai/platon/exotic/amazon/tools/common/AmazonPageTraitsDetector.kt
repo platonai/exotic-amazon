@@ -28,7 +28,7 @@ object AmazonPageTraitsDetector {
      * https://www.amazon.com/gp/most-wished-for
      * */
     val portalLabels = arrayOf(
-        "zgbs", "most-wished-for", "new-releases", "movers-and-shakers",
+        "zgbs", "bestsellers", "most-wished-for", "new-releases", "movers-and-shakers",
     )
 
     fun getLabelOfPortalOrNull(url: String): String? {

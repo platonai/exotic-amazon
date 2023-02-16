@@ -6,7 +6,14 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 其他电商平台数据采集，其方法和流程基本类似，可以在该项目基础上修改调整业务逻辑即可，其基础设施解决了所有大规模数据采集面临的难题。
 
-得益于 [PulsarR](https://github.com/platonai/pulsarr/README.adoc) ([中文](https://github.com/platonai/pulsarr/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的X-SQL组成，以提取 650 多个字段。
+本版本支持多个国家版本的亚马逊网站采集，包括：
+
+1. amazon.com 
+2. amazon.co.uk 
+3. amazon.de 
+4. amazon.fr
+
+得益于 [PulsarR](https://github.com/platonai/pulsarr/README.adoc) ([中文](https://github.com/platonai/pulsarr/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
 
 ### 数据简介
 
@@ -72,6 +79,24 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 1. 如何正确提取 **CSS 混淆** 的字段，它的 CSSPath/XPath/Regex 每个网页都不同，有什么技术解决？
 1. 如何采集数百个电商站点并避免爬虫失效？
 1. 如何降低**总体拥有成本**？
+
+## 困难和挑战
+
+亚马逊在反爬虫方面，常用的反爬手段基本都用了，譬如 Cookie 跟踪，IP 跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
+
+使用浏览器自动化工具如 selenium, playwright, puppeteer 等采集亚马逊数据，会被检测出来。像 puppeteer-extra, apify-crawlee 这样的工具，提供了 WebDriver 隐身特性，一定程度上缓解了这个问题，但仍然没有完全解决。
+
+1. 上述工具没有解决访问轨迹跟踪问题
+2. Headless 模式能够被检测出来了。如果爬虫运行在云端，为了提高性能，通常是不装 GUI 的，headless 模式即使是做了 WebDriver 隐身, 也能够被检测出来了
+
+即使解决完上述问题，在大规模采集场景下，仍然面临诸多困难：
+
+* 如何正确轮换IP？事实上，仅轮换IP是不够的，准确讲需要“**隐私上下文轮换**”
+* 如何使用单台机器 **每天提取数千万数据点**？
+* 如何保证 **数据准确性**？
+* 如何保证 **调度准确性**？
+* 如何保证 **分布式系统弹性**？
+* 对使用了 **CSS 混淆**的字段，它的 CSS Path/XPath/Regex 每个网页都不同，这种情况下该如何正确提取字段？
 
 ## 提取结果处理
 

@@ -11,7 +11,7 @@
 
 	<groupId>ai.platon.exotic</groupId>
 	<artifactId>exotic-amazon</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
 
@@ -45,6 +45,12 @@
 		<repository>
 			<id>Central</id>
 			<url>https://repo1.maven.org/maven2/</url>
+		</repository>
+
+		<repository>
+			<id>AsposeJavaAPI</id>
+			<name>Aspose Java API</name>
+			<url>https://repository.aspose.com/repo/</url>
 		</repository>
 
 		<repository>
@@ -196,7 +202,15 @@
 					<executable>true</executable>
 				</configuration>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
 	</build>
 
 	<dependencies>
@@ -257,6 +271,13 @@
 			<groupId>ai.platon.commons</groupId>
 			<artifactId>distributed-lock-mongo</artifactId>
 			<version>${distributed.lock.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.aspose</groupId>
+			<artifactId>aspose-cells</artifactId>
+			<version>22.9</version>
+<!--			<classifier>jdk11</classifier>-->
 		</dependency>
 
 		<dependency>
@@ -338,7 +359,7 @@
 		<distributed.lock.version>1.4.3</distributed.lock.version>
 
 		<pulsar.kotlin.driver.version>1.6.14</pulsar.kotlin.driver.version>
-		<pulsar.version>1.9.9</pulsar.version>
-		<scent.version>1.9.7</scent.version>
+		<pulsar.version>1.9.17</pulsar.version>
+		<scent.version>1.9.10</scent.version>
 	</properties>
 </project>

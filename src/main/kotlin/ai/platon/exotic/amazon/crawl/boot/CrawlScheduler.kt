@@ -4,6 +4,7 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
+import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.config.ImmutableConfig
@@ -12,11 +13,13 @@ import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.common.AMAZON_CRAWLER_GENERATE_DEFAULT_TASKS
 import ai.platon.scent.common.MINUTE_TO_MILLIS
+import ai.platon.scent.common.SECOND_TO_MILLIS
 import ai.platon.scent.common.ScentStatusTracker
 import ai.platon.scent.crawl.isRunTime
 import ai.platon.scent.parse.html.AbstractSinkAwareSQLExtractor
 import ai.platon.scent.rest.api.service.v1.ScrapeServiceV1
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -25,6 +28,7 @@ import java.time.temporal.ChronoUnit
 
 @Component
 @EnableScheduling
+@ConditionalOnProperty(prefix = "amazon", name = ["enable.scheduler"], havingValue = "true")
 class CrawlScheduler(
     private val crawler: AmazonCrawler,
     private val amazonGenerator: AmazonGenerator,
@@ -42,6 +46,14 @@ class CrawlScheduler(
     private val logger = LoggerFactory.getLogger(CrawlScheduler::class.java)
     private var commitCount = 0
     private val generateDefaultTasks get() = conf.getBoolean(AMAZON_CRAWLER_GENERATE_DEFAULT_TASKS, true)
+
+    /**
+     * Report periodically
+     * */
+    @Scheduled(initialDelay = 30 * SECOND_TO_MILLIS, fixedDelay = 10 * SECOND_TO_MILLIS)
+    fun report() {
+        logger.info("========================= crawl scheduler is enabled")
+    }
 
     /**
      * cron syntax:
@@ -123,6 +135,13 @@ class CrawlScheduler(
         amazonGenerator.generateLoadingTasks(tasks, true)
     }
 
+    @Scheduled(initialDelay = 2 * INITIAL_DELAY, fixedDelay = 2 * MINUTE_TO_MILLIS)
+    fun createAsinTaskIfOldOneFinishedOrNoRunningTask() {
+        logger.info("Checking asin task ...")
+        val state = createAsinTaskIfOldOneFinishedOrNoRunningTask0()
+        logger.info("Asin task generation: {} {}", state.code, state.message)
+    }
+
     /**
      * Check and remove retried cache collectors at midnight
      * */
@@ -133,13 +152,6 @@ class CrawlScheduler(
         }
 
         removeRetiredUrlCacheCollectors()
-    }
-
-    @Scheduled(initialDelay = 2 * INITIAL_DELAY, fixedDelay = 2 * MINUTE_TO_MILLIS)
-    fun createAsinTaskIfOldOneFinishedOrNoRunningTask() {
-        logger.debug("Checking asin task ...")
-        val state = createAsinTaskIfOldOneFinishedOrNoRunningTask0()
-        logger.debug("Asin task generation: {} {}", state.code, state.message)
     }
 
     private fun createAsinTaskIfOldOneFinishedOrNoRunningTask0(): CheckState {
