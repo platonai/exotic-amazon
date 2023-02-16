@@ -6,7 +6,7 @@ import ai.platon.exotic.amazon.crawl.core.createOptions
 import ai.platon.exotic.amazon.crawl.core.isSupervised
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.*
-import ai.platon.pulsar.common.collect.CollectorHelper
+import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.LocalFileHyperlinkCollector
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
@@ -24,7 +24,7 @@ import kotlin.io.path.isRegularFile
 class PeriodicalSeedsGenerator(
     val tasks: List<ResidentTask>,
     private val searchDirectories: List<Path>,
-    private val collectorHelper: CollectorHelper,
+    private val urlFeederHelper: UrlFeederHelper,
     private val urlLoader: ExternalUrlLoader,
     private val session: ScentSession,
     private val webDb: WebDb
@@ -119,7 +119,7 @@ class PeriodicalSeedsGenerator(
     }
 
     private fun getRelevantCollectors(task: ResidentTask): List<UrlCacheCollector> {
-        return collectorHelper.feeder.collectors
+        return urlFeederHelper.feeder.collectors
             .filter { task.name in it.name }
             .filterIsInstance<UrlCacheCollector>()
     }
@@ -127,18 +127,18 @@ class PeriodicalSeedsGenerator(
     private fun removeOldCollectors(task: ResidentTask): List<UrlCacheCollector> {
         // If the collector is still alive, remove it
         return getRelevantCollectors(task).onEach {
-            collectorHelper.removeAllLike(task.name)
+            urlFeederHelper.removeAllLike(task.name)
         }
     }
 
     private fun createUrlCacheCollector(task: ResidentTask, urlLoader: ExternalUrlLoader): UrlCacheCollector {
         val priority = task.priority.value
-        collectorHelper.remove(task.name)
+        urlFeederHelper.remove(task.name)
 
         logger.info("Creating collector for {}", task.name)
 
         // the name addUrlPoolCollector is confusing, should be addUrlCacheCollector, corrected in 1.10.0+
-        return collectorHelper.addUrlPoolCollector(task.name, priority, urlLoader).also {
+        return urlFeederHelper.create(task.name, priority, urlLoader).also {
             it.deadTime = task.deadTime()
             it.labels.add(task.name)
         }

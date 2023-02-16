@@ -195,7 +195,7 @@ class AmazonLinkCollector(
 
         if (discoveredAnchors.isNotEmpty() && queue != null) {
             recoveredNodes.inc(discoveredAnchors.size.toLong())
-            discoveredAnchors.mapTo(queue) { Hyperlink(it.url, args = page.args, referer = page.url) }
+            discoveredAnchors.mapTo(queue) { Hyperlink(it.url, args = page.args, referrer = page.url) }
         }
 
         val stable = Duration.between(expectedNode.modifiedAt, Instant.now()).toDays() > 7
@@ -236,7 +236,7 @@ class AmazonLinkCollector(
             val nextMidnight = DateTimes.midnight.plusDays(1).toInstant(DateTimes.zoneOffset)
             var args = if (page.args.isBlank()) "-deadTime $nextMidnight" else "${page.args} -deadTime $nextMidnight"
             args += " -label $label"
-            val hyperlink = Hyperlink(url, args = args, referer = page.url)
+            val hyperlink = Hyperlink(url, args = args, referrer = page.url)
 
 //println("" + page.id + "\t" + hyperlink.configuredUrl)
 
@@ -291,7 +291,7 @@ class AmazonLinkCollector(
             .filter { UrlUtils.isValidUrl(it.trim()) }.forEach { url ->
                 val label = if (page.label.isBlank()) columnName else page.label
                 val args = "-label $label"
-                val hyperlink = Hyperlink(url, args = args, referer = page.url)
+                val hyperlink = Hyperlink(url, args = args, referrer = page.url)
                 if (queue.add(hyperlink)) {
                     collectStatistics(columnName, hyperlink)
                     return hyperlink

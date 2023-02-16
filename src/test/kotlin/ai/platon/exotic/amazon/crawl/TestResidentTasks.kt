@@ -89,5 +89,4 @@ class TestResidentTasks: TestBase() {
         val formatter = PriorityDataCollectorsTableFormatter(openCollectors)
         logger.info("Open collectors: \n{}", formatter)
     }
-
 }

@@ -1,11 +1,10 @@
 package ai.platon.exotic.common
 
 import ai.platon.pulsar.common.urls.UrlAware
-import ai.platon.pulsar.context.PulsarContexts
 import ai.platon.pulsar.context.support.AbstractPulsarContext
 import ai.platon.pulsar.crawl.CrawlLoops
-import ai.platon.pulsar.crawl.StreamingCrawlLoop
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
+import ai.platon.pulsar.crawl.impl.StreamingCrawlLoop
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.protocol.browser.emulator.BrowserEmulatedFetcher
 import ai.platon.scent.ScentSession
@@ -21,10 +20,10 @@ open class ConfigurableStreamingCrawler(
 
     override fun start() {
         crawlLoops.loops.filterIsInstance<StreamingCrawlLoop>().forEach { loop ->
-            loop.crawlEventHandler.also {
-                it.onBeforeLoad.addFirst { url -> onBeforeLoad(url) }
-                it.onAfterLoad.addFirst { url, page -> onAfterLoad(url, page) }
-            }
+//            loop.crawlEventHandler.also {
+//                it.onBeforeLoad.addFirst { url -> onBeforeLoad(url) }
+//                it.onAfterLoad.addFirst { url, page -> onAfterLoad(url, page) }
+//            }
         }
         super.start()
     }

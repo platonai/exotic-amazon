@@ -5,7 +5,7 @@ import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.sql.ResultSetFormatter
 import ai.platon.pulsar.common.sql.SQLTemplate
 import ai.platon.pulsar.dom.FeatureCalculatorFactory
-import ai.platon.pulsar.dom.features.CombinedFeatureCalculator
+import ai.platon.pulsar.dom.features.ChainedFeatureCalculator
 import ai.platon.scent.ql.h2.context.ScentSQLContexts
 
 class AsinScraper {
@@ -25,7 +25,7 @@ class AsinScraper {
         .joinToString("\n")
 
     init {
-        val calculator = FeatureCalculatorFactory.calculator as? CombinedFeatureCalculator
+        val calculator = FeatureCalculatorFactory.calculator as? ChainedFeatureCalculator
         calculator?.calculators?.add(AmazonFeatureCalculator())
     }
 

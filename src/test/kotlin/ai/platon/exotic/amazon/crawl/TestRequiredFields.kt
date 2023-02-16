@@ -8,7 +8,7 @@ import ai.platon.pulsar.common.persist.ext.options
 import ai.platon.pulsar.crawl.common.url.CompletableListenableHyperlink
 import ai.platon.pulsar.dom.FeatureCalculatorFactory
 import ai.platon.pulsar.dom.FeaturedDocument
-import ai.platon.pulsar.dom.features.CombinedFeatureCalculator
+import ai.platon.pulsar.dom.features.ChainedFeatureCalculator
 import ai.platon.pulsar.dom.select.selectFirstOrNull
 import ai.platon.pulsar.persist.WebPage
 import org.junit.Test
@@ -26,7 +26,7 @@ class TestRequiredFields: TestBase() {
 
     @Test
     fun `When call AmazonFeatureCalculator than pulsarJsVariables exists`() {
-        val calculator = FeatureCalculatorFactory.calculator as CombinedFeatureCalculator
+        val calculator = FeatureCalculatorFactory.calculator as ChainedFeatureCalculator
         calculator.calculators.add(amazonFeatureCalculator)
         println("There are " + calculator.calculators.size + " calculators")
 
@@ -40,18 +40,18 @@ class TestRequiredFields: TestBase() {
         if (page.lastBrowser != BrowserType.MOCK_CHROME) {
             expectedVariables.forEach { key ->
                 val value = variables.selectFirstOrNull(".$key")
-                println(variables.outerHtml())
+//                println(variables.outerHtml())
                 assertNotNull(value, "Variable should exist:  .$key")
             }
         }
     }
 
     @Test
-    fun `When load with StreamingCrawler than referer exists`() {
+    fun `When load with StreamingCrawler than referrer exists`() {
         val referrer = "https://www.amazon.com/"
         val url = CompletableListenableHyperlink<WebPage>(productUrl, args = defaultArgs).also {
-            it.referer = referrer
-            it.eventHandler.loadEventHandler.onLoaded.addLast {
+            it.referrer = referrer
+            it.event.loadEvent.onLoaded.addLast {
                 assertEquals(referrer, it.referrer)
             }
         }
@@ -63,14 +63,14 @@ class TestRequiredFields: TestBase() {
         val label = PredefinedTask.BEST_SELLERS.label
         val randomIdent = 3872197
         val portalUrl = "https://www.amazon.com/Best-Sellers-Beauty/zgbs/beauty/ref=zg_bs_nav_0?i=$randomIdent"
-        val args = "$defaultArgs -label $label"
+        val args = "$defaultArgs -label $label -refresh"
 
         val url = CompletableListenableHyperlink<WebPage>(portalUrl, args = args)
-        url.eventHandler.loadEventHandler.onHTMLDocumentParsed.addLast { page, document ->
-            assertEquals(label, page.label)
+        url.event.loadEvent.onHTMLDocumentParsed.addLast { page, document ->
+            assertEquals(page.label, label)
             collectSecondaryLabeledPortalPage(page, document)
         }
-        url.eventHandler.crawlEventHandler.onLoaded.addFirst { u, page ->
+        url.event.crawlEvent.onLoaded.addFirst { u, page ->
             url.complete(page)
         }
 
@@ -91,9 +91,9 @@ class TestRequiredFields: TestBase() {
         val url = document.selectFirst("ul.a-pagination li.a-last a[href~=$label]").attr("abs:href")
 
         val hyperlink = CompletableListenableHyperlink<WebPage>(url, args = page.args, referer = page.url)
-        hyperlink.eventHandler.crawlEventHandler.onLoaded.addLast { u, page2 ->
+        hyperlink.event.crawlEvent.onLoaded.addLast { u, page2 ->
             if (page2 == null) {
-                return@addLast
+                return@addLast null
             }
 
             val options = page.options

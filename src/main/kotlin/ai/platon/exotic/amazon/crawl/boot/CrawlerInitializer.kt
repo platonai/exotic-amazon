@@ -5,7 +5,7 @@ import ai.platon.pulsar.common.config.CapabilityTypes
 import ai.platon.pulsar.common.options.LoadOptionDefaults
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.dom.FeatureCalculatorFactory
-import ai.platon.pulsar.dom.features.CombinedFeatureCalculator
+import ai.platon.pulsar.dom.features.ChainedFeatureCalculator
 import ai.platon.pulsar.protocol.browser.emulator.BrowserResponseHandler
 import ai.platon.scent.ScentEnvironment
 import org.slf4j.LoggerFactory
@@ -30,14 +30,13 @@ class CrawlerInitializer: ApplicationContextInitializer<AbstractApplicationConte
         ScentEnvironment().checkEnvironment()
 
         mapOf(
-//            CapabilityTypes.BROWSER_EMULATOR_EVENT_HANDLER to "ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonEmulateEventHandler",
             CapabilityTypes.PROXY_LOADER_CLASS to "ai.platon.exotic.common.proxy.ProxyVendorLoader",
             CapabilityTypes.FETCH_MAX_RETRY to "3"
         ).forEach { (key, value) -> System.setProperty(key, value) }
 
         logger.info("Initializing feature calculator, append AmazonFeatureCalculator")
 
-        val calculator = FeatureCalculatorFactory.calculator as? CombinedFeatureCalculator
+        val calculator = FeatureCalculatorFactory.calculator as? ChainedFeatureCalculator
         calculator?.calculators?.add(AmazonFeatureCalculator())
 
         // ignore the default crawl loop, ScentCrawlLoop is expected

@@ -1,27 +1,30 @@
 package ai.platon.exotic.amazon.tools.environment
 
 import ai.platon.pulsar.common.ResourceLoader
-import ai.platon.pulsar.crawl.AbstractWebPageWebDriverHandler
+import ai.platon.pulsar.crawl.event.WebPageWebDriverEventHandler
 import ai.platon.pulsar.crawl.fetch.driver.WebDriver
 import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.session.PulsarSession
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-class ChooseLanguageJsEventHandler: AbstractWebPageWebDriverHandler() {
-    override var verbose = true
+class ChooseLanguageJsEventHandler: WebPageWebDriverEventHandler() {
+    var verbose = true
 
-    override suspend fun invokeDeferred(page: WebPage, driver: WebDriver): Any? {
+    override suspend fun invoke(page: WebPage, driver: WebDriver): Any? {
         val expressions = "document.querySelector(\"input[value=en_US]\").click();\n" +
                 "document.querySelector(\"span#icp-btn-save input[type=submit]\").click();"
-        return evaluate(driver, expressions.split(";"))
+        expressions.split(";").forEach {
+            driver.evaluate(it)
+        }
+        return null
     }
 }
 
-class ChooseCountryJsEventHandler: AbstractWebPageWebDriverHandler() {
-    override var verbose = true
+class ChooseCountryJsEventHandler: WebPageWebDriverEventHandler() {
+    var verbose = true
 
-    override suspend fun invokeDeferred(page: WebPage, driver: WebDriver): Any? {
+    override suspend fun invoke(page: WebPage, driver: WebDriver): Any? {
         // New York City
         val zipcode = listOf("10001", "10001", "10002", "10002", "10003", "10004", "10005", "10006").shuffled().first()
         val expressions = ResourceLoader.readString("sites/amazon/js/choose-district.js")
@@ -31,7 +34,11 @@ class ChooseCountryJsEventHandler: AbstractWebPageWebDriverHandler() {
             .filter { !it.startsWith("// ") }
             .joinToString(";\n")
 
-        return evaluate(driver, expressions.split(";"))
+        expressions.split(";").forEach {
+            driver.evaluate(it)
+        }
+
+        return null
     }
 }
 

@@ -5,7 +5,6 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonDetailPageHtmlChecker
 import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonPageCategorySniffer
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
-import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.persist.HadoopUtils
