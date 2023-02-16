@@ -41,7 +41,6 @@ class TestPreconditions: TestBase() {
         CapabilityTypes.PROXY_ENABLE_DEFAULT_PROVIDERS to "true",
         CapabilityTypes.PROXY_POOL_MONITOR_CLASS to "ai.platon.pulsar.common.proxy.ProxyPoolManager",
 //        CapabilityTypes.PROXY_LOADER_CLASS to "ai.platon.exotic.common.proxy.ProxyVendorLoader",
-        CapabilityTypes.BROWSER_EMULATOR_EVENT_HANDLER to "ai.platon.scent.protocol.browser.emulator.context.CombinedEventHandler",
         CapabilityTypes.PRIVACY_CONTEXT_ID_GENERATOR_CLASS to "ai.platon.pulsar.crawl.fetch.privacy.SequentialPrivacyContextIdGenerator",
         CapabilityTypes.H2_SESSION_FACTORY_CLASS to "ai.platon.scent.ql.h2.H2SessionFactory"
     )

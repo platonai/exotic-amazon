@@ -30,7 +30,6 @@ class CrawlerInitializer: ApplicationContextInitializer<AbstractApplicationConte
         ScentEnvironment().checkEnvironment()
 
         mapOf(
-//            CapabilityTypes.BROWSER_EMULATOR_EVENT_HANDLER to "ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonEmulateEventHandler",
             CapabilityTypes.PROXY_LOADER_CLASS to "ai.platon.exotic.common.proxy.ProxyVendorLoader",
             CapabilityTypes.FETCH_MAX_RETRY to "3"
         ).forEach { (key, value) -> System.setProperty(key, value) }

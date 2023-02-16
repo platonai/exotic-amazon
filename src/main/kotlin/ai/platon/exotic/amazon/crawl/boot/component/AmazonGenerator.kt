@@ -8,17 +8,16 @@ import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.PeriodicalSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
 import ai.platon.exotic.common.ClusterTools
+import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
+import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.pulsar.persist.WebDb
 import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
-
-import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
-import ai.platon.pulsar.common.ResourceLoader
-import ai.platon.pulsar.common.collect.UrlFeederHelper
 import org.springframework.stereotype.Component
 import java.net.URLEncoder
 import java.nio.charset.Charset
@@ -28,6 +27,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.io.path.toPath
+import kotlin.streams.toList
 
 /**
  * Generate fetch tasks. All fetch tasks are some form of Pulsar URLs.
@@ -54,13 +54,14 @@ class AmazonGenerator(
     val name = "amazon"
     val label = "20220801"
 
-    val periodicalSeedDirectories: List<Path> get() {
-        val uri = ResourceLoader.getResource(PERIODICAL_SEED_RESOURCE_BASE)?.toURI() ?: return listOf()
+    val periodicalSeedDirectories: List<Path>
+        get() {
+            val uri = ResourceLoader.getResource(PERIODICAL_SEED_RESOURCE_BASE)?.toURI() ?: return listOf()
 
-        return Files.list(uri.toPath())
-            .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
-            .toList()
-    }
+            return Files.list(uri.toPath())
+                .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
+                .toList()
+        }
 
     // create a new instant every day for that day
     val asinGenerator get() = DailyAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
@@ -72,11 +73,10 @@ class AmazonGenerator(
      * */
     fun generateStartupTasks() {
         val tasks = listOf(
-//            PredefinedTask.MOVERS_AND_SHAKERS,
-//            PredefinedTask.BEST_SELLERS,
-//            PredefinedTask.MOST_WISHED_FOR,
-//            PredefinedTask.NEW_RELEASES,
-            PredefinedTask.BEST_SELLERS7D
+            PredefinedTask.MOVERS_AND_SHAKERS,
+            PredefinedTask.BEST_SELLERS,
+            PredefinedTask.MOST_WISHED_FOR,
+            PredefinedTask.NEW_RELEASES
         )
             .map { it.toResidentTask() }
             .filter { it.isRunTime() }
@@ -106,8 +106,10 @@ class AmazonGenerator(
      * */
     fun generateLoadingTasks(residentTasks: List<ResidentTask>, refresh: Boolean) {
         try {
-            val generator = PeriodicalSeedsGenerator(residentTasks,
-                periodicalSeedDirectories, urlFeederHelper, urlLoader, session, webDb)
+            val generator = PeriodicalSeedsGenerator(
+                residentTasks,
+                periodicalSeedDirectories, urlFeederHelper, urlLoader, session, webDb
+            )
 
             generator.generate(refresh)
         } catch (t: Throwable) {

@@ -54,7 +54,7 @@ class AmazonCrawler(
     override fun generate() {
         super.generate()
 
-        // amazonGenerator.generateStartupTasks()
+        amazonGenerator.generateStartupTasks()
 
         logger.info("Registered collectors: \n{}", formatAsTable(crawlLoop.collectors))
     }
