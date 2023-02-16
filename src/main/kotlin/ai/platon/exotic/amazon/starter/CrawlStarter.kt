@@ -7,15 +7,18 @@ import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.browser.common.BrowserSettings
-import ai.platon.pulsar.common.*
+import ai.platon.pulsar.common.DateTimes
+import ai.platon.pulsar.common.LinkExtractors
+import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.CapabilityTypes
-import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_STR
+import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.PlainUrl
 import ai.platon.pulsar.crawl.event.impl.DefaultPageEvent
 import ai.platon.pulsar.dom.select.selectHyperlinks
+import ai.platon.pulsar.protocol.browser.driver.BrowserMonitor
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
 import ai.platon.scent.ScentSession
 import ai.platon.scent.protocol.browser.emulator.context.BrowserPrivacyContextMonitor
@@ -24,7 +27,12 @@ import org.springframework.boot.runApplication
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ImportResource
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
+/**
+ *
+ * Note: Official answer say that scanBasePackages is the upgraded version of ComponentScan.
+ * */
 @SpringBootApplication(
     scanBasePackages = [
         "ai.platon.scent.boot.autoconfigure",
@@ -32,15 +40,29 @@ import org.springframework.context.annotation.ImportResource
         "ai.platon.exotic.amazon.crawl.boot",
     ]
 )
+@EnableMongoRepositories("ai.platon.scent.boot.autoconfigure.persist")
 @ImportResource("classpath:config/app/app-beans/app-context.xml")
 class CrawlApplication(
-    private val appMetrics: AppMetrics,
-    private val driverPoolMonitor: WebDriverPoolMonitor,
-    private val privacyContextMonitor: BrowserPrivacyContextMonitor,
     private val amazonGenerator: AmazonGenerator,
     private val amazonCrawler: AmazonCrawler,
     private val session: ScentSession,
-    private val applicationContext: ApplicationContext
+    private val applicationContext: ApplicationContext,
+    /**
+     * Activate AppMetrics
+     * */
+    private val appMetrics: AppMetrics,
+    /**
+     * Activate WebDriverPoolMonitor
+     * */
+    private val driverPoolMonitor: WebDriverPoolMonitor,
+    /**
+     * Activate BrowserMonitor
+     * */
+    private val browserMonitor: BrowserMonitor,
+    /**
+     * Activate BrowserPrivacyContextMonitor
+     * */
+    private val privacyContextMonitor: BrowserPrivacyContextMonitor
 ) {
     private val logger = getLogger(CrawlApplication::class.java)
     private var submittedProductUrlCount = 0

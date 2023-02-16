@@ -3,10 +3,6 @@ package ai.platon.exotic.amazon.crawl.boot.component
 import ai.platon.exotic.amazon.crawl.core.handlers.crawl.CrawlerBeforeLoadHandler
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.ConfigurableStreamingCrawler
-import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.core.isRunTime
-import ai.platon.exotic.amazon.crawl.core.toResidentTask
-import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.formatAsTable
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.crawl.CrawlLoops
