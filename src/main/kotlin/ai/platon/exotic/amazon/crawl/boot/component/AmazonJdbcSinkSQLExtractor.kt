@@ -305,7 +305,7 @@ class AmazonJdbcSinkSQLExtractor(
         // some site uses "bestsellers" in the url
         // https://www.amazon.fr/gp/bestsellers/hpc/3160863031/ref=zg_bs_nav_hpc_2_3160836031
         if (label != PredefinedTask.BEST_SELLERS.label && label != "bestsellers") {
-            logger.warn("Not bestseller | {}", page.url)
+            // logger.warn("Not bestseller | {}", page.url)
             // return
         }
 
