@@ -67,6 +67,7 @@ class CrawlApplication(
     private val logger = getLogger(CrawlApplication::class.java)
     private var submittedProductUrlCount = 0
     private val globalCache = session.globalCacheFactory.globalCache
+    private val isDev = ClusterTools.isDevInstance()
 
     /**
      * Initialize and start amazon crawler
@@ -82,6 +83,10 @@ class CrawlApplication(
      * */
     @Bean
     fun injectExampleSeeds() {
+        if (!isDev) {
+            return
+        }
+
         val args = BESTSELLER_LOAD_ARGUMENTS
         val itemArgs = ASIN_LOAD_ARGUMENTS
 
