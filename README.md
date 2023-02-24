@@ -46,12 +46,25 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 现在可以开始了构建了：
 
+    # build
     git clone https://github.com/platonai/exotic-amazon.git
     cd exotic-amazon && mvn -DskipTests=true
 
+    ####################
+    # On Linux:
+
+    # run in development mode
     java -jar target/exotic-amazon*.jar
-    # Or on Windows:
+    # run in production mode
+    ENV=prod java -jar target/exotic-amazon*.jar
+
+    ####################
+    # On Windows:
+
+    # run in development mode
     java -jar target/exotic-amazon-{the-actual-version}.jar
+    # run in production mode
+    ENV=prod java -jar target/exotic-amazon-{the-actual-version}.jar
 
 一旦运行成功，你可以打开 [System Glances](http://localhost:8182/api/system/status/glances) 以一目了然地查看系统状态。
 
@@ -72,13 +85,13 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 即使解决完上述问题，也仅仅是入门而已。在大规模采集下，仍然面临诸多困难：
 
 1. 如何正确轮换IP？事实上，仅轮换IP是不够的，我们提出“**隐私上下文轮换**”
-1. 如何使用单台机器每天提取**数千万数据点**？
-1. 如何保证**数据准确性**？
-1. 如何保证**调度准确性**？
-1. 如何保证**分布式系统弹性**？
-1. 如何正确提取 **CSS 混淆** 的字段，它的 CSSPath/XPath/Regex 每个网页都不同，有什么技术解决？
-1. 如何采集数百个电商站点并避免爬虫失效？
-1. 如何降低**总体拥有成本**？
+2. 如何使用单台机器每天提取**数千万数据点**？
+3. 如何保证**数据准确性**？
+4. 如何保证**调度准确性**？
+5. 如何保证**分布式系统弹性**？
+6. 如何正确提取 **CSS 混淆** 的字段，它的 CSSPath/XPath/Regex 每个网页都不同，有什么技术解决？
+7. 如何采集数百个电商站点并避免爬虫失效？
+8. 如何降低**总体拥有成本**？
 
 ## 困难和挑战
 
