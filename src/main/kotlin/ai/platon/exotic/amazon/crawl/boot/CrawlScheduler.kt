@@ -52,7 +52,7 @@ class CrawlScheduler(
      * */
     @Scheduled(initialDelay = 30 * SECOND_TO_MILLIS, fixedDelay = 10 * SECOND_TO_MILLIS)
     fun report() {
-        logger.info("========================= crawl scheduler is enabled")
+        // logger.info("========================= crawl scheduler is enabled")
     }
 
     /**
