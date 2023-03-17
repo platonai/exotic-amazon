@@ -2,7 +2,7 @@ package ai.platon.exotic.amazon.tools.export
 
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.AppPaths
-import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_STR
+import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_KEY
 import com.aspose.cells.Workbook
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.nio.file.Files
@@ -56,7 +56,7 @@ class AssetsExporter {
 }
 
 fun main(args: Array<String>) {
-    System.setProperty(APP_ID_STR, "com")
+    System.setProperty(APP_ID_KEY, "com")
     val exporter = AssetsExporter()
     exporter.generateAsinAssets()
 }

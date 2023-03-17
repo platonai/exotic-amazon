@@ -8,7 +8,7 @@ import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.pulsar.common.AppContext
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.LinkExtractors
-import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_STR
+import ai.platon.pulsar.common.config.CapabilityTypes.APP_ID_KEY
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.UrlUtils
 import ai.platon.scent.ScentSession
@@ -124,7 +124,7 @@ class SolutionStatistics(
 }
 
 fun main(args: Array<String>) {
-    System.setProperty(APP_ID_STR, "com")
+    System.setProperty(APP_ID_KEY, "com")
     runApplication<SolutionStatistics>(*args) {
         addInitializers(CrawlerInitializer())
         setRegisterShutdownHook(true)
