@@ -186,3 +186,10 @@ A:
 ### **Q: How to store the scraping results?**
 
 A: Refer to [Save extract results into a database](#Save extract results into a database)
+
+## Contact the author
+
+WeChat：galaxyeye
+Weibo：galaxyeye
+Email：galaxyeye@live.cn
+Twitter: galaxyeye8

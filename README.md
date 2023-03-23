@@ -246,3 +246,9 @@ A:
 ### **Q: 怎么保存抓取结果？**
 
 A: 参看本文档 [将提取结果保存到数据库中](#将提取结果保存到数据库中) 章节。
+
+## 联系作者
+微信：galaxyeye
+微博：galaxyeye
+邮箱：galaxyeye@live.cn
+Twitter: galaxyeye8
