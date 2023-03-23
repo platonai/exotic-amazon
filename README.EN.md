@@ -6,13 +6,6 @@ Exotic Amazon is a complete solution to crawl the entire site of amazon.com.
 
 The web scraping for other e-commerce platforms are basically similar. Only a few business logic modifications are needed, and the infrastructure has already solved all other problems.
 
-This version supports web scraping of Amazon websites in many countries, including:
-
-1. amazon.com
-2. amazon.co.uk
-3. amazon.de
-4. amazon.fr
-
 Thanks to the perfect Web data management infrastructure provided by Pulsar, the entire solution consists of no more than 3,500 lines of kotlin code, plus less than 700 lines of X-SQL to extract more than 650 fields.
 
 ## Data
