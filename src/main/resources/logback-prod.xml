@@ -139,7 +139,7 @@
         <appender-ref ref="API"/>
     </logger>
 
-    <logger name="ai.platon.scent.parse.html.AbstractSQLExtractor.Irr" level="INFO" additivity="false">
+    <logger name="ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSQLExtractor.Irr" level="INFO" additivity="false">
         <appender-ref ref="Irr"/>
     </logger>
     <logger name="ai.platon.scent.parse.html.AbstractSinkAwareSQLExtractor.Task" level="DEBUG" additivity="false">

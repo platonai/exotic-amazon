@@ -1,5 +1,6 @@
 package ai.platon.exotic.amazon.crawl
 
+import ai.platon.exotic.amazon.crawl.boot.JdbcCommitConfig
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
@@ -9,7 +10,6 @@ import ai.platon.pulsar.persist.WebDb
 import ai.platon.scent.ScentSession
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
 import ai.platon.scent.boot.test.ScentBootTest
-import ai.platon.scent.parse.html.JdbcCommitConfig
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

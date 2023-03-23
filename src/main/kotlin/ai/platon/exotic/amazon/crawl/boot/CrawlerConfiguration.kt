@@ -10,7 +10,7 @@ import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.persist.HadoopUtils
 import ai.platon.pulsar.protocol.browser.emulator.BrowserResponseHandler
 import ai.platon.scent.ScentSession
-import ai.platon.scent.parse.html.JdbcCommitConfig
+import ai.platon.scent.crawl.serialize.config.v1.JdbcConfig
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -18,6 +18,15 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
+
+data class JdbcCommitConfig(
+    val name: String = "",
+    var minNumNonBlankFields: Int = 1,
+) {
+    override fun toString(): String {
+        return name
+    }
+}
 
 @Configuration
 @EnableAsync

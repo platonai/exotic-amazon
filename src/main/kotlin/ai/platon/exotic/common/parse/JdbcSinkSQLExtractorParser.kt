@@ -1,14 +1,13 @@
 package ai.platon.exotic.common.parse
 
+import ai.platon.exotic.amazon.crawl.boot.JdbcCommitConfig
+import ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSQLExtractor
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.sql.SQLTemplate
 import ai.platon.pulsar.crawl.parse.ParseFilter
 import ai.platon.scent.crawl.serialize.config.v1.CrawlConfig
 import ai.platon.scent.crawl.serialize.config.v1.ExtractRule
-import ai.platon.scent.crawl.serialize.config.v1.JdbcConfig
 import ai.platon.scent.jackson.scentObjectMapper
-import ai.platon.scent.parse.html.AbstractJdbcSinkSQLExtractor
-import ai.platon.scent.parse.html.JdbcCommitConfig
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 
@@ -19,12 +18,11 @@ import org.slf4j.LoggerFactory
 class JdbcSinkSQLExtractorParser(
     private val extractConfigResource: String,
     private val jdbcConfigResource: String,
-    private val extractorFactory: (JdbcCommitConfig) -> AbstractJdbcSinkSQLExtractor
+    private val extractorFactory: (JdbcCommitConfig) -> AbstractSQLExtractor
 ) {
     private val logger = LoggerFactory.getLogger(JdbcSinkSQLExtractorParser::class.java)
 
     val crawlConfig = scentObjectMapper().readValue<CrawlConfig>(ResourceLoader.readString(extractConfigResource))
-    val jdbcConfig = scentObjectMapper().readValue<JdbcConfig>(ResourceLoader.readString(jdbcConfigResource))
 
     /**
      * Parse the config file and create [AbstractJdbcSinkSQLExtractor]s.
@@ -43,19 +41,14 @@ class JdbcSinkSQLExtractorParser(
     @Throws(IllegalArgumentException::class)
     private fun createParseFilter(rule: ExtractRule): ParseFilter {
         val commitConfig = JdbcCommitConfig(
-            jdbcConfig = jdbcConfig,
-            tableName = rule.collection,
             name = rule.name,
-            syncBatchSize = crawlConfig.syncConfig.batchSize,
             minNumNonBlankFields = rule.minNumNonBlankFields
         )
         val sqlTemplate = createSQLTemplate(rule)
 
         return extractorFactory(commitConfig).also {
-            it.commitConfig = commitConfig
             it.name = rule.name
             it.urlFilter = rule.urlPattern.toRegex()
-            it.transpose = rule.transpose
             it.minContentSize = rule.minContentSize
             it.sqlTemplate = sqlTemplate
         }

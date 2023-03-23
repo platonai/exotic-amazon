@@ -1,5 +1,6 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
+import ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSinkAwareSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.AmazonMetrics
 import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
@@ -7,7 +8,6 @@ import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.amazon.tools.common.PageTraits
-import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
@@ -17,7 +17,6 @@ import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.message.LoadStatusFormatter
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.persist.ext.label
-import ai.platon.pulsar.common.persist.ext.options
 import ai.platon.pulsar.common.urls.UrlAware
 import ai.platon.pulsar.crawl.common.GlobalCacheFactory
 import ai.platon.pulsar.crawl.parse.ParseResult
@@ -27,7 +26,6 @@ import ai.platon.pulsar.persist.WebPage
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.ScentStatusTracker
-import ai.platon.scent.parse.html.AbstractJdbcSinkSQLExtractor
 import com.codahale.metrics.Gauge
 import com.google.gson.GsonBuilder
 import org.springframework.context.annotation.Scope
@@ -49,7 +47,7 @@ class AmazonJdbcSinkSQLExtractor(
     private val amazonGenerator: AmazonGenerator,
     private val amazonLinkCollector: AmazonLinkCollector,
     conf: ImmutableConfig,
-) : AbstractJdbcSinkSQLExtractor(session, statusTracker, globalCacheFactory, conf) {
+) : AbstractSinkAwareSQLExtractor(session, statusTracker, globalCacheFactory, conf) {
     companion object {
         /**
          * The language of the site, choose the language in the top-right corner of the webpage
@@ -72,6 +70,7 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     private val logger = getLogger(this)
+    private var extractCounter = 0
 
     /**
      * The global url pool, all fetch tasks are added to the pool in some form of Pulsar URLs.
@@ -95,23 +94,9 @@ class AmazonJdbcSinkSQLExtractor(
     private val amazonMetrics = AmazonMetrics.extractMetrics
 
     /**
-     * Check if JDBC sink is available.
-     * A JDBC sink is a JDBC compatible database, which is configured in jdbc-sink-config.json.
-     * If a JDBC database is available, and the schemas are created, the system will sync the
-     * extracted result to the database.
-     * */
-    override val hasSink: Boolean get() {
-        val jdbcConfig = commitConfig?.jdbcConfig
-        return jdbcConfig != null && jdbcConfig.username.isNotBlank()
-    }
-
-    /**
      * Initialize the extractor, should be invoked just after the object is created.
      * */
     override fun initialize() {
-        if (ClusterTools.isDevInstance() || ClusterTools.isTestInstance()) {
-            commitConfig?.syncBatchSize = 10
-        }
     }
 
     /**
@@ -148,7 +133,7 @@ class AmazonJdbcSinkSQLExtractor(
         lastRelevantState = state
         if (!state.isOK && state.code >= 40 && state.code !in listOf(0, 60, 1601)) {
             val report = LoadStatusFormatter(page, withOptions = true).toString()
-            irrLogger.info("Irrelevant page({}) in extractor <{}> | {}", state.message, name, report)
+            logger.info("Irrelevant page({}) in extractor <{}> | {}", state.message, name, report)
         }
 
 //        if (urlFilter.toString().contains("zgbs")) {
@@ -167,8 +152,6 @@ class AmazonJdbcSinkSQLExtractor(
     override fun onBeforeFilter(page: WebPage, document: FeaturedDocument) {
         super.onBeforeFilter(page, document)
 
-        pendingResultManager.syncBatchSize = if (meterResults.count > 100) syncBatchSize else 10
-
         lastLang = document.selectFirstOrNull("#nav-tools .icp-nav-flag")?.attr("class") ?: ""
         lastDistrict = document.selectFirstOrNull("#glow-ingress-block")?.text() ?: ""
     }
@@ -185,12 +168,7 @@ class AmazonJdbcSinkSQLExtractor(
     override fun onAfterExtract(page: WebPage, document: FeaturedDocument, rs: ResultSet?): ResultSet? {
         rs ?: return null
 
-        // add the extract result to the pending result manager, who will sync all the results to the sink later
-        if (hasSink) {
-            pendingResultManager.add(sinkCollection, name, rs, page.options.deadTime)
-        }
-
-        if (!hasSink || page.id < 20000) {
+        if (++extractCounter < 20000) {
             exportWebData(page, rs)
         }
 
@@ -338,8 +316,8 @@ class AmazonJdbcSinkSQLExtractor(
     private fun exportWebData(page: WebPage, rs: ResultSet) {
         val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
         val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
-        val label = commitConfig?.name?.ifBlank { "other" } ?: "other"
-        val filename = AppPaths.fromUri(page.url,"", ".json").removePrefix("amazon-com-")
+        val label = page.label.takeIf { it.isNotBlank() } ?: "other"
+        val filename = AppPaths.fromUri(page.url,"", ".json")
         val path = AppPaths.DOC_EXPORT_DIR
             .resolve("amazon")
             .resolve("json")

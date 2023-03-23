@@ -19,7 +19,7 @@ class AsinScraper {
         .map { it.trim() }
         .filter { it.startsWith("http") }
     private val url = urls.first()
-    private val sqlTemplate = ResourceLoader.readAllLines("sites/amazon/crawl/parse/sql/crawl/x-asin-customer-hui.sql")
+    private val sqlTemplate = ResourceLoader.readAllLines("sites/amazon/crawl/parse/sql/crawl/x-asin.sql")
 //        .map { it.trim() }
 //        .filter { it.startsWith("-- ") }
         .joinToString("\n")

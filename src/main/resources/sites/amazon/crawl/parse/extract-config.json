@@ -19,7 +19,7 @@
     {
       "id": 2,
       "name": "seller",
-      "urlPattern": ".+/seller/.+",
+      "urlPattern": ".+?seller=.+",
       "minContentSize": 100000,
       "minNumNonBlankFields": 8,
       "sqlTemplate": "x-sellers.sql",
@@ -109,66 +109,6 @@
       "sqlTemplate": "x-asin-sims-consider.sql",
       "collection": "asin_ad_sync",
       "parentId": 1
-    },
-    {
-      "id": 104,
-      "name": "similar-items",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-similar-items.sql",
-      "transpose": true,
-      "collection": "asin_ad_sync",
-      "parentId": 1
-    },
-    {
-      "id": 110,
-      "name": "top-reviews",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-asin-top-reviews.sql",
-      "transpose": true,
-      "collection": "asin_review_sync",
-      "parentId": 1
-    },
-    {
-      "id": 120,
-      "name": "buy-choice",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-asin-buy-choice.sql",
-      "transpose": true,
-      "collection": "asin_buy_choice_sync",
-      "parentId": 1
-    },
-    {
-      "id": 10001,
-      "name": "asin-customer-hui",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 500000,
-      "minNumNonBlankFields": 20,
-      "sqlTemplate": "x-asin-customer-hui.sql",
-      "collection": "asin_customer_hui_sync"
-    },
-    {
-      "id": 10002,
-      "name": "best-sellers-fr",
-      "urlPattern": ".+.fr/.+/bestsellers/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 5,
-      "sqlTemplate": "x-asin-best-sellers.sql",
-      "collection": "asin_best_sellers_sync"
-    },
-    {
-      "id": 10003,
-      "name": "best-sellers-de",
-      "urlPattern": ".+.de/.+/bestsellers/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 5,
-      "sqlTemplate": "x-asin-best-sellers.sql",
-      "collection": "asin_best_sellers_sync"
     }
   ]
 }
