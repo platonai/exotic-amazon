@@ -8,6 +8,7 @@ import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.amazon.tools.common.PageTraits
+import ai.platon.exotic.common.jdbc.JdbcCommitter
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
@@ -23,6 +24,7 @@ import ai.platon.pulsar.crawl.parse.ParseResult
 import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.persist.WebPage
+import ai.platon.pulsar.ql.h2.utils.JdbcUtils
 import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.ScentStatusTracker
@@ -32,7 +34,10 @@ import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.sql.Connection
+import java.sql.DriverManager
 import java.sql.ResultSet
+import java.sql.SQLException
 import java.util.*
 
 /**
@@ -92,6 +97,8 @@ class AmazonJdbcSinkSQLExtractor(
     private val reviewQueue get() = reviewFetchCache?.nonReentrantQueue
 
     private val amazonMetrics = AmazonMetrics.extractMetrics
+
+    var jdbcCommitter: JdbcCommitter? = null
 
     /**
      * Initialize the extractor, should be invoked just after the object is created.
@@ -171,6 +178,9 @@ class AmazonJdbcSinkSQLExtractor(
         if (++extractCounter < 20000) {
             exportWebData(page, rs)
         }
+
+        // commit the result set to the destination if you have set the JBDC committer
+        jdbcCommitter?.commit(rs)
 
         /////////////////////////////////////////////////////////////////////////
         // Write your own code to save extract result to any destination as your wish

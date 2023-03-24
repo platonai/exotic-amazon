@@ -86,24 +86,6 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 7. 如何采集数百个电商站点并避免爬虫失效？
 8. 如何降低**总体拥有成本**？
 
-## 困难和挑战
-
-亚马逊在反爬虫方面，常用的反爬手段基本都用了，譬如 Cookie 跟踪，IP 跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
-
-使用浏览器自动化工具如 selenium, playwright, puppeteer 等采集亚马逊数据，会被检测出来。像 puppeteer-extra, apify-crawlee 这样的工具，提供了 WebDriver 隐身特性，一定程度上缓解了这个问题，但仍然没有完全解决。
-
-1. 上述工具没有解决访问轨迹跟踪问题
-2. Headless 模式能够被检测出来了。如果爬虫运行在云端，为了提高性能，通常是不装 GUI 的，headless 模式即使是做了 WebDriver 隐身, 也能够被检测出来了
-
-即使解决完上述问题，在大规模采集场景下，仍然面临诸多困难：
-
-* 如何正确轮换IP？事实上，仅轮换IP是不够的，准确讲需要“**隐私上下文轮换**”
-* 如何使用单台机器 **每天提取数千万数据点**？
-* 如何保证 **数据准确性**？
-* 如何保证 **调度准确性**？
-* 如何保证 **分布式系统弹性**？
-* 对使用了 **CSS 混淆**的字段，它的 CSS Path/XPath/Regex 每个网页都不同，这种情况下该如何正确提取字段？
-
 ## 提取结果处理
 
 ### 提取规则
@@ -149,7 +131,7 @@ Mac:
 
 #### 保存到JDBC兼容的数据库
 
-* 数据库连接配置: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
+* 正确配置 AmazonJdbcSinkSQLExtractor.jdbcCommitter
 * 数据库模式: [schema](./src/main/resources/schema)
 * 页面模型和数据库模式映射: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
 * 页面模型和提取规则: [X-SQLs](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)

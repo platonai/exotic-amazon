@@ -95,7 +95,7 @@ By default, the extracted fields are also saved as key-value pairs to
 
 #### Save to a JDBC compatible database
 
-* Database connection config: [jdbc-sink-config.json](./src/main/resources/config/jdbc-sink-config.json)
+* Set AmazonJdbcSinkSQLExtractor.jdbcCommitter correctly.
 * Database schema: [schema](./src/main/resources/schema)
 * Page model and database schema mapping: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
 * Page model and extract rules: [X-SQLs](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
