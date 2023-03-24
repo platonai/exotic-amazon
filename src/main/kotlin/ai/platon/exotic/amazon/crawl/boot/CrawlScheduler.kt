@@ -2,10 +2,10 @@ package ai.platon.exotic.amazon.crawl.boot
 
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonCrawler
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
-import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
+import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.crawl.CrawlLoops
@@ -15,8 +15,6 @@ import ai.platon.scent.common.AMAZON_CRAWLER_GENERATE_DEFAULT_TASKS
 import ai.platon.scent.common.MINUTE_TO_MILLIS
 import ai.platon.scent.common.SECOND_TO_MILLIS
 import ai.platon.scent.common.ScentStatusTracker
-import ai.platon.scent.crawl.isRunTime
-import ai.platon.scent.parse.html.AbstractSinkAwareSQLExtractor
 import ai.platon.scent.rest.api.service.v1.ScrapeServiceV1
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -221,19 +219,5 @@ class CrawlScheduler(
         }
 
         amazonGenerator.clearPredefinedTasksIfNotInRunTime()
-    }
-
-    /**
-     * Try to sync records extracted by sql extractors
-     * */
-    @Scheduled(initialDelay = INITIAL_DELAY, fixedDelay = MINUTE_TO_MILLIS)
-    fun syncExtractResultsToSinks() {
-        ++commitCount
-
-        logger.debug("{}. Try to commit extract results to sinks", commitCount)
-        parseFilters.parseFilters.filterIsInstance<AbstractSinkAwareSQLExtractor>().forEach {
-            it.tryCommit()
-        }
-        logger.debug("Commit #{} finished", commitCount)
     }
 }
