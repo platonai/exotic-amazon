@@ -83,7 +83,7 @@ open class AdvancedAsinScraper(
         val le = hyperlink.event.loadEvent
         le.onHTMLDocumentParsed.addLast { page, document ->
             // when the document is ready, we can extract fields from it
-            scrapeAsin0(page, document)
+            scrapeAsin(page, document)
         }
 
         return hyperlink
