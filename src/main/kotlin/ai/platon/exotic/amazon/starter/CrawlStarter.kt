@@ -110,7 +110,7 @@ class CrawlApplication(
         val urls1 = LinkExtractors.fromResource(resource).distinct().filter { it.contains(".$ident") }
         val urls2 = LinkExtractors.fromResource(resource2).distinct().filter { it.contains(".$ident") }
         val urls3 = LinkExtractors.fromFile(resource3).distinct().filter { it.contains(".$ident") }
-        val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }
+        val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }.take(1)
 
 //        LinkExtractors.fromResource(resource).map { "$it $args" }
         val queue = globalCache.urlPool.normalCache.nonReentrantQueue
@@ -151,7 +151,10 @@ fun main(args: Array<String>) {
     // 1. set browser.display.mode=HEADLESS in spring config files
     // 2. System.setProperty("browser.display.mode", "HEADLESS") or other spring compatible config approaches
     // 3. BrowserSettings.headless()
-    // BrowserSettings.privacy(2).maxTabs(8).headless()
+    // BrowserSettings.headless()
+
+    // Also we can use BrowserSettings for more control
+    // BrowserSettings.privacy(2).maxTabs(8)
 
     runApplication<CrawlApplication>(*args) {
         setAdditionalProfiles(*additionalProfiles.toTypedArray())
