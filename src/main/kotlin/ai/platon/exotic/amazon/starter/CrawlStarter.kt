@@ -6,7 +6,6 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.exotic.common.ClusterTools
-import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.LinkExtractors
 import ai.platon.pulsar.common.StartStopRunner
@@ -146,10 +145,13 @@ fun main(args: Array<String>) {
     if (prod == "prod") {
         // product environment, the best speed is required
         additionalProfiles.add("prod")
-    } else {
-        // development environment
-        BrowserSettings.privacy(2).maxTabs(8).headed()
     }
+
+    // Ways to use headless chrome:
+    // 1. set browser.display.mode=HEADLESS in spring config files
+    // 2. System.setProperty("browser.display.mode", "HEADLESS") or other spring compatible config approaches
+    // 3. BrowserSettings.headless()
+    // BrowserSettings.privacy(2).maxTabs(8).headless()
 
     runApplication<CrawlApplication>(*args) {
         setAdditionalProfiles(*additionalProfiles.toTypedArray())
