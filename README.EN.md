@@ -39,14 +39,26 @@ If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to `.
 
 Now we can start building:
 
+    # build
     git clone https://github.com/platonai/exotic-amazon.git
     cd exotic-amazon && mvn -DskipTests=true
+
+    ####################
+    # On Linux:
+
+    # run in development mode
     java -jar target/exotic-amazon*.jar
-    
-Or on Windows:
-    
+    # run in production mode
+    ENV=prod java -jar target/exotic-amazon*.jar
+
+    ####################
+    # On Windows:
+
+    # run in development mode
     java -jar target/exotic-amazon-{the-actual-version}.jar
-    
+    # run in production mode
+    ENV=prod java -jar target/exotic-amazon-{the-actual-version}.jar
+
 Open [System Glances](http://localhost:8182/api/system/status/glances) to see the system status at a glance.
 
 ## Results
