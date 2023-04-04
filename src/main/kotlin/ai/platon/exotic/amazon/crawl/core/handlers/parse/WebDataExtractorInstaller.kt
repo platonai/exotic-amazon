@@ -17,6 +17,9 @@ class WebDataExtractorInstaller(
 ) {
     private val logger = LoggerFactory.getLogger(WebDataExtractorInstaller::class.java)
 
+    /**
+     * @Deprecated config AmazonJdbcSinkSQLExtractor.jdbcCommitter programmatically.
+     * */
     val jdbcConfig = "config/jdbc-sink-config.json"
     val extractConfig = "sites/amazon/crawl/parse/extract-config.json"
 

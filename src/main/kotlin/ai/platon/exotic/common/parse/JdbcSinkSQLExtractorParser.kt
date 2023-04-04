@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory
  * */
 class JdbcSinkSQLExtractorParser(
     private val extractConfigResource: String,
+    /**
+     * @Deprecated config AmazonJdbcSinkSQLExtractor.jdbcCommitter programmatically.
+     * */
     private val jdbcConfigResource: String,
     private val extractorFactory: (JdbcCommitConfig) -> AbstractSQLExtractor
 ) {
