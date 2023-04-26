@@ -15,6 +15,7 @@ import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.common.urls.PlainUrl
+import ai.platon.pulsar.crawl.common.url.ListenableHyperlink
 import ai.platon.pulsar.crawl.event.impl.DefaultPageEvent
 import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.pulsar.protocol.browser.driver.BrowserMonitor
@@ -96,7 +97,7 @@ class CrawlApplication(
                 .distinct()
                 .map { l -> Hyperlink(normalizer(l.url)!!, args = itemArgs).apply { href = l.url } }
 
-            val queue = globalCache.urlPool.higher2Cache.nonReentrantQueue
+            val queue = globalCache.urlPool.higher4Cache.nonReentrantQueue
             urls.forEach { queue.add(it) }
 
             submittedProductUrlCount += urls.size
@@ -118,8 +119,8 @@ class CrawlApplication(
         logger.info("Submitted {}({} & {}) bestseller urls at startup | {}, {}",
             urls.size, urls1.size, urls3.size,
             resource, resource2)
-//        urls.map { ListenableHyperlink(it, eventHandler = eventHandler) }.forEach { queue.add(it) }
-        urls.forEach { queue.add(PlainUrl(it)) }
+        urls.map { ListenableHyperlink(it, event = event) }.forEach { queue.add(it) }
+//        urls.forEach { queue.add(PlainUrl(it)) }
     }
 }
 
