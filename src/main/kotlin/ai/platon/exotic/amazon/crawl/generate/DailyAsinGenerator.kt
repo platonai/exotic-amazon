@@ -40,7 +40,7 @@ class DailyAsinGenerator(
     companion object {
         private val logger = getLogger(DailyAsinGenerator::class)
 
-        private val isDev = ClusterTools.isDevInstance()
+        private val isDev get() = ClusterTools.isDevInstance()
 
         private val month get() = MonthDay.now().monthValue
 

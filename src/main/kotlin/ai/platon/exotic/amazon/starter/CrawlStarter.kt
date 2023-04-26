@@ -66,7 +66,7 @@ class CrawlApplication(
     private val logger = getLogger(CrawlApplication::class.java)
     private var submittedProductUrlCount = 0
     private val globalCache = session.globalCacheFactory.globalCache
-    private val isDev = ClusterTools.isDevInstance()
+    private val isDev get() = ClusterTools.isDevInstance()
 
     /**
      * Initialize and start amazon crawler

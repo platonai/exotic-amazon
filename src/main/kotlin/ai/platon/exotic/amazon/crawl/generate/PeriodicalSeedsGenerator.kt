@@ -32,7 +32,7 @@ class PeriodicalSeedsGenerator(
     private val logger = getLogger(this)
     private val taskTime = DateTimes.startOfDay()
     private val taskId = taskTime.toString()
-    private val isDev = ClusterTools.isDevInstance()
+    private val isDev get() = ClusterTools.isDevInstance()
 
     private val seedCache = mutableListOf<CollectedResidentTask>()
 

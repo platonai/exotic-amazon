@@ -41,7 +41,7 @@ object ClusterTools {
 
     fun isDevInstance(): Boolean {
         val env = System.getenv("ENV")?.lowercase()
-        return env == null || env == "DEV"
+        return env == null || env == "dev"
     }
 
     fun isTestInstance(): Boolean {
