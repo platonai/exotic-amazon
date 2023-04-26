@@ -13,7 +13,7 @@ val PATH_FETCHED_BEST_SELLER_URLS: Path = AppPaths.REPORT_DIR.resolve("fetch/fet
 val BESTSELLER_LOAD_ARGUMENTS = "-expires 100d -requireSize 300000 -requireImages 50 -parse" +
         " -ignoreFailure -scrollCount 15 -scrollInterval 2s -label bestsellers"
 
-val ASIN_LINK_SELECTOR_IN_BS_PAGE = ".p13n-gridRow a[href*=/dp/]:has(img)"
+val ASIN_LINK_SELECTOR_IN_BS_PAGE = """.p13n-gridRow a[href*="/dp/"]:has(img)"""
 
 val ASIN_LOAD_ARGUMENTS = "-expires 100d -requireSize 600000 -requireImages 20 -parse -label asin"
 
