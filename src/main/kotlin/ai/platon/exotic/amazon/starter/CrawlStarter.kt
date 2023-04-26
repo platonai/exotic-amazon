@@ -101,7 +101,10 @@ class CrawlApplication(
             urls.forEach { queue.add(it) }
 
             submittedProductUrlCount += urls.size
-            logger.info("{}.\tSubmitted {}/{} asin links", page.id, urls.size, submittedProductUrlCount)
+            logger.info("{}.\tSubmitted {}/{} asin links | {}",
+                page.id, urls.size, submittedProductUrlCount,
+                page.url
+            )
         }
 
         val tld = "com"

@@ -81,7 +81,7 @@ abstract class AbstractSQLExtractor(
     var urlFilter = Regex(".+")
     var onlyFetched = false
     open var minContentSize = 100_000
-    open val minNumNonBlankFields = 10_000
+    open var minNumNonBlankFields = 1
 
     /**
      * If true, transpose the result set of the sql query. The result set must be transposable.
