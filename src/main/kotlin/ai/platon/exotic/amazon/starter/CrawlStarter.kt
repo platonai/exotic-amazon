@@ -110,7 +110,7 @@ class CrawlApplication(
         val urls1 = LinkExtractors.fromResource(resource).distinct().filter { it.contains(".$tld") }
         val urls2 = LinkExtractors.fromResource(resource2).distinct().filter { it.contains(".$tld") }
         val urls3 = LinkExtractors.fromFile(resource3).distinct().filter { it.contains(".$tld") }
-        val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }.take(1)
+        val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }
 
 //        LinkExtractors.fromResource(resource).map { "$it $args" }
         val queue = globalCache.urlPool.normalCache.nonReentrantQueue
