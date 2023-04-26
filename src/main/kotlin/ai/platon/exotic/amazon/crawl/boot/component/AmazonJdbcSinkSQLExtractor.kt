@@ -8,6 +8,7 @@ import ai.platon.exotic.amazon.tools.common.AmazonPageTraitsDetector
 import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.amazon.tools.common.PageTraits
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.jdbc.JdbcCommitter
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
@@ -75,6 +76,9 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     private val logger = getLogger(this)
+
+    private val isDev get() = ClusterTools.isDevInstance()
+
     private var extractCounter = 0
 
     /**
@@ -175,7 +179,7 @@ class AmazonJdbcSinkSQLExtractor(
     override fun onAfterExtract(page: WebPage, document: FeaturedDocument, rs: ResultSet?): ResultSet? {
         rs ?: return null
 
-        if (++extractCounter < 20000) {
+        if (isDev || ++extractCounter < 20000) {
             exportWebData(page, rs)
         }
 
