@@ -114,7 +114,7 @@ class CrawlApplication(
         val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }
 
 //        LinkExtractors.fromResource(resource).map { "$it $args" }
-        val queue = globalCache.urlPool.normalCache.nonReentrantQueue
+        val queue = globalCache.urlPool.higherCache.nonReentrantQueue
 
         logger.info("Submitted {}({} & {}) bestseller urls at startup | {}, {}",
             urls.size, urls1.size, urls3.size,
