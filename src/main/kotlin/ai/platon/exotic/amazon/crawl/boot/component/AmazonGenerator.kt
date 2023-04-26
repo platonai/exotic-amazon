@@ -58,6 +58,7 @@ class AmazonGenerator(
         get() {
             val uri = ResourceLoader.getResource(PERIODICAL_SEED_RESOURCE_BASE)?.toURI() ?: return listOf()
 
+            // TODO: failed to list resources inside a jar
             return Files.list(uri.toPath())
                 .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
                 .toList()
