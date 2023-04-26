@@ -60,55 +60,6 @@
       "minNumNonBlankFields": 5,
       "sqlTemplate": "x-asin-movers-and-shakers.sql",
       "collection": "asin_movers_and_shakers_sync"
-    },
-    {
-      "id": 7,
-      "name": "most-wished-for",
-      "urlPattern": ".+/most-wished-for/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 5,
-      "sqlTemplate": "x-asin-most-wished-for.sql",
-      "collection": "asin_most_wished_for_sync"
-    },
-    {
-      "id": 100,
-      "name": "sims-1",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-asin-sims-consolidated-1.sql",
-      "collection": "asin_ad_sync",
-      "parentId": 1
-    },
-    {
-      "id": 101,
-      "name": "sims-2",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-asin-sims-consolidated-2.sql",
-      "collection": "asin_ad_sync",
-      "parentId": 1
-    },
-    {
-      "id": 102,
-      "name": "sims-3",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-asin-sims-consolidated-3.sql",
-      "collection": "asin_ad_sync",
-      "parentId": 1
-    },
-    {
-      "id": 103,
-      "name": "sims-consider",
-      "urlPattern": ".+/dp/.+",
-      "minContentSize": 100000,
-      "minNumNonBlankFields": 8,
-      "sqlTemplate": "x-asin-sims-consider.sql",
-      "collection": "asin_ad_sync",
-      "parentId": 1
     }
   ]
 }
