@@ -96,20 +96,20 @@ class CrawlApplication(
                 .distinct()
                 .map { l -> Hyperlink(normalizer(l.url)!!, args = itemArgs).apply { href = l.url } }
 
-            val queue = globalCache.urlPool.normalCache.nonReentrantQueue
+            val queue = globalCache.urlPool.higher2Cache.nonReentrantQueue
             urls.forEach { queue.add(it) }
 
             submittedProductUrlCount += urls.size
             logger.info("{}.\tSubmitted {}/{} asin links", page.id, urls.size, submittedProductUrlCount)
         }
 
-        val ident = "com"
-        val resource = "sites/amazon/crawl/generate/periodical/p7d/$ident/best-sellers.txt"
-        val resource2 = "sites/amazon/crawl/generate/periodical/p7d/$ident/best-sellers.txt"
+        val tld = "com"
+        val resource = "sites/amazon/crawl/generate/periodical/p7d/$tld/best-sellers.txt"
+        val resource2 = "sites/amazon/crawl/generate/periodical/pt24h/best-sellers.txt"
         val resource3 = PATH_FETCHED_BEST_SELLER_URLS
-        val urls1 = LinkExtractors.fromResource(resource).distinct().filter { it.contains(".$ident") }
-        val urls2 = LinkExtractors.fromResource(resource2).distinct().filter { it.contains(".$ident") }
-        val urls3 = LinkExtractors.fromFile(resource3).distinct().filter { it.contains(".$ident") }
+        val urls1 = LinkExtractors.fromResource(resource).distinct().filter { it.contains(".$tld") }
+        val urls2 = LinkExtractors.fromResource(resource2).distinct().filter { it.contains(".$tld") }
+        val urls3 = LinkExtractors.fromFile(resource3).distinct().filter { it.contains(".$tld") }
         val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }.take(1)
 
 //        LinkExtractors.fromResource(resource).map { "$it $args" }
