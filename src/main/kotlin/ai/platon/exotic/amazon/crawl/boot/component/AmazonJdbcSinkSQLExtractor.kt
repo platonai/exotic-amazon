@@ -179,12 +179,15 @@ class AmazonJdbcSinkSQLExtractor(
     override fun onAfterExtract(page: WebPage, document: FeaturedDocument, rs: ResultSet?): ResultSet? {
         rs ?: return null
 
-        if (isDev || ++extractCounter < 20000) {
+        ++extractCounter
+
+        // commit the result set to the destination if you have set the JDBC committer
+        val committer = jdbcCommitter
+        if (committer != null) {
+            committer.commit(rs)
+        } else {
             exportWebData(page, rs)
         }
-
-        // commit the result set to the destination if you have set the JBDC committer
-        jdbcCommitter?.commit(rs)
 
         /////////////////////////////////////////////////////////////////////////
         // Write your own code to save extract result to any destination as your wish
