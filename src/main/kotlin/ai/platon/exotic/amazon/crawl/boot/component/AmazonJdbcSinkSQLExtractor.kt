@@ -185,6 +185,9 @@ class AmazonJdbcSinkSQLExtractor(
         val committer = jdbcCommitter
         if (committer != null) {
             committer.commit(rs)
+            if (extractCounter < 20000) {
+                exportWebData(page, rs)
+            }
         } else {
             exportWebData(page, rs)
         }
