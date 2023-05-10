@@ -43,6 +43,9 @@ class ResourceWalker: AutoCloseable {
         return null
     }
 
+    /**
+     * TODO: Files.list(getPath(resourceBase)) is OK
+     * */
     fun list(resourceBase: String): Set<Path> {
         val paths = mutableSetOf<Path>()
         walk(resourceBase, 1) {

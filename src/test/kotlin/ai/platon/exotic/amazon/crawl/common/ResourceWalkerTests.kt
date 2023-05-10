@@ -4,6 +4,8 @@ import ai.platon.exotic.common.ResourceWalker
 import ai.platon.pulsar.common.ResourceLoader
 import org.junit.Test
 import java.nio.file.Files
+import kotlin.streams.toList
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ResourceWalkerTests {
@@ -21,22 +23,55 @@ class ResourceWalkerTests {
         val resourceBase = "nlp"
         var exists = false
         val resourceWalker = ResourceWalker()
-        resourceWalker.walk(resourceBase, 3) { path ->
-            println(path)
-            if (path.toString().contains("colors.txt")) {
-                exists = true
+        resourceWalker.use {
+            resourceWalker.walk(resourceBase, 3) { path ->
+                println(path)
+                if (path.toString().contains("colors.txt")) {
+                    exists = true
+                }
             }
+            assertTrue(exists)
         }
-        assertTrue(exists)
+    }
+
+    @Test
+    fun testWalkUsingJDK() {
+        val resourceWalker = ResourceWalker()
+        resourceWalker.use {
+            val dir = resourceWalker.getPath("nlp")
+            var exists = false
+            Files.walk(dir).forEach { path ->
+                println(path)
+                if (path.toString().contains("colors.txt")) {
+                    exists = true
+                }
+            }
+            assertTrue(exists)
+        }
     }
 
     @Test
     fun testListResourceEntries() {
         val resourceWalker = ResourceWalker()
-        val paths = resourceWalker.list("nlp")
-        paths.forEach {
-            println(it)
+        resourceWalker.use {
+            val paths = resourceWalker.list("nlp")
+            paths.forEach {
+                println(it)
+            }
+            assertTrue(paths.toString().contains("nlp/colors.txt"))
         }
-        assertTrue(paths.toString().contains("nlp/colors.txt"))
+    }
+
+    @Test
+    fun testListResourceEntriesUsingJDK() {
+        val resourceWalker = ResourceWalker()
+        resourceWalker.use {
+            val dir = resourceWalker.getPath("nlp")
+            // println(dir)
+            assertEquals("nlp", dir.toString())
+            val paths = Files.list(dir).toList()
+            // println(paths)
+            assertTrue(paths.toString().contains("nlp/colors.txt"))
+        }
     }
 }
