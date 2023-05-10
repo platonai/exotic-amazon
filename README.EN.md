@@ -49,8 +49,6 @@ Now we can start building:
     # run in development mode
     java -jar target/exotic-amazon*.jar
     # run in production mode
-    ENV=prod ./crawl.sh
-    # run in production mode, (there is a bug, fix coming soon)
     ENV=prod java -jar target/exotic-amazon*.jar
 
     ####################

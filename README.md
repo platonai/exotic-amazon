@@ -49,8 +49,6 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
     # run in development mode
     java -jar target/exotic-amazon*.jar
     # run in production mode
-    ENV=prod ./crawl.sh
-    # run in production mode
     ENV=prod java -jar target/exotic-amazon*.jar
 
     ####################
@@ -58,7 +56,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
     # run in development mode
     java -jar target/exotic-amazon-{the-actual-version}.jar
-    # run in production mode, (there is a bug, fix coming soon)
+    # run in production mode
     ENV=prod java -jar target/exotic-amazon-{the-actual-version}.jar
 
 一旦运行成功，你可以打开 [System Glances](http://localhost:8182/api/system/status/glances) 以一目了然地查看系统状态。
