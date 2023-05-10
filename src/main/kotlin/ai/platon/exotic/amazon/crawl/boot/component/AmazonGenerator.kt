@@ -8,8 +8,8 @@ import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.PeriodicalSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
 import ai.platon.exotic.common.ClusterTools
+import ai.platon.exotic.common.ResourceWalker
 import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
-import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.getLogger
@@ -21,13 +21,10 @@ import ai.platon.scent.boot.autoconfigure.persist.TrackedUrlRepository
 import org.springframework.stereotype.Component
 import java.net.URLEncoder
 import java.nio.charset.Charset
-import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import kotlin.io.path.toPath
-import kotlin.streams.toList
 
 /**
  * Generate fetch tasks. All fetch tasks are some form of Pulsar URLs.
@@ -56,10 +53,7 @@ class AmazonGenerator(
 
     val periodicalSeedDirectories: List<Path>
         get() {
-            val uri = ResourceLoader.getResource(PERIODICAL_SEED_RESOURCE_BASE)?.toURI() ?: return listOf()
-
-            // TODO: failed to list resources inside a jar
-            return Files.list(uri.toPath())
+            return ResourceWalker().list(PERIODICAL_SEED_RESOURCE_BASE)
                 .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
                 .toList()
         }

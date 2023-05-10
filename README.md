@@ -50,7 +50,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
     java -jar target/exotic-amazon*.jar
     # run in production mode
     ENV=prod ./crawl.sh
-    # run in production mode, (there is a bug, fix coming soon)
+    # run in production mode
     ENV=prod java -jar target/exotic-amazon*.jar
 
     ####################

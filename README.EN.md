@@ -58,7 +58,7 @@ Now we can start building:
 
     # run in development mode
     java -jar target/exotic-amazon-{the-actual-version}.jar
-    # run in production mode, (there is a bug, fix coming soon)
+    # run in production mode
     ENV=prod java -jar target/exotic-amazon-{the-actual-version}.jar
 
 Open [System Glances](http://localhost:8182/api/system/status/glances) to see the system status at a glance.

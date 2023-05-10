@@ -9,6 +9,8 @@ import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.exotic.amazon.tools.common.AmazonUtils
 import ai.platon.exotic.amazon.tools.common.PageTraits
 import ai.platon.exotic.common.ClusterTools
+import ai.platon.exotic.common.io.PageEntity2HTMLExporter
+import ai.platon.exotic.common.io.ResultSet2JsonExporter
 import ai.platon.exotic.common.jdbc.JdbcCommitter
 import ai.platon.pulsar.common.AppFiles
 import ai.platon.pulsar.common.AppPaths
@@ -334,15 +336,8 @@ class AmazonJdbcSinkSQLExtractor(
     }
 
     private fun exportWebData(page: WebPage, rs: ResultSet) {
-        val entities = ResultSetUtils.getTextEntitiesFromResultSet(rs)
-        val json = GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(entities)
-        val label = page.label.takeIf { it.isNotBlank() } ?: "other"
-        val filename = AppPaths.fromUri(page.url,"", ".json")
-        val path = AppPaths.DOC_EXPORT_DIR
-            .resolve("amazon")
-            .resolve("json")
-            .resolve(label)
-            .resolve(filename)
-        AppFiles.saveTo(json, path, true)
+        val entity = jdbcCommitter?.tableName ?: page.label.ifBlank { "other" }
+        ResultSet2JsonExporter().export(entity, page, rs)
+        PageEntity2HTMLExporter(session).export(entity, page)
     }
 }

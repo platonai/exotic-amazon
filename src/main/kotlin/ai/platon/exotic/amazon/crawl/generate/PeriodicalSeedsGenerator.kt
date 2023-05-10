@@ -8,10 +8,10 @@ import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
-import ai.platon.pulsar.common.collect.LocalFileHyperlinkCollector
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
 import ai.platon.pulsar.common.collect.queue.LoadingQueue
 import ai.platon.pulsar.common.urls.Hyperlink
+import ai.platon.pulsar.common.urls.UrlUtils
 import ai.platon.pulsar.persist.WebDb
 import ai.platon.pulsar.persist.gora.generated.GWebPage
 import ai.platon.scent.ScentSession
@@ -35,6 +35,7 @@ class PeriodicalSeedsGenerator(
     private val isDev get() = ClusterTools.isDevInstance()
 
     private val seedCache = mutableListOf<CollectedResidentTask>()
+    private val seedLimit = if (isDev) 100 else 5000
 
     private val fields = listOf(
         GWebPage.Field.PREV_FETCH_TIME,
@@ -42,7 +43,7 @@ class PeriodicalSeedsGenerator(
     ).map { it.getName() }.toTypedArray()
 
     fun generate(refresh: Boolean): List<UrlCacheCollector> {
-        loadTasksFromResources()
+        loadTasksFromSearchDirectories()
 
         logger.info("Collected tasks: {}", seedCache.joinToString { it.task.name })
 
@@ -144,14 +145,14 @@ class PeriodicalSeedsGenerator(
         }
     }
 
-    private fun loadTasksFromResources() {
+    private fun loadTasksFromSearchDirectories() {
         seedCache.clear()
 
         searchDirectories.forEach { dir ->
             val fileName = dir.fileName.toString()
             val period = runCatching { Duration.parse(fileName) }.getOrNull()
             if (period != null) {
-                loadSeedsInDirectory(dir, period)
+                listSeedDirectory(dir, period)
             }
 
 //            ResourceWalker().walk(it.toAbsolutePath().toString(), 3) { path ->
@@ -160,7 +161,7 @@ class PeriodicalSeedsGenerator(
         }
     }
 
-    private fun loadSeedsInDirectory(dir: Path, period: Duration) {
+    private fun listSeedDirectory(dir: Path, period: Duration) {
         Files.list(dir)
             .filter { it.isRegularFile() }
             .filter { it.fileName.toString().endsWith(".txt") }.forEach { seedPath ->
@@ -188,16 +189,16 @@ class PeriodicalSeedsGenerator(
         return collectHyperlinksTo(path, mutableSetOf())
     }
 
-    private fun collectHyperlinksTo(path: Path, hyperlinks: MutableSet<Hyperlink>): Set<Hyperlink> {
-        val collector = LocalFileHyperlinkCollector(path)
-
-        val links = if (isDev) collector.hyperlinks.shuffled().take(100) else collector.hyperlinks
+    private fun collectHyperlinksTo(path: Path, destination: MutableSet<Hyperlink>): Set<Hyperlink> {
+        LinkExtractors.fromFile(path)
+            .shuffled()
+            .take(seedLimit)
+            .filter { UrlUtils.isStandard(it) }
+            .mapTo(destination) { Hyperlink(it) }
 
         val message = if (isDev) " (dev mode)" else ""
-        logger.info("Loaded {} links$message | {}", links.size, path)
+        logger.info("Loaded {} links$message | {}", destination.size, path)
 
-        hyperlinks.addAll(links)
-
-        return hyperlinks
+        return destination
     }
 }
