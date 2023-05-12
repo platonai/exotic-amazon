@@ -2,11 +2,14 @@ package ai.platon.exotic.common
 
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.getLogger
+import java.net.URI
 import java.nio.file.*
+import java.util.concurrent.ConcurrentHashMap
 
 class ResourceWalker: AutoCloseable {
     companion object {
         val SPRING_PACKEDR_ESOURCE_PREFIX = "BOOT-INF/classes/"
+        private val filesystems = ConcurrentHashMap<URI, FileSystem>()
     }
 
     private val logger = getLogger(this)
@@ -28,7 +31,7 @@ class ResourceWalker: AutoCloseable {
         try {
             return if (uri.scheme == "jar") {
                 val env: MutableMap<String, String> = HashMap()
-                fileSystem = FileSystems.newFileSystem(uri, env)
+                fileSystem = filesystems.computeIfAbsent(uri) { FileSystems.newFileSystem(uri, env) }
                 fileSystem?.getPath("$resourcePrefix$resource")
             } else {
                 Paths.get(uri)

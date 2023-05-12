@@ -130,6 +130,7 @@ class DailyAsinGenerator(
     }
 
     private val context get() = session.context as AbstractPulsarContext
+    private val isActive get() = context.isActive
     private val webDb get() = context.webDb
     // The leaf categories of best-sellers
     private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
@@ -161,6 +162,10 @@ class DailyAsinGenerator(
         get() = Companion.reviewCollector
 
     fun generate(): Queue<UrlAware> {
+        if (!isActive) {
+            return LinkedList()
+        }
+
         getOrCreateCollectors()
 
         if (!isSupervisor()) {
@@ -201,6 +206,10 @@ class DailyAsinGenerator(
      * */
     @Synchronized
     fun generateTo(sink: MutableCollection<UrlAware>) {
+        if (!isActive) {
+            return
+        }
+
         val propertiesContent = ResourceLoader.readString(propertiesResource)
         val props: SeedProperties = JavaPropsMapper().readValue(propertiesContent)
         val options = session.options(props.loadOptions)
@@ -304,6 +313,10 @@ class DailyAsinGenerator(
 
     @Synchronized
     fun generateRelevantBestSellersTo(bestSellerPages: MutableCollection<WebPage>) {
+        if (!isActive) {
+            return
+        }
+
         if (zgbsNextCheckTime > Instant.now()) {
             logger.warn("The next best seller check will be at {}", zgbsNextCheckTime)
             return

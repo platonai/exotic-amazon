@@ -6,8 +6,10 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.exotic.common.ClusterTools
+import ai.platon.pulsar.browser.common.BrowserSettings
 import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.LinkExtractors
+import ai.platon.pulsar.common.NetUtil
 import ai.platon.pulsar.common.StartStopRunner
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.CapabilityTypes
@@ -69,6 +71,16 @@ class CrawlApplication(
     private val globalCache = session.globalCacheFactory.globalCache
     private val isDev get() = ClusterTools.isDevInstance()
 
+    @Bean
+    fun overrideGoraConfig() {
+        val conf = session.context.unmodifiedConfig
+
+        if (NetUtil.testNetwork("127.0.0.1", 28018)) {
+            conf.unbox().set("gora.mongodb.override_hadoop_configuration", "false")
+            conf.unbox().set("gora.mongodb.servers", "127.0.0.1:28018")
+        }
+    }
+
     /**
      * Initialize and start amazon crawler
      * */
@@ -128,6 +140,21 @@ class CrawlApplication(
 }
 
 fun main(args: Array<String>) {
+    var headless = false
+    var privacyCount = 2
+    var maxTabs = 8
+
+    var i = 0
+    while (i < args.size) {
+        when (args[i]) {
+            "--headless" -> headless = true
+            "--privacy" -> privacyCount = args[++i].toIntOrNull() ?: privacyCount
+            "--maxTabs" -> maxTabs = args[++i].toIntOrNull() ?: maxTabs
+            else -> println("CrawlStater: [options]")
+        }
+        ++i
+    }
+
     // Backend storage is detected automatically but not on some OS such as Mac,
     // uncomment the following line to force MongoDB to be used as the backend storage
     System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
@@ -156,9 +183,12 @@ fun main(args: Array<String>) {
     // 2. System.setProperty("browser.display.mode", "HEADLESS") or other spring compatible config approaches
     // 3. BrowserSettings.headless()
     // BrowserSettings.headless()
+    if (headless) {
+        BrowserSettings.headless()
+    }
 
     // Also we can use BrowserSettings for more control
-    // BrowserSettings.privacy(2).maxTabs(8)
+    BrowserSettings.privacy(privacyCount).maxTabs(maxTabs)
 
     runApplication<CrawlApplication>(*args) {
         setAdditionalProfiles(*additionalProfiles.toTypedArray())
