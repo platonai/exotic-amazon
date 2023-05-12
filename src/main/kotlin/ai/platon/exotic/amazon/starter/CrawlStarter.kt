@@ -76,6 +76,7 @@ class CrawlApplication(
         val conf = session.context.unmodifiedConfig
 
         if (NetUtil.testNetwork("127.0.0.1", 28018)) {
+            // TODO: find out why the settings in application.properties do not work
             conf.unbox().set("gora.mongodb.override_hadoop_configuration", "false")
             conf.unbox().set("gora.mongodb.servers", "127.0.0.1:28018")
         }
