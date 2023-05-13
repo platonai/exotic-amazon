@@ -37,6 +37,8 @@ If the maven version number is 3.8.1 or above, you need to add the following cod
 
 If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to `.m2` directory. A basic introduction to `.m2/settings.xml` can be found in the Q/A section.
 
+For Chinese developers, we strongly suggest that you follow [this](https://github.com/platonai/pulsarr/blob/master/bin/tools/maven/maven-settings.adoc) instruction to accelerate the building.
+
 Now we can start building:
 
     # build

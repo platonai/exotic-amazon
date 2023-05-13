@@ -37,6 +37,8 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 或者如果这个文件不存在，可以直接拷贝 [settings.xml](docs/settings.xml) 到 .m2 目录下。在 Q/A 章节可以找到关于 .m2/settings.xml 的基本介绍。
 
+对于国内开发者，我们强烈建议您按照 [这个](https://github.com/platonai/pulsarr/blob/master/bin/tools/maven/maven-settings.adoc) 指导来加速构建。
+
 现在可以开始了构建了：
 
     # build
