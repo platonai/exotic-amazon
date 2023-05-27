@@ -6,7 +6,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 其他电商平台数据采集，其方法和流程基本类似，可以在该项目基础上修改调整业务逻辑即可，其基础设施解决了所有大规模数据采集面临的难题。
 
-得益于 [PulsarR](https://github.com/platonai/pulsarr/README.adoc) ([中文](https://github.com/platonai/pulsarr/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
+得益于 [PulsarRPA](https://github.com/platonai/pulsarr/README.adoc) ([中文](https://github.com/platonai/pulsarr/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
 
 ### 数据简介
 
@@ -166,9 +166,9 @@ Mac:
 
 ## 日志和指标
 
-PulsarR 精心设计了日志和指标子系统，以记录系统中发生的每一个事件。
+PulsarRPA 精心设计了日志和指标子系统，以记录系统中发生的每一个事件。
 
-PulsarR 在日志中报告每个页面加载任务执行的状态，因此很容易知道系统中发生了什么，判断系统运行是否健康、回答成功获取多少页面、重试多少页面、使用了多少代理 IP。
+PulsarRPA 在日志中报告每个页面加载任务执行的状态，因此很容易知道系统中发生了什么，判断系统运行是否健康、回答成功获取多少页面、重试多少页面、使用了多少代理 IP。
 
 只需注意几个符号，您就可以深入了解整个系统的状态：💯 💔 🗙 ⚡ 💿 🔃 🤺。
 
@@ -231,7 +231,7 @@ A:
 
 A: 参看本文档 [将提取结果保存到数据库中](#将提取结果保存到数据库中) 章节。
 
-## 联系作者
+## 联系方式
 微信：galaxyeye
 微博：galaxyeye
 邮箱：galaxyeye@live.cn, ivincent.zhang@gmail.com
