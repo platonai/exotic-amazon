@@ -27,7 +27,7 @@ class GeneratorTests: TestBase() {
 
     @Test
     fun testPeriodicalSeedDirectories() {
-        val seedDirectories = ResourceWalker().list(AmazonGenerator.PERIODICAL_SEED_RESOURCE_BASE)
+        val seedDirectories = ResourceWalker().list(AmazonGenerator.PERIODICAL_SEED_BASE_DIR_DEFAULT)
             .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
             .toList()
         seedDirectories.forEach { println(it) }

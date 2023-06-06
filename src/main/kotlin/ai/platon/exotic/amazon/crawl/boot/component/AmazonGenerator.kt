@@ -10,6 +10,7 @@ import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.ResourceWalker
 import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
+import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.getLogger
@@ -40,28 +41,30 @@ class AmazonGenerator(
     private val webDb: WebDb,
 ) {
     companion object {
-        const val PERIODICAL_SEED_RESOURCE_BASE = "sites/amazon/crawl/generate/periodical"
+        const val PERIODICAL_SEED_BASE_DIR_KEY = "periodical.seed.base.dir"
+        const val PERIODICAL_SEED_BASE_DIR_DEFAULT = "sites/amazon/crawl/generate/periodical"
     }
 
     private val logger = getLogger(AmazonGenerator::class)
     private val charset = Charset.defaultCharset()
+    private val periodicalSeedBaseDir = session.sessionConfig[PERIODICAL_SEED_BASE_DIR_KEY, PERIODICAL_SEED_BASE_DIR_DEFAULT]
     private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
     private val isDev get() = ClusterTools.isDevInstance()
 
     val name = "amazon"
     val label = "20220801"
 
-    val periodicalSeedDirectories: List<Path>
-        get() {
-            return ResourceWalker().list(PERIODICAL_SEED_RESOURCE_BASE)
-                .filter { runCatching { Duration.parse(it.fileName.toString()) }.getOrNull() != null }
-                .toList()
-        }
-
     // create a new instant every day for that day
     val asinGenerator get() = DailyAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
     val confusingConfig = createConfusionConfig(label)
     val reviewGenerator = ReviewGenerator(confusingConfig, session, globalCacheFactory, trackedUrlRepository)
+
+    fun createPeriodicalSeedsGenerator(residentTasks: List<ResidentTask>): PeriodicalSeedsGenerator {
+        return PeriodicalSeedsGenerator(
+            residentTasks,
+            searchPeriodicalSeedDirectories(), urlFeederHelper, urlLoader, session, webDb
+        )
+    }
 
     /**
      * Generate tasks at startup.
@@ -101,11 +104,7 @@ class AmazonGenerator(
      * */
     fun generateLoadingTasks(residentTasks: List<ResidentTask>, refresh: Boolean) {
         try {
-            val generator = PeriodicalSeedsGenerator(
-                residentTasks,
-                periodicalSeedDirectories, urlFeederHelper, urlLoader, session, webDb
-            )
-
+            val generator = createPeriodicalSeedsGenerator(residentTasks)
             generator.generate(refresh)
         } catch (t: Throwable) {
             logger.warn("Unexpected exception", t)
@@ -127,6 +126,12 @@ class AmazonGenerator(
             .filterNot { it.isRunTime() }
 
         tasks.forEach { urlFeederHelper.removeAllLike(it.name) }
+    }
+
+    fun searchPeriodicalSeedDirectories(): List<Path> {
+        return ResourceWalker().list(periodicalSeedBaseDir)
+            .filter { DateTimes.parseDurationOrNull(it.fileName.toString()) != null }
+            .toList()
     }
 
     private fun createConfusionConfig(label: String): DiffusingCrawlerConfig {

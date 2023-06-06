@@ -58,6 +58,56 @@ class PeriodicalSeedsGenerator(
         return collectors
     }
 
+    fun loadTasksFromSearchDirectories(): List<CollectedResidentTask> {
+        seedCache.clear()
+
+        searchDirectories.forEach { dir ->
+            val fileName = dir.fileName.toString()
+            val period = DateTimes.parseDurationOrNull(fileName)
+            if (period != null) {
+                listSeedDirectory(dir, period)
+            } else {
+                logger.warn("Search directory name has to be a duration" +
+                        " and can be parsed by DateTimes.parseDurationOrNull() | {}", dir)
+            }
+        }
+
+        return seedCache
+    }
+
+    fun listSeedDirectory(dir: Path, period: Duration) {
+        logger.info("List seed directory | {}", dir)
+        Files.list(dir)
+            .filter { it.isRegularFile() }
+            .filter { it.fileName.toString().endsWith(".txt") }.forEach { seedPath ->
+                loadSeedsFromFile(seedPath, period)
+            }
+    }
+
+    fun loadSeedsFromFile(seedFile: Path, period: Duration): List<CollectedResidentTask> {
+        val propsFileName = seedFile.fileName.toString().substringBeforeLast(".") + "properties"
+        val propsFilePath = seedFile.resolveSibling(propsFileName)
+        val args = if (Files.exists(propsFilePath)) {
+            Files.readAllLines(propsFilePath).joinToString("\n") { it.trim() }
+        } else ""
+
+        // find out my task
+        val matchTasks = tasks.asSequence()
+            .filter { it.taskPeriod == period }
+            .filter { isSupervisor(it) }
+            .filterNot { it.fileName.isNullOrBlank() }
+            .filter { seedFile.toString().endsWith(it.fileName!!) }
+            .toList()
+
+        matchTasks.forEach {
+            logger.info("Match resident task {} {} | {}", it.name, it.fileName, seedFile)
+        }
+
+        matchTasks.mapTo(seedCache) { CollectedResidentTask(it, collectHyperlinks(seedFile, args)) }
+
+        return seedCache
+    }
+
     /**
      * Create a UrlCacheCollector for [collectedTask].
      * For every collected link, check the database if it's expired, only expired links are added to the url pool to
@@ -145,58 +195,23 @@ class PeriodicalSeedsGenerator(
         }
     }
 
-    private fun loadTasksFromSearchDirectories() {
-        seedCache.clear()
-
-        searchDirectories.forEach { dir ->
-            val fileName = dir.fileName.toString()
-            val period = runCatching { Duration.parse(fileName) }.getOrNull()
-            if (period != null) {
-                listSeedDirectory(dir, period)
-            }
-
-//            ResourceWalker().walk(it.toAbsolutePath().toString(), 3) { path ->
-//                loadTasksIfMatch(path)
-//            }
-        }
-    }
-
-    private fun listSeedDirectory(dir: Path, period: Duration) {
-        Files.list(dir)
-            .filter { it.isRegularFile() }
-            .filter { it.fileName.toString().endsWith(".txt") }.forEach { seedPath ->
-                loadSeedsFromFile(seedPath, period)
-            }
-    }
-
-    private fun loadSeedsFromFile(seedPath: Path, period: Duration) {
-        val propsFileName = seedPath.fileName.toString().substringBeforeLast(".") + "properties"
-        val propsFilePath = seedPath.resolveSibling(propsFileName)
-        // TODO: parse props
-
-        tasks.asSequence()
-            .filter { it.taskPeriod == period }
-            .filter { isSupervisor(it) }
-            .filterNot { it.fileName.isNullOrBlank() }
-//            .onEach { println(it.label + " " + it.taskPeriod + " " + period + " fileName: " + it.fileName + " " + seedPath) }
-            .filter { seedPath.toString().endsWith(it.fileName!!) }
-            .mapTo(seedCache) { CollectedResidentTask(it, collectHyperlinks(seedPath)) }
-    }
-
     private fun isSupervisor(task: ResidentTask) = isDev || task.isSupervised()
 
-    private fun collectHyperlinks(path: Path): Set<Hyperlink> {
-        return collectHyperlinksTo(path, mutableSetOf())
+    private fun collectHyperlinks(path: Path, args: String): Set<Hyperlink> {
+        return collectHyperlinksTo(path, args, mutableSetOf())
     }
 
-    private fun collectHyperlinksTo(path: Path, destination: MutableSet<Hyperlink>): Set<Hyperlink> {
+    private fun collectHyperlinksTo(path: Path, args: String, destination: MutableSet<Hyperlink>): Set<Hyperlink> {
         LinkExtractors.fromFile(path)
             .shuffled()
             .take(seedLimit)
             .filter { UrlUtils.isStandard(it) }
-            .mapTo(destination) { Hyperlink(it) }
+            .mapTo(destination) { Hyperlink(it, args = args) }
 
-        val message = if (isDev) " (dev mode)" else ""
+        var message = if (isDev) " (dev mode)" else ""
+        if (args.isNotBlank()) {
+            message += " | $args"
+        }
         logger.info("Loaded {} links$message | {}", destination.size, path)
 
         return destination

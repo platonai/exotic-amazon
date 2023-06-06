@@ -31,7 +31,7 @@ class AmazonCrawler(
 
     private val logger = LoggerFactory.getLogger(AmazonCrawler::class.java)
 
-    override var name = "sites/amazon"
+    override var name = "amazon"
 
     override fun setup() {
         super.setup()

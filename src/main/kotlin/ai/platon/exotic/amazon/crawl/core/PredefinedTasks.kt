@@ -59,6 +59,9 @@ enum class PredefinedTask(
         "movers-and-shakers.txt"
     ),
 
+    /**
+     * TODO: use BEST_SELLERS2
+     * */
     BEST_SELLERS("zgbs", Priority13.NORMAL,
         Duration.ofDays(1),
         Duration.ofDays(1),

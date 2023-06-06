@@ -7,16 +7,11 @@ import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.browser.common.BrowserSettings
-import ai.platon.pulsar.common.DateTimes
-import ai.platon.pulsar.common.LinkExtractors
-import ai.platon.pulsar.common.NetUtil
-import ai.platon.pulsar.common.StartStopRunner
+import ai.platon.pulsar.common.*
 import ai.platon.pulsar.common.config.AppConstants
 import ai.platon.pulsar.common.config.CapabilityTypes
-import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.urls.Hyperlink
-import ai.platon.pulsar.common.urls.PlainUrl
 import ai.platon.pulsar.crawl.common.url.ListenableHyperlink
 import ai.platon.pulsar.crawl.event.impl.DefaultPageEvent
 import ai.platon.pulsar.dom.select.selectHyperlinks
@@ -149,7 +144,9 @@ fun main(args: Array<String>) {
     while (i < args.size) {
         when (args[i]) {
             "--headless" -> headless = true
+            "-pc",
             "--privacy" -> privacyCount = args[++i].toIntOrNull() ?: privacyCount
+            "-mt",
             "--maxTabs" -> maxTabs = args[++i].toIntOrNull() ?: maxTabs
             else -> println("CrawlStater: [options]")
         }

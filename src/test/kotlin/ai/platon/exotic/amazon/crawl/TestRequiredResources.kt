@@ -14,7 +14,7 @@ class TestRequiredResources: TestBase() {
     fun `Ensure periodical tasks exist`() {
         // Failed to detect resource existence
         // java.lang.AssertionError: /home/vincent/workspace/exotic-amazon-main/target/classes/sites/amazon/crawl/generate/periodical
-        amazonGenerator.periodicalSeedDirectories.map { it.toString().substringBeforeLast("/") }
+        amazonGenerator.searchPeriodicalSeedDirectories().map { it.toString().substringBeforeLast("/") }
             .forEach { dir ->
                 println(dir)
                 assertTrue(dir) { ResourceLoader.exists(dir) }

@@ -359,7 +359,7 @@
 		<distributed.lock.version>1.4.3</distributed.lock.version>
 
 		<pulsar.kotlin.driver.version>1.6.14</pulsar.kotlin.driver.version>
-		<pulsar.version>1.10.11</pulsar.version>
-		<scent.version>1.10.4</scent.version>
+		<pulsar.version>1.10.12</pulsar.version>
+		<scent.version>1.10.6</scent.version>
 	</properties>
 </project>
