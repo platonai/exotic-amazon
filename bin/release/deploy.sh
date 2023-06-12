@@ -13,6 +13,6 @@ echo "$VERSION" > "$APP_HOME"/VERSION
 find "$APP_HOME" -name 'pom.xml' -exec sed -i "s/$SNAPSHOT_VERSION/$VERSION/" {} \;
 
 mvn clean
-mvn deploy -Pplaton-deploy -DskipTests=true -DaltDeploymentRepository=local::default::file:./target/staging-deploy
+mvn deploy -DskipTests=true -DaltDeploymentRepository=local::default::file:./target/staging-deploy
 
 scp -r ./target/staging-deploy/* master:~/platonic.fun/repo
