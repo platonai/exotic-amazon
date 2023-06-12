@@ -19,15 +19,15 @@ import kotlin.test.assertNotNull
 
 class PeriodicalSeedsGeneratorTests: TestBase() {
     private val logger = getLogger(this)
+    private val period = "pt24h"
+    private val resource = "sites/amazon/crawl/generate/periodical/$period/best-sellers.txt"
 
     @Test
     fun TestLoadSeedsFromResource() {
-        val period = "pt24h"
-        val resource = "sites/amazon/crawl/generate/periodical/$period/best-sellers.txt"
         val path = ResourceWalker().getPath(resource)
         assertNotNull(path)
 
-        loadSeedsFromFileAndAssert(path, period, "internal resource")
+        loadSeedsFromPathAndAssert(path, period, "internal resource")
     }
 
     @Test
@@ -41,7 +41,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
         Files.createDirectories(path2.parent)
         Files.copy(path, path2)
 
-        loadSeedsFromFileAndAssert(path2, period, "external file")
+        loadSeedsFromPathAndAssert(path2, period, "external file")
         Files.deleteIfExists(path2)
     }
 
@@ -67,7 +67,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
             tool.addFile(target, rootPathString, sourcePathString)
         }
 
-        logger.info("Entries in jar: ")
+        logger.info("Entries in jar | {}", jarFile)
         val jar = JarFile(jarFile)
         println(jar.name)
         var k = 0
@@ -78,7 +78,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
 
         val path2 = Paths.get("file:/$jarFile!/$period/best-sellers.txt")
         assertNotNull(path2)
-        loadSeedsFromFileAndAssert(path2, period, "external jar")
+        loadSeedsFromPathAndAssert(path2, period, "external jar")
         Files.deleteIfExists(path2)
     }
 
@@ -92,7 +92,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
 
     }
 
-    private fun loadSeedsFromFileAndAssert(path: Path, period: String, message: String) {
+    private fun loadSeedsFromPathAndAssert(path: Path, period: String, message: String) {
         val predefinedTask = listOf(PredefinedTask.BEST_SELLERS).map { it.toResidentTask() }
         val generator = amazonGenerator.createPeriodicalSeedsGenerator(predefinedTask)
 

@@ -158,7 +158,7 @@ class ChooseDistrict(
         val path = session.export(document)
         logger.info("Exported to file://$path")
 
-        // ISSUE#29: https://github.com/platonai/pulsarr/issues/29
+        // ISSUE#29: https://github.com/platonai/PulsarRPA/issues/29
         // Failed to copy chrome data dir when there is a SingletonSocket symbol link
         Files.deleteIfExists(AppPaths.CHROME_DATA_DIR_PROTOTYPE.resolve("SingletonSocket"))
     }

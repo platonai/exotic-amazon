@@ -37,7 +37,7 @@ If the maven version number is 3.8.1 or above, you need to add the following cod
 
 If this file doesn't exist, you can copy [settings.xml](docs/settings.xml) to `.m2` directory. A basic introduction to `.m2/settings.xml` can be found in the Q/A section.
 
-For Chinese developers, we strongly suggest that you follow [this](https://github.com/platonai/pulsarr/blob/master/bin/tools/maven/maven-settings.adoc) instruction to accelerate the building.
+For Chinese developers, we strongly suggest that you follow [this](https://github.com/platonai/PulsarRPA/blob/master/bin/tools/maven/maven-settings.adoc) instruction to accelerate the building.
 
 Now we can start building:
 
@@ -105,7 +105,7 @@ There are several methods to persist the results into a database:
 #### Save as WebPage.pageModel
 
 By default, the extracted fields are also saved as key-value pairs to 
-[WebPage.pageModel](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
+[WebPage.pageModel](https://github.com/platonai/PulsarRPA/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
 
 #### Save to a JDBC compatible database
 
@@ -143,7 +143,7 @@ PulsarRPA has carefully designed the logging and metrics subsystem to record eve
 
 PulsarRPA logs the status for every load execution, so it's easy to know what happened in the system, find out answers such as is the system running healthy, how many pages were successfully fetched, how many pages were retried, how many proxy ips were used, etc.
 
-Typical page loading logs are as the following, check [log-format](https://github.com/platonai/pulsarr/blob/master/docs/log-format.adoc) to learn how to read the logs to learn the state of the whole system at a glance.
+Typical page loading logs are as the following, check [log-format](https://github.com/platonai/PulsarRPA/blob/master/docs/log-format.adoc) to learn how to read the logs to learn the state of the whole system at a glance.
 
 ```
 2022-09-24 11:46:26.045  INFO [-worker-14] a.p.p.c.c.L.Task - 3313. 💯 ⚡ U for N got 200 580.92 KiB in 1m14.277s, fc:1 | 75/284/96/277/6554 | 106.32.12.75 | 3xBpaR2 | https://www.walmart.com/ip/Restored-iPhone-7-32GB-Black-T-Mobile-Refurbished/329207863 -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
@@ -193,7 +193,7 @@ AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
 
 A:
 
-1. Read [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) which describes what to do with a task
+1. Read [LoadOptions](https://github.com/platonai/PulsarRPA/blob/master/docs/concepts-CN.adoc#_load_options) which describes what to do with a task
 2. Refer to [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt), which defines Amazon specific tasks. The settings of PredefinedTask will eventually be converted to LoadOptions
 3. Scheduled tasks are defined in [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt)
 

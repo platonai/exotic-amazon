@@ -6,7 +6,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 其他电商平台数据采集，其方法和流程基本类似，可以在该项目基础上修改调整业务逻辑即可，其基础设施解决了所有大规模数据采集面临的难题。
 
-得益于 [PulsarRPA](https://github.com/platonai/pulsarr/README.adoc) ([中文](https://github.com/platonai/pulsarr/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
+得益于 [PulsarRPA](https://github.com/platonai/PulsarRPA/README.adoc) ([中文](https://github.com/platonai/PulsarRPA/blob/master/README-CN.adoc)) 提供的完善的 **Web 数据管理基础设施**，整个解决方案由不超过 3500 行的 kotlin 代码和不到 700 行的 X-SQL 组成，以提取 650 多个字段。
 
 ### 数据简介
 
@@ -37,7 +37,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 或者如果这个文件不存在，可以直接拷贝 [settings.xml](docs/settings.xml) 到 .m2 目录下。在 Q/A 章节可以找到关于 .m2/settings.xml 的基本介绍。
 
-对于国内开发者，我们强烈建议您按照 [这个](https://github.com/platonai/pulsarr/blob/master/bin/tools/maven/maven-settings.adoc) 指导来加速构建。
+对于国内开发者，我们强烈建议您按照 [这个](https://github.com/platonai/PulsarRPA/blob/master/bin/tools/maven/maven-settings.adoc) 指导来加速构建。
 
 现在可以开始了构建了：
 
@@ -129,7 +129,7 @@ Mac:
 
 #### 保存到 WebPage.pageModel
 
-默认情况下，提取的字段也作为键值对保存到 [WebPage.pageModel](https://github.com/platonai/pulsarr/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
+默认情况下，提取的字段也作为键值对保存到 [WebPage.pageModel](https://github.com/platonai/PulsarRPA/blob/master/pulsar-persist/src/main/java/ai/platon/pulsar/persist/WebPage.java).
 
 #### 保存到JDBC兼容的数据库
 
@@ -172,7 +172,7 @@ PulsarRPA 在日志中报告每个页面加载任务执行的状态，因此很�
 
 只需注意几个符号，您就可以深入了解整个系统的状态：💯 💔 🗙 ⚡ 💿 🔃 🤺。
 
-下面是一组典型的页面加载日志，查看 [日志格式](https://github.com/platonai/pulsarr/blob/master/docs/log-format.adoc) 了解如何阅读日志，从而一目了然地了解整个系统的状态。
+下面是一组典型的页面加载日志，查看 [日志格式](https://github.com/platonai/PulsarRPA/blob/master/docs/log-format.adoc) 了解如何阅读日志，从而一目了然地了解整个系统的状态。
 
 ```
 2022-09-24 11:46:26.045  INFO [-worker-14] a.p.p.c.c.L.Task - 3313. 💯 ⚡ U for N got 200 580.92 KiB in 1m14.277s, fc:1 | 75/284/96/277/6554 | 106.32.12.75 | 3xBpaR2 | https://www.walmart.com/ip/Restored-iPhone-7-32GB-Black-T-Mobile-Refurbished/329207863 -expires PT24H -ignoreFailure -itemExpires PT1M -outLinkSelector a[href~=/ip/] -parse -requireSize 300000
@@ -223,7 +223,7 @@ AmazonJdbcSinkSQLExtractor.collectHyperlinks ->
 
 A: 
 
-1. 阅读 [LoadOptions](https://github.com/platonai/pulsarr/blob/master/docs/concepts-CN.adoc#_load_options) 文档，它描述一个任务该怎么处理
+1. 阅读 [LoadOptions](https://github.com/platonai/PulsarRPA/blob/master/docs/concepts-CN.adoc#_load_options) 文档，它描述一个任务该怎么处理
 2. 参考 [PredefinedTask](src/main/kotlin/ai/platon/exotic/amazon/crawl/core/PredefinedTasks.kt)，它定义了亚马逊特定任务。PredefinedTask 的设置最终会被转换 LoadOptions 参数
 3. 定时任务在 [CrawlScheduler](src/main/kotlin/ai/platon/exotic/amazon/crawl/boot/CrawlScheduler.kt) 中设置
 
