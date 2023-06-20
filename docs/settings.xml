@@ -5,11 +5,7 @@
 
     <mirrors>
         <!-- For chinese  -->
-        <mirror>
-            <id>huaweicloud</id>
-            <url>https://repo.huaweicloud.com/repository/maven/</url>
-            <mirrorOf>central</mirrorOf>
-        </mirror>
+
         <mirror>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
