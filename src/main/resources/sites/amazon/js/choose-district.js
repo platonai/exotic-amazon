@@ -1,4 +1,7 @@
-let message = "Start choose district";
+let message = "Accept cookie";
+document.querySelector("#a-autoid-0-announce").textContent;
+document.querySelector("#a-autoid-0-announce").click();
+message = "Start choose district";
 document.querySelector("#glow-ingress-block").textContent;
 document.querySelector("div#nav-global-location-slot a").click();
 // show the old value;

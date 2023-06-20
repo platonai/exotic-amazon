@@ -1,4 +1,21 @@
-domain,country,zipcode,display,verify,comment
-amazon.co.uk,英国,S99 3AD,Sheffield S99 3,Sheffield S99 3,""
-amazon.com,美国,30301,Atlanta,Atlanta,""
-amazon.ca,加拿大,K1N 6N7,name,K1N 6N,two fields.
+domain,country,priority,zipcode,country display,verify,language,currency symbol,currency choice,comment
+amazon.co.uk,英国,1,S99 3AD,Sheffield S99 3,S99 3,EN,£,£ - GBP - British Pound (Default),
+amazon.de,德国,1,10317,10317 Berlin,10317,DE,€,€ - EUR - Euro (Default),
+amazon.fr,法国,1,75008,75008,75008,N/A,€,N/A,
+amazon.it,意大利,1,10158,10158,10158,N/A,€,N/A,
+amazon.es,西班牙,1,08009,Barcelona 08009,08009,ES,€,N/A,
+amazon.com,美国,1,30301,Atlanta,Atlanta,EN,$,N/A,
+amazon.ca,加拿大,1,K1N 6N7,K1N 6N,K1N 6N,EN,$,N/A,
+amazon.com.mx,墨西哥,1,07840,Ciudad De... 07840,07840,N/A,$,N/A,
+amazon.co.jp,日本,1,130 0024,墨田区菊川 130-0024,130 00,JP,,,需要代理IP
+amazon.in,印度,1,110007,New Delhi 110007,110007,EN,₹,N/A,
+amazon.com.br,巴西,1,70702-905,70702905,70702905,N/A,R$,N/A,
+amazon.pl,波兰,10,00-928,00928 Warszawa,928,N/A,zł,N/A,
+amazon.nl,荷兰,10,1011-1016,1079 Amsterdam,Amsterdam,NL,€,N/A,不支持ZIP
+amazon.se,瑞典,10,171 79,Solna 171 79,171 79,SV,kr,N/A,
+amazon.com.tr,土耳其,10,06701,N/A,N/A,N/A,,N/A,地区保持默认。需登录，需验证码
+amazon.com.au,澳大利亚,10,2197#Bass Hill,Bass Hill 2197,2197,EN,$,$ - AUD - Australian Dollar (Default),
+amazon.sg,新加坡,10,188021,Singapore 188021,188021,EN,,,
+amazon.sa,沙特,10,11623,N/A,N/A,AR,,,地区保持默认。
+amazon.ae,阿联酋,10,Dubai#Al Barsha 1 Mall Of The Emirates,"Dubai, Al B...","Dubai, Al B",EN,,,默认语言是英文。
+amazon.eg,埃及,10,11212,N/A,N/A,AR,,,地区保持默认。不支持ZIP

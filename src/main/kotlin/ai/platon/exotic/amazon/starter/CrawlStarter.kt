@@ -14,6 +14,7 @@ import ai.platon.pulsar.common.metrics.AppMetrics
 import ai.platon.pulsar.common.urls.Hyperlink
 import ai.platon.pulsar.crawl.common.url.ListenableHyperlink
 import ai.platon.pulsar.crawl.event.impl.DefaultPageEvent
+import ai.platon.pulsar.crawl.fetch.privacy.PrivacyContextMonitor
 import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.pulsar.protocol.browser.driver.BrowserMonitor
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
@@ -59,7 +60,7 @@ class CrawlApplication(
     /**
      * Activate BrowserPrivacyContextMonitor
      * */
-    private val privacyContextMonitor: BrowserPrivacyContextMonitor
+    private val privacyContextMonitor: PrivacyContextMonitor,
 ) {
     private val logger = getLogger(CrawlApplication::class.java)
     private var submittedProductUrlCount = 0
