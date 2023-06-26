@@ -17,8 +17,8 @@ VERSION=${SNAPSHOT_VERSION//"-SNAPSHOT"/""}
 echo "$VERSION" > "$APP_HOME"/VERSION
 find "$APP_HOME" -name 'pom.xml' -exec sed -i "s/$SNAPSHOT_VERSION/$VERSION/" {} \;
 
-mvn clean
-mvn package
+#mvn clean
+#mvn package
 
 ######################################################
 # Deploy
@@ -33,17 +33,19 @@ if [ ! -e "$SOURCE" ]; then
   exit 1
 fi
 
-DESTINATION="$REMOTE_USER@$TARGET_HOST:~/wwwpub/pub/exotic/exotic-amazon/$EXOTIC_AMAZON_VERSION"
+DESTINATION_DIR="$HOME/wwwpub/pub/exotic/exotic-amazon/$EXOTIC_AMAZON_VERSION"
+ssh "$REMOTE_USER@$TARGET_HOST" mkdir -p "$DESTINATION_DIR/conf"
 
-ssh "$REMOTE_USER@$TARGET_HOST" mkdir -p "$DESTINATION"
+DESTINATION="$REMOTE_USER@$TARGET_HOST:$DESTINATION_DIR"
 
+echo "Will execute the following command: "
 echo "rsync --update -raz --progress $SOURCE $DESTINATION"
 
 if [ -e "$SOURCE" ]; then
   echo "rsync ..."
   rsync --update -raz --progress "$SOURCE" "$DESTINATION"
   rsync --update -raz --progress "$APP_HOME/bin" "$DESTINATION"
-  scp
+  scp "$APP_HOME/src/main/resources/logback-prod.xml" "$DESTINATION/conf"
 else
   echo "$SOURCE does not exist"
   exit 1
@@ -51,4 +53,4 @@ fi
 
 echo "Finished at" "$(date)"
 
-open http://platonic.fun/pub/exotic/
+open "http://platonic.fun/pub/exotic/exotic-amazon/$EXOTIC_AMAZON_VERSION"

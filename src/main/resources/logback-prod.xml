@@ -142,7 +142,7 @@
     <logger name="ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSQLExtractor.Irr" level="INFO" additivity="false">
         <appender-ref ref="Irr"/>
     </logger>
-    <logger name="ai.platon.scent.parse.html.AbstractSinkAwareSQLExtractor.Task" level="DEBUG" additivity="false">
+    <logger name="ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSinkAwareSQLExtractor.Task" level="INFO" additivity="false">
         <appender-ref ref="PAGES"/>
     </logger>
     <logger name="ai.platon.scent.crawl.diffusing.AbstractPageProcessor.Task" level="INFO" additivity="false">
