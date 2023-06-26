@@ -33,24 +33,28 @@ if [ ! -e "$SOURCE" ]; then
   exit 1
 fi
 
-DESTINATION_DIR="$HOME/wwwpub/pub/exotic/exotic-amazon/$EXOTIC_AMAZON_VERSION"
+DESTINATION_BASE_DIR="/home/$REMOTE_USER/wwwpub/pub/exotic/exotic-amazon"
+DESTINATION_DIR="$DESTINATION_BASE_DIR/$EXOTIC_AMAZON_VERSION"
+
 ssh "$REMOTE_USER@$TARGET_HOST" mkdir -p "$DESTINATION_DIR/conf"
 
 DESTINATION="$REMOTE_USER@$TARGET_HOST:$DESTINATION_DIR"
 
-echo "Will execute the following command: "
-echo "rsync --update -raz --progress $SOURCE $DESTINATION"
-
 if [ -e "$SOURCE" ]; then
   echo "rsync ..."
+  echo "Will execute the following command: "
+  echo "rsync --update -raz --progress $SOURCE $DESTINATION"
+
   rsync --update -raz --progress "$SOURCE" "$DESTINATION"
   rsync --update -raz --progress "$APP_HOME/bin" "$DESTINATION"
-  scp "$APP_HOME/src/main/resources/logback-prod.xml" "$DESTINATION/conf"
+  rsync --update -raz "$APP_HOME/src/main/resources/logback-prod.xml" "$DESTINATION/conf/"
 else
   echo "$SOURCE does not exist"
   exit 1
 fi
 
+ssh "$REMOTE_USER@$TARGET_HOST" "$DESTINATION_DIR/bin/release/package.sh"
+
 echo "Finished at" "$(date)"
 
-open "http://platonic.fun/pub/exotic/exotic-amazon/$EXOTIC_AMAZON_VERSION"
+open "http://platonic.fun/pub/exotic/exotic-amazon/$EXOTIC_AMAZON_VERSION" > /dev/null 2>&1 &
