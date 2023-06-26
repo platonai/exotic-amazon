@@ -79,7 +79,7 @@ class CrawlApplication(
     }
 
     /**
-     * Initialize and start amazon crawler
+     * Initialize and start amazon crawler.
      * */
     @Bean(initMethod = "start", destroyMethod = "stop")
     fun startAmazonCrawler(): StartStopRunner {
@@ -88,7 +88,9 @@ class CrawlApplication(
 
     /**
      * A very simple example to start crawling.
-     * For real world crawl task generation, see [AmazonCrawler].
+     *
+     * For real world crawl task generation, see [AmazonCrawler]
+     * and [ai.platon.exotic.amazon.crawl.boot.CrawlScheduler].
      * */
     @Bean
     fun injectExampleSeeds() {
