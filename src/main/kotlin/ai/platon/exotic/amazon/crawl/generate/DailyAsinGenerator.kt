@@ -132,7 +132,7 @@ class DailyAsinGenerator(
     private val context get() = session.context as AbstractPulsarContext
     private val isActive get() = context.isActive
     private val webDb get() = context.webDb
-    // The leaf categories of best-sellers
+    // The leaf categories of bestsellers
     private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
     private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/seeds.properties"
     private val normalizer = AsinUrlNormalizer()

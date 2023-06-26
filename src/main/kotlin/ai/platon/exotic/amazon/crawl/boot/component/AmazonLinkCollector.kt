@@ -229,7 +229,7 @@ class AmazonLinkCollector(
         // Collect the hyperlink of the next page
         val url = document.selectFirstOrNull(SECONDARY_BS_LINK_SELECTOR_IN_BS_PAGE)
             ?.attr("abs:href")
-            ?.takeIf { UrlUtils.isValidUrl(it) }
+            ?.takeIf { UrlUtils.isStandard(it) }
 
         if (url != null) {
             // Notice: very important to inherit the page's load argument

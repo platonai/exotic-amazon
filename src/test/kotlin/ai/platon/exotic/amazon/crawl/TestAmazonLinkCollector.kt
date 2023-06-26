@@ -38,6 +38,7 @@ class TestAmazonLinkCollector: TestBase() {
         assertTrue { page.contentLength > 1000 }
     }
 
+    @Ignore("Selector for next page has been changed")
     @Test
     fun `When collect navigation page then the next page link exists`() {
         val queue = LinkedList<UrlAware>()

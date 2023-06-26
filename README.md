@@ -65,7 +65,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
 
 ## 困难和挑战
 
-现在主流网站常用的反爬手段基本都用了，譬如Cookie跟踪，IP跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
+现在主流网站常用反爬手段基本都用了，譬如Cookie跟踪，IP跟踪，访问频率限制，访问轨迹跟踪，CSS 混淆等等。
 
 使用基本的 HTTP 协议采集的话，会陷入无穷无尽的爬虫/反爬虫对抗中，得不偿失，并且未必能解决，譬如说采用了动态自定义字体的站点就不可能解决。
 
@@ -136,7 +136,7 @@ Mac:
 * 正确配置 AmazonJdbcSinkSQLExtractor.jdbcCommitter
 * 数据库模式: [schema](./src/main/resources/schema)
 * 页面模型和数据库模式映射: [extract-config.json](./src/main/resources/sites/amazon/crawl/parse/extract-config.json)
-* 页面模型和提取规则: [X-SQLs](./src/main/resources/sites/amazon/crawl/parse/sql/crawl/)
+* 页面模型和提取规则: [X-SQLs](./src/main/resources/sites/amazon/crawl/parse/sql/crawl)
 
 #### 保存到自定义目的地
 

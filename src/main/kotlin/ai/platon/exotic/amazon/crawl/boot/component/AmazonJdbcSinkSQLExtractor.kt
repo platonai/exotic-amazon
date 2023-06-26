@@ -149,10 +149,6 @@ class AmazonJdbcSinkSQLExtractor(
             logger.info("Irrelevant page({}) in extractor <{}> | {}", state.message, name, report)
         }
 
-//        if (urlFilter.toString().contains("zgbs")) {
-//            println("CheckState " + urlFilter + " " + state.message + " | " + page.url)
-//        }
-
         return state
     }
 

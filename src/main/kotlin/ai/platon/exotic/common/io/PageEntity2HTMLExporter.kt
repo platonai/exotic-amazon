@@ -37,14 +37,6 @@ class PageEntity2HTMLExporter(
         if (fieldGroup != null) {
             val fields = fieldGroup.fieldsCopy
 
-//            val pageEntity = PageEntity()
-//            fields.forEach { (name, value) ->
-//                pageEntity.put(name, value ?: "")
-//            }
-
-//            val builder = HtmlViewBuilder(pageEntity, session.sessionConfig)
-//            val document = builder.buildDocument()
-
             val document = FeaturedDocument.createShell(path.toString())
             val lang = fields["language"] ?: fields["lang"]
             if (lang != null) {

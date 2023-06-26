@@ -3,7 +3,7 @@
 install_utils() {
   if ! command -v java &> /dev/null
   then
-    sudo apt install wget vim default-jdk maven git curl unzip
+    sudo apt install wget vim default-jdk java-11-openjdk maven git curl unzip
   fi
 
   if ! command -v mvn &> /dev/null

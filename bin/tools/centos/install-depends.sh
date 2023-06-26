@@ -3,7 +3,7 @@
 install_utils() {
   if ! command -v java &> /dev/null
   then
-    sudo yum install wget vim default-jdk maven git curl
+    sudo yum install wget vim default-jdk java-11-openjdk maven git curl
   fi
 
   if ! command -v mvn &> /dev/null
@@ -34,9 +34,8 @@ start_dependent_daemon() {
 install_chrome() {
     echo "Installing latest stable google-chrome"
 
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    sudo dpkg -i google-chrome*.deb
-    sudo yum install -f
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+    sudo yum localinstall google-chrome-stable_current_x86_64.rpm
 
     google-chrome -version
 }

@@ -19,7 +19,6 @@ import ai.platon.pulsar.dom.select.selectHyperlinks
 import ai.platon.pulsar.protocol.browser.driver.BrowserMonitor
 import ai.platon.pulsar.protocol.browser.driver.WebDriverPoolMonitor
 import ai.platon.scent.ScentSession
-import ai.platon.scent.protocol.browser.emulator.context.BrowserPrivacyContextMonitor
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.ApplicationContext
@@ -98,43 +97,41 @@ class CrawlApplication(
             return
         }
 
-        val args = BESTSELLER_LOAD_ARGUMENTS
-        val itemArgs = ASIN_LOAD_ARGUMENTS
+        val bsLoadArgs = BESTSELLER_LOAD_ARGUMENTS
+        val asinLoadArgs = ASIN_LOAD_ARGUMENTS
 
         val event = DefaultPageEvent()
         event.loadEvent.onHTMLDocumentParsed.addFirst { page, document ->
             val normalizer = AsinUrlNormalizer()
-            val urls = document.document.selectHyperlinks(ASIN_LINK_SELECTOR_IN_BS_PAGE)
+            val asinLinks = document.document.selectHyperlinks(ASIN_LINK_SELECTOR_IN_BS_PAGE)
                 .distinct()
-                .map { l -> Hyperlink(normalizer(l.url)!!, args = itemArgs).apply { href = l.url } }
+                .map { l -> Hyperlink(normalizer(l.url)!!, args = asinLoadArgs).apply { href = l.url } }
 
             val queue = globalCache.urlPool.higher4Cache.nonReentrantQueue
-            urls.forEach { queue.add(it) }
+            asinLinks.forEach { queue.add(it) }
 
-            submittedProductUrlCount += urls.size
-            logger.info("{}.\tSubmitted {}/{} asin links | {}",
-                page.id, urls.size, submittedProductUrlCount,
+            submittedProductUrlCount += asinLinks.size
+            logger.info("{}.\t[DEV DEMO] Submitted {}/{} asin links | {}",
+                page.id, asinLinks.size, submittedProductUrlCount,
                 page.url
             )
         }
 
         val tld = "com"
-        val resource = "sites/amazon/crawl/generate/periodical/p7d/$tld/best-sellers.txt"
+        val resource = "sites/amazon/crawl/generate/demo/$tld/best-sellers.txt"
         val resource2 = "sites/amazon/crawl/generate/periodical/pt24h/best-sellers.txt"
         val resource3 = PATH_FETCHED_BEST_SELLER_URLS
-        val urls1 = LinkExtractors.fromResource(resource).distinct().filter { it.contains(".$tld") }
-        val urls2 = LinkExtractors.fromResource(resource2).distinct().filter { it.contains(".$tld") }
-        val urls3 = LinkExtractors.fromFile(resource3).distinct().filter { it.contains(".$tld") }
-        val urls = (urls1.toMutableSet() + urls2 + urls3).map { "$it $args" }
+        val urls1 = LinkExtractors.fromResource(resource).filter { it.contains(".$tld/") }.distinct()
+        val urls2 = LinkExtractors.fromResource(resource2).filter { it.contains(".$tld/") }.distinct()
+        val urls3 = LinkExtractors.fromFile(resource3).filter { it.contains(".$tld/") }.distinct()
 
-//        LinkExtractors.fromResource(resource).map { "$it $args" }
+        val urls = (urls1 + urls2 + urls3).map { "$it $bsLoadArgs" }
+
         val queue = globalCache.urlPool.higherCache.nonReentrantQueue
 
-        logger.info("Submitted {}({} & {}) bestseller urls at startup | {}, {}",
-            urls.size, urls1.size, urls3.size,
-            resource, resource2)
+        logger.info("[DEV DEMO] Submitted {}({} & {}) bestseller urls at startup | {}, {}",
+            urls.size, urls1.size, urls3.size, resource, resource2)
         urls.map { ListenableHyperlink(it, event = event) }.forEach { queue.add(it) }
-//        urls.forEach { queue.add(PlainUrl(it)) }
     }
 }
 
@@ -183,7 +180,6 @@ fun main(args: Array<String>) {
     // 1. set browser.display.mode=HEADLESS in spring config files
     // 2. System.setProperty("browser.display.mode", "HEADLESS") or other spring compatible config approaches
     // 3. BrowserSettings.headless()
-    // BrowserSettings.headless()
     if (headless) {
         BrowserSettings.headless()
     }

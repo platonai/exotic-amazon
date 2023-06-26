@@ -16,7 +16,7 @@ fi
 
 domain="amazon.$TLD"
 
-java -Xmx10g -Xms2G -Dbrowser.display.mode=SUPERVISED -cp target/exotic-amazon*.jar \
+java -Xmx10g -Xms2G -Dbrowser.display.mode=HEADLESS -cp target/exotic-amazon*.jar \
 -D"loader.main=ai.platon.exotic.amazon.tools.environment.ChooseDistrictKt" \
 -D"logging.dir=$LOG_DIR" \
 org.springframework.boot.loader.PropertiesLauncher "$domain"

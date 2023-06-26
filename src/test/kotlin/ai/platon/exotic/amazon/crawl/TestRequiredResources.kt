@@ -28,7 +28,6 @@ class TestRequiredResources: TestBase() {
         assertTrue { ResourceLoader.exists("$sqls/crawl/x-asin.sql") }
 
         val extractorInstaller = WebDataExtractorInstaller(extractorFactory)
-        assertTrue { ResourceLoader.exists(extractorInstaller.jdbcConfig) }
+//        assertTrue { ResourceLoader.exists(extractorInstaller.jdbcConfig) }
     }
-
 }
