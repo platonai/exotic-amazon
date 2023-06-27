@@ -102,6 +102,10 @@ if [[ -e "$LOGBACK_CONFIG_FILE_LOCATION" ]]; then
   APP_OPTS=("${APP_OPTS[@]}" -D"logging.config=$LOGBACK_CONFIG_FILE_LOCATION")
 fi
 
+if [[ -e "$APP_TMP_DIR" ]]; then
+  APP_OPTS=("${APP_OPTS[@]}" -D"app.tmp.dir=$APP_TMP_DIR")
+fi
+
 EXEC_CALL=(
 "$JAVA"
 -Dproc_EXOTIC

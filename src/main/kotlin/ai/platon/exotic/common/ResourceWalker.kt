@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap
 class ResourceWalker: AutoCloseable {
     companion object {
         val SPRING_PACKEDR_ESOURCE_PREFIX = "BOOT-INF/classes/"
+        /**
+         * TODO: test for resource leak
+         * */
         private val filesystems = ConcurrentHashMap<URI, FileSystem>()
     }
 
@@ -61,6 +64,10 @@ class ResourceWalker: AutoCloseable {
 
     fun walk(resourceBase: String, maxDepth: Int, visitor: (Path) -> Unit) {
         val path = getPath(resourceBase)
+        if (path == null) {
+            logger.warn("Resource not exist | {}", resourceBase)
+            return
+        }
 
         val walk = Files.walk(path, maxDepth)
         val it = walk.iterator()

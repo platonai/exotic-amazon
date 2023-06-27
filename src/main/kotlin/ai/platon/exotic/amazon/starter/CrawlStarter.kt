@@ -24,6 +24,7 @@ import org.springframework.boot.runApplication
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ImportResource
+import org.springframework.core.env.Environment
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
 /**
@@ -44,6 +45,7 @@ class CrawlApplication(
     private val amazonCrawler: AmazonCrawler,
     private val session: ScentSession,
     private val applicationContext: ApplicationContext,
+    private val environment: Environment,
     /**
      * Activate AppMetrics
      * */
@@ -70,7 +72,16 @@ class CrawlApplication(
     fun overrideGoraConfig() {
         val conf = session.context.unmodifiedConfig
 
-        if (NetUtil.testNetwork("127.0.0.1", 28018)) {
+        var prop = environment.getProperty("gora.mongodb.override_hadoop_configuration")
+        if (prop != null) {
+            conf.unbox().set("gora.mongodb.override_hadoop_configuration", prop)
+        }
+        prop = environment.getProperty("gora.mongodb.servers")
+        if (prop != null) {
+            conf.unbox().set("gora.mongodb.servers", prop)
+        }
+
+        if (alwaysFalse() && NetUtil.testNetwork("127.0.0.1", 28018)) {
             // TODO: find out why the settings in application.properties do not work
             conf.unbox().set("gora.mongodb.override_hadoop_configuration", "false")
             conf.unbox().set("gora.mongodb.servers", "127.0.0.1:28018")

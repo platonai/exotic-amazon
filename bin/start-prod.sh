@@ -16,4 +16,7 @@ if [[ -e "$PROXY_PROVIDER_FILE_LOCATION" ]]; then
   bin/proxymgr epd -all
 fi
 
+export APP_TMP_DIR=$HOME/tmp
+mkdir "$APP_TMP_DIR"
+
 ENV=prod "$bin"/start.sh -D -HL -pc 4 -mt 15
