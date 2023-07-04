@@ -70,12 +70,11 @@ class AmazonLinkCollector(
         // "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
 //        val itemArgs = "-itemExpires PT30D -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -l asin"
 //        val options = session.options(itemArgs)
-        // extract asin
+        // extract asin links and save them into page.vividLinks
 //        fatLinkExtractor.parse(page, document, options)
 
         // fieldCount in logs: numNonBlankFields, numNonNullFields, numFields
         // js status: i/a/nm/st/h
-        // TODO: load from a file
         val itemArgs = ASIN_LOAD_ARGUMENTS
         val normalizer = AsinUrlNormalizer()
         val links = document.document.selectHyperlinks(ASIN_LINK_SELECTOR_IN_BS_PAGE)

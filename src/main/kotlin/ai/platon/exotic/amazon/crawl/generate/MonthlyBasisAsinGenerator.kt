@@ -30,21 +30,20 @@ import java.time.*
 import java.util.*
 
 /**
- * Generator asin pages (product pages) every day.
- * The asin urls are extracted from best-seller pages, rotate every month.
+ * Generate asin tasks (fetching product pages) every day.
+ * The asin links are extracted and updated from bestseller pages every day, and all them will be fetched in a month.
  * */
-class DailyAsinGenerator(
+class MonthlyBasisAsinGenerator(
     val session: ScentSession,
+    val monthValue: Int,
     val dayOfMonth: Int
 ) {
     companion object {
-        private val logger = getLogger(DailyAsinGenerator::class)
+        private val logger = getLogger(MonthlyBasisAsinGenerator::class)
 
         private val isDev get() = ClusterTools.isDevInstance()
 
-        private val month get() = MonthDay.now().monthValue
-
-        private var generator: DailyAsinGenerator? = null
+        private var generator: MonthlyBasisAsinGenerator? = null
 
         private lateinit var urlFeederHelper: UrlFeederHelper
 
@@ -60,13 +59,18 @@ class DailyAsinGenerator(
         var minAsinTasks = if (isDev) 0 else 200
         var maxAsinTasks = if (isDev) 200 else Int.MAX_VALUE
 
+        /**
+         * Should create a new generator every day.
+         * */
         @Synchronized
         fun getOrCreate(
             session: ScentSession,
             urlLoader: ExternalUrlLoader,
             urlFeeder: UrlFeeder
-        ): DailyAsinGenerator {
+        ): MonthlyBasisAsinGenerator {
+            val monthValue = MonthDay.now().monthValue
             val dayOfMonth = MonthDay.now().dayOfMonth
+
             lastUrlLoader = urlLoader
             urlFeederHelper = UrlFeederHelper(urlFeeder)
 
@@ -75,11 +79,11 @@ class DailyAsinGenerator(
             if (isNewCollector) {
                 asinCollector = null
                 reviewCollector = null
-                generator = DailyAsinGenerator(session, dayOfMonth)
+                generator = MonthlyBasisAsinGenerator(session, monthValue, dayOfMonth)
             }
 
             if (isNewCollector) {
-                oldGenerator?.generatePath?.let { Files.deleteIfExists(it) }
+                oldGenerator?.dailyAsinTaskPath?.let { Files.deleteIfExists(it) }
                 oldGenerator?.externalClear()
             }
 
@@ -133,8 +137,8 @@ class DailyAsinGenerator(
     private val isActive get() = context.isActive
     private val webDb get() = context.webDb
     // The leaf categories of bestsellers
-    private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/leaf-categories.txt"
-    private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/best-sellers/seeds.properties"
+    private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/bestsellers/leaf-categories.txt"
+    private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/bestsellers/seeds.properties"
     private val normalizer = AsinUrlNormalizer()
     private val expires = PredefinedTask.ASIN.expires
     private val deadTime = PredefinedTask.ASIN.deadTime()
@@ -142,13 +146,13 @@ class DailyAsinGenerator(
     private val taskId = DateTimes.startOfDay().toString()
 
     // A temporary file that holds the generated urls
-    private val generatePath
-        get() = AppPaths.REPORT_DIR.resolve("generate/asin/$month/$dayOfMonth.txt")
-    // Keep the best-seller pages temporary to extract asin urls later
+    private val dailyAsinTaskPath
+        get() = AppPaths.REPORT_DIR.resolve("generate/asin/$monthValue/$dayOfMonth.txt")
+    // Keep the bestseller pages temporary to extract asin urls later
     private val relevantBestSellers = mutableListOf<WebPage>()
-    // The minimal interval to check best-seller pages in the database
+    // The minimal interval to check bestseller pages in the database
     private val zgbsMinimalCheckInterval = Duration.ofMinutes(10)
-    // The next time to check best-seller pages in the database
+    // The next time to check bestseller pages in the database
     private var zgbsNextCheckTime = Instant.now()
 
     private var generatedCount = 0
@@ -223,15 +227,15 @@ class DailyAsinGenerator(
         var count = 0
         relevantBestSellers.forEach { count += writeAsinTasks(it) }
         if (count != 0) {
-            logger.info("Written {} asin urls to {}", count, generatePath)
+            logger.info("Written {} asin urls to {}", count, dailyAsinTaskPath)
         }
 
-        val asins = if (Files.exists(generatePath)) {
+        val asins = if (Files.exists(dailyAsinTaskPath)) {
             readAsinTasks(options)
         } else listOf()
 
         if (asins.isEmpty()) {
-            logger.warn("No asin urls in file | {}", generatePath)
+            logger.warn("No asin urls in file | {}", dailyAsinTaskPath)
             return
         }
 
@@ -270,6 +274,12 @@ class DailyAsinGenerator(
         }
     }
 
+    /**
+     * Load today's asin links from bestseller pages and then write them into the task file.
+     * The task files are time unique.
+     *
+     * The asin links were previously extracted from bestseller page and were written to WebPage.vividLinks.
+     * */
     @Synchronized
     fun writeAsinTasks(page: WebPage): Int {
         val referrer = page.url
@@ -278,8 +288,8 @@ class DailyAsinGenerator(
 
         try {
             val text = urls.joinToString("\n") { "$it $referrer" }
-            Files.writeString(generatePath, text, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
-            Files.writeString(generatePath, "\n", StandardOpenOption.APPEND)
+            Files.writeString(dailyAsinTaskPath, text, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+            Files.writeString(dailyAsinTaskPath, "\n", StandardOpenOption.APPEND)
         } catch (e: IOException) {
             logger.warn("Failed to write vivid links", e)
         }
@@ -293,8 +303,8 @@ class DailyAsinGenerator(
         val args = "-i $expires -parse -ignoreFailure -label asin" +
                 " -taskId $taskId -taskTime $taskTime -deadTime $deadTime"
 
-        if (Files.exists(generatePath)) {
-            val asins = Files.readAllLines(generatePath).asSequence()
+        if (Files.exists(dailyAsinTaskPath)) {
+            val asins = Files.readAllLines(dailyAsinTaskPath).asSequence()
                 .filter { !it.trim().startsWith("#") }
                 .map { it.split("\\s+".toRegex()) }
                 .filter { it.size == 2 }
@@ -303,7 +313,7 @@ class DailyAsinGenerator(
                 .map { Hyperlink(it.key, args = args, referrer = it.value) }
                 .toList()
 
-            logger.info("Read {} asins from file | {}", asins.size, generatePath)
+            logger.info("Read {} asins from file | {}", asins.size, dailyAsinTaskPath)
 
             return asins
         }
@@ -324,9 +334,11 @@ class DailyAsinGenerator(
         zgbsNextCheckTime += zgbsMinimalCheckInterval
 
         val primaryZgbs = if (isDev) {
+            // Load bestseller links just fetched
             LinkExtractors.fromFile(PATH_FETCHED_BEST_SELLER_URLS)
                 .filter { ("zgbs" in it || "bestsellers" in it) && "pg=2" !in it }
         } else {
+            // Load all required bestseller links
             LinkExtractors.fromResource(bestSellerResource)
         }
 
@@ -414,14 +426,14 @@ class DailyAsinGenerator(
 
     @Synchronized
     private fun prepareFiles() {
-        val directory = generatePath.parent
-        if (Files.exists(generatePath)) {
+        val directory = dailyAsinTaskPath.parent
+        if (Files.exists(dailyAsinTaskPath)) {
             val predicate = { path: Path, attr: BasicFileAttributes ->
                 attr.isRegularFile && "$dayOfMonth.txt" in path.fileName.toString()
             }
             val count = Files.find(directory, 1, predicate).count()
             if (count > 0) {
-                Files.move(generatePath, directory.resolve("$dayOfMonth.txt.$count"))
+                Files.move(dailyAsinTaskPath, directory.resolve("$dayOfMonth.txt.$count"))
             }
         } else {
             Files.createDirectories(directory)

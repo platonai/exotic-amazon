@@ -1,15 +1,12 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
+import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
-import ai.platon.exotic.amazon.tools.common.AmazonUrls
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.PriorityDataCollectorsTableFormatter
 import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.common.urls.UrlAware
-import ai.platon.scent.crawl.isRunTime
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -34,7 +31,7 @@ class TestResidentTasks: TestBase() {
 
     @Before
     override fun setup() {
-        DailyAsinGenerator.testMode = true
+        MonthlyBasisAsinGenerator.testMode = true
 
         assertEquals(1, crawlLoops.loops.size)
         PredefinedTask.values().forEach { it.ignoreTTL = true }
@@ -43,7 +40,7 @@ class TestResidentTasks: TestBase() {
 
     @After
     fun tearDown() {
-        DailyAsinGenerator.testMode = false
+        MonthlyBasisAsinGenerator.testMode = false
     }
 
     @Test

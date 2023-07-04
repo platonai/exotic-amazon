@@ -5,7 +5,7 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
-import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
+import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.config.ImmutableConfig
 import ai.platon.pulsar.crawl.CrawlLoops
@@ -176,7 +176,7 @@ class CrawlScheduler(
             .filter { task.name in it.name }
             .sumOf { it.externalSize }
 
-        if (asinCount in 1..DailyAsinGenerator.minAsinTasks && task.isRunTime()) {
+        if (asinCount in 1..MonthlyBasisAsinGenerator.minAsinTasks && task.isRunTime()) {
             logger.info("Too few asins, generating asin tasks ...")
             amazonGenerator.generateAsinTasks()
             return CheckState(0, "Few asins")

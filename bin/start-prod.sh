@@ -2,6 +2,7 @@
 
 bin=$(dirname "$0")
 bin=$(cd "$bin">/dev/null || exit; pwd)
+APP_HOME=$(cd "$bin"/..>/dev/null || exit; pwd)
 
 APP_DATA="$HOME/.pulsar"
 export APP_LOG_HOME="$APP_DATA/logs"
@@ -19,4 +20,4 @@ fi
 export APP_TMP_DIR=$HOME/tmp
 mkdir "$APP_TMP_DIR"
 
-ENV=prod "$bin"/start.sh -D -HL -pc 4 -mt 15
+ENV=prod "$APP_HOME"/bin/start.sh -D -HL -pc 4 -mt 15

@@ -2,7 +2,7 @@ package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
+import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
 import ai.platon.exotic.common.ResourceWalker
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +18,7 @@ class GeneratorTests: TestBase() {
 
     @Before
     override fun setup() {
-        DailyAsinGenerator.testMode = true
+        MonthlyBasisAsinGenerator.testMode = true
 
         assertEquals(1, crawlLoops.loops.size)
         PredefinedTask.values().forEach { it.ignoreTTL = true }
