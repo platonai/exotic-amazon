@@ -29,8 +29,8 @@ VERSION=${SNAPSHOT_VERSION//"-SNAPSHOT"/""}
 echo "$VERSION" > "$APP_HOME"/VERSION
 find "$APP_HOME" -name 'pom.xml' -exec sed -i "s/$SNAPSHOT_VERSION/$VERSION/" {} \;
 
-#mvn clean
-#mvn package
+mvn clean
+mvn package
 
 ######################################################
 # Deploy
@@ -57,8 +57,6 @@ cp -r "$APP_HOME"/bin "$PACK_DIR"
 cp src/main/resources/config/* "$PACK_DIR/conf/"
 cp src/main/resources/logback-prod.xml "$PACK_DIR/conf/"
 
-exit 0
-
 ARCHIVE="target/exotic-amazon-$VERSION.tar.gz"
 tar -czf "$ARCHIVE" "$PACK_DIR"
 
@@ -76,8 +74,8 @@ DESTINATION_BASE_DIR="/home/$REMOTE_USER/wwwpub/pub/exotic/exotic-amazon"
 DESTINATION_DIR="$DESTINATION_BASE_DIR/$VERSION"
 DESTINATION="$REMOTE_USER@$TARGET_HOST:$DESTINATION_DIR"
 
-# rsync --update -raz --progress "$ARCHIVE" "$DESTINATION"
+rsync --update -raz --progress "$ARCHIVE" "$DESTINATION"
 
 echo "Finished at" "$(date)"
 
-# open "http://platonic.fun/pub/exotic/exotic-amazon" > /dev/null 2>&1 &
+open "http://platonic.fun/pub/exotic/exotic-amazon" > /dev/null 2>&1 &
