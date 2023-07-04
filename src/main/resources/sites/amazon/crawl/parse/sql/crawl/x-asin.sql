@@ -64,7 +64,7 @@ select
     cast(dom_all_slim_htmls(dom, '#productOverview_feature_div table') as varchar) as `overviewbullets`,
     cast(dom_all_slim_htmls(dom, '#detailBullets_feature_div, #productDetails_detailBullets_sections1 table') as varchar) as `detailbullets`,
     cast(dom_all_slim_htmls(dom, '#feature-bullets ul li') as varchar) as `featurebullets`,
-    dom_first_text(dom, '#productDescription, h2:contains(Product Description) + div') as `desc`,
+    dom_text(dom_parent(dom_select_first(dom, ' div:expr(img > 1) > h2:contains(Product Description)'))) as `desc`,
 
     cast(dom_all_slim_htmls(dom, '#prodDetails h1:contains(Feedback) ~ div a') as varchar) as `feedbackurl`,
     dom_first_text(dom, '#prodDetails table tr > th:contains(ASIN) ~ td, #detailBullets_feature_div ul li span:contains(ASIN) ~ span') as `asin`,
