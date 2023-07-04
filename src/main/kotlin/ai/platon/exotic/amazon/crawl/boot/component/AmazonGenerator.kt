@@ -45,17 +45,12 @@ class AmazonGenerator(
         const val PERIODICAL_SEED_BASE_DIR_DEFAULT = "sites/amazon/crawl/generate/periodical"
     }
 
-    private val logger = getLogger(AmazonGenerator::class)
-    private val charset = Charset.defaultCharset()
     /**
      * Asin generation strategy, supported strategies:
      * 1. IMMEDIATELY: once a bestseller page is fetched, the asin links are extracted and submitted immediately.
      * 2. MONTHLY: all asin links are extracted when bestseller pages were fetched, and all they will be fetched in a month.
      * */
-    private val asinGenerateStrategy = session.unmodifiedConfig["ENABLE_ADVANCED_ASIN_GENERATE_STRATEGY", "IMMEDIATELY"]
-    private val periodicalSeedBaseDir = session.sessionConfig[PERIODICAL_SEED_BASE_DIR_KEY, PERIODICAL_SEED_BASE_DIR_DEFAULT]
-    private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
-    private val isDev get() = ClusterTools.isDevInstance()
+    val asinGenerateStrategy = session.unmodifiedConfig["ENABLE_ADVANCED_ASIN_GENERATE_STRATEGY", "IMMEDIATELY"]
 
     val name = "amazon"
     val label = "20220801"
@@ -64,6 +59,12 @@ class AmazonGenerator(
     val asinGenerator get() = MonthlyBasisAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
     val confusingConfig = createConfusionConfig(label)
     val reviewGenerator = ReviewGenerator(confusingConfig, session, globalCacheFactory, trackedUrlRepository)
+
+    private val logger = getLogger(AmazonGenerator::class)
+    private val charset = Charset.defaultCharset()
+    private val periodicalSeedBaseDir = session.sessionConfig[PERIODICAL_SEED_BASE_DIR_KEY, PERIODICAL_SEED_BASE_DIR_DEFAULT]
+    private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
+    private val isDev get() = ClusterTools.isDevInstance()
 
     fun createPeriodicalSeedsGenerator(residentTasks: List<ResidentTask>): PeriodicalSeedsGenerator {
         return PeriodicalSeedsGenerator(
@@ -123,8 +124,14 @@ class AmazonGenerator(
             return
         }
 
-        if (asinGenerateStrategy == "MONTHLY") {
-            asinGenerator.generate()
+        when (asinGenerateStrategy) {
+            "MONTHLY" -> asinGenerator.generate()
+            "IMMEDIATELY" -> {
+                // see AmazonJdbcSinkSQLExtractor.collectHyperlinks -> collectAndSubmitASINLinks
+            }
+            else -> {
+                // Nothing to do
+            }
         }
     }
 

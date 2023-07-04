@@ -27,8 +27,6 @@ import ai.platon.scent.dom.web.TreeNodeDocument
 import ai.platon.scent.mongo.WebNodePersistable
 import ai.platon.scent.parse.html.ExtractCounter
 import org.springframework.stereotype.Component
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 import java.sql.ResultSet
 import java.time.Duration
 import java.time.Instant

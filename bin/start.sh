@@ -108,7 +108,7 @@ fi
 
 EXEC_CALL=(
 "$JAVA"
--Dproc_EXOTIC
+-Dproc_EXOTIC_AMZ
 "-Xms2G" "-Xmx10g" "-XX:+HeapDumpOnOutOfMemoryError"
 "-XX:-OmitStackTraceInFastThrow"
 "-XX:ErrorFile=$HOME/java_error_in_exotic_amazon_%p.log"

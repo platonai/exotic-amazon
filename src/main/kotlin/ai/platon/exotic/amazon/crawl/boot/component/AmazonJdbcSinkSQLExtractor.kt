@@ -12,8 +12,6 @@ import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.io.PageEntity2HTMLExporter
 import ai.platon.exotic.common.io.ResultSet2JsonExporter
 import ai.platon.exotic.common.jdbc.JdbcCommitter
-import ai.platon.pulsar.common.AppFiles
-import ai.platon.pulsar.common.AppPaths
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.collect.UrlCache
 import ai.platon.pulsar.common.config.ImmutableConfig
@@ -27,20 +25,14 @@ import ai.platon.pulsar.crawl.parse.ParseResult
 import ai.platon.pulsar.crawl.parse.html.ParseContext
 import ai.platon.pulsar.dom.FeaturedDocument
 import ai.platon.pulsar.persist.WebPage
-import ai.platon.pulsar.ql.h2.utils.JdbcUtils
-import ai.platon.pulsar.ql.h2.utils.ResultSetUtils
 import ai.platon.scent.ScentSession
 import ai.platon.scent.common.ScentStatusTracker
 import com.codahale.metrics.Gauge
-import com.google.gson.GsonBuilder
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
-import java.sql.Connection
-import java.sql.DriverManager
 import java.sql.ResultSet
-import java.sql.SQLException
 import java.util.*
 
 /**
@@ -259,8 +251,10 @@ class AmazonJdbcSinkSQLExtractor(
                     // amazonLinkCollector.updateWebNode(page, document, queue2)
                 }
 
-                // generate ASIN tasks immediately
-                collectAndSubmitASINLinks(label, page, document, queue2)
+                if (amazonGenerator.asinGenerateStrategy == "IMMEDIATELY") {
+                    // generate ASIN tasks immediately
+                    collectAndSubmitASINLinks(label, page, document, queue2)
+                }
 
                 val queue3 = urlPool.higher3Cache.reentrantQueue
                 val hyperlink = amazonLinkCollector.collectSecondaryLinksFromLabeledPortal(label, page, document, queue3)
@@ -307,7 +301,7 @@ class AmazonJdbcSinkSQLExtractor(
 
         // a typical option:
         // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
-        // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
+        // -authToken b7ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
         // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
         val links = amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
         // generate ASIN tasks immediately
