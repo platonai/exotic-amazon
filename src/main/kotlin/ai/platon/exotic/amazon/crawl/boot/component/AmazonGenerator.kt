@@ -45,6 +45,12 @@ class AmazonGenerator(
         const val PERIODICAL_SEED_BASE_DIR_DEFAULT = "sites/amazon/crawl/generate/periodical"
     }
 
+    private val logger = getLogger(AmazonGenerator::class)
+    private val charset = Charset.defaultCharset()
+    private val periodicalSeedBaseDir = session.sessionConfig[PERIODICAL_SEED_BASE_DIR_KEY, PERIODICAL_SEED_BASE_DIR_DEFAULT]
+    private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
+    private val isDev get() = ClusterTools.isDevInstance()
+
     /**
      * Asin generation strategy, supported strategies:
      * 1. IMMEDIATELY: once a bestseller page is fetched, the asin links are extracted and submitted immediately.
@@ -59,12 +65,6 @@ class AmazonGenerator(
     val asinGenerator get() = MonthlyBasisAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
     val confusingConfig = createConfusionConfig(label)
     val reviewGenerator = ReviewGenerator(confusingConfig, session, globalCacheFactory, trackedUrlRepository)
-
-    private val logger = getLogger(AmazonGenerator::class)
-    private val charset = Charset.defaultCharset()
-    private val periodicalSeedBaseDir = session.sessionConfig[PERIODICAL_SEED_BASE_DIR_KEY, PERIODICAL_SEED_BASE_DIR_DEFAULT]
-    private val urlFeederHelper get() = UrlFeederHelper(crawlLoop.urlFeeder)
-    private val isDev get() = ClusterTools.isDevInstance()
 
     fun createPeriodicalSeedsGenerator(residentTasks: List<ResidentTask>): PeriodicalSeedsGenerator {
         return PeriodicalSeedsGenerator(
