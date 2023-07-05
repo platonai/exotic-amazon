@@ -137,7 +137,7 @@ class CrawlScheduler(
     fun createAsinTaskIfOldOneFinishedOrNoRunningTask() {
         logger.info("Checking asin task ...")
         val state = createAsinTaskIfOldOneFinishedOrNoRunningTask0()
-        logger.info("Asin task generation: {} {}", state.code, state.message)
+        logger.info("Asin task generation, state: {} message: {}", state.code, state.message)
     }
 
     /**
