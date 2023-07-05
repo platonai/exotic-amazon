@@ -117,6 +117,8 @@ EXEC_CALL=(
 "${APP_OPTS[@]}"
 -D"loader.main=ai.platon.exotic.amazon.starter.CrawlStarterKt"
 -cp "$JAR" org.springframework.boot.loader.PropertiesLauncher
+-pc "$PRIVACY_CONTEXT"
+-mt "$MAX_TABS"
 )
 
 LOGOUT=/dev/null

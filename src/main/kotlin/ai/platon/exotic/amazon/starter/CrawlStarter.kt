@@ -147,18 +147,18 @@ class CrawlApplication(
 }
 
 fun main(args: Array<String>) {
-    var headless = false
-    var privacyCount = 2
-    var maxTabs = 8
+    var headless: Boolean? = null
+    var privacyCount: Int? = null
+    var maxTabs: Int? = null
 
     var i = 0
     while (i < args.size) {
         when (args[i]) {
             "--headless" -> headless = true
             "-pc",
-            "--privacy" -> privacyCount = args[++i].toIntOrNull() ?: privacyCount
+            "--privacy" -> privacyCount = args[++i].toIntOrNull()
             "-mt",
-            "--maxTabs" -> maxTabs = args[++i].toIntOrNull() ?: maxTabs
+            "--maxTabs" -> maxTabs = args[++i].toIntOrNull()
             else -> println("CrawlStater: [options]")
         }
         ++i
@@ -192,12 +192,13 @@ fun main(args: Array<String>) {
     // 1. set browser.display.mode=HEADLESS in spring config files
     // 2. System.setProperty("browser.display.mode", "HEADLESS") or other spring compatible config approaches
     // 3. BrowserSettings.headless()
-    if (headless) {
+    if (headless == true) {
         BrowserSettings.headless()
     }
 
     // Also we can use BrowserSettings for more control
-    BrowserSettings.privacy(privacyCount).maxTabs(maxTabs)
+    privacyCount?.let { BrowserSettings.privacy(it) }
+    maxTabs?.let { BrowserSettings.maxTabs(it) }
 
     runApplication<CrawlApplication>(*args) {
         setAdditionalProfiles(*additionalProfiles.toTypedArray())

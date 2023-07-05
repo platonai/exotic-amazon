@@ -65,7 +65,7 @@ echo "Make tarball in directory (should be target): "
 pwd
 tar -czf "$ARCHIVE_FILE" "exotic-amazon-$VERSION"
 cd - || exit
-echo "Return to application home: "
+echo "Return to project home: "
 pwd
 
 if [[ -z "$TARGET_HOST" ]]; then

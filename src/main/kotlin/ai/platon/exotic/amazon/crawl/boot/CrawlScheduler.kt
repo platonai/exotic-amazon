@@ -38,7 +38,7 @@ class CrawlScheduler(
     private val conf: ImmutableConfig
 ) {
     companion object {
-        const val INITIAL_DELAY = 3 * MINUTE_TO_MILLIS
+        const val INITIAL_DELAY = 1 * MINUTE_TO_MILLIS
     }
 
     private val logger = LoggerFactory.getLogger(CrawlScheduler::class.java)

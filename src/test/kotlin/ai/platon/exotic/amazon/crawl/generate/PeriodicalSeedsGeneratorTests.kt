@@ -96,7 +96,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
         val predefinedTask = listOf(PredefinedTask.BEST_SELLERS).map { it.toResidentTask() }
         val generator = amazonGenerator.createPeriodicalSeedsGenerator(predefinedTask)
 
-        val collectedTasks = generator.loadSeedsFromFile(path, Duration.parse(period))
+        val collectedTasks = generator.loadSeedsFromFile(path)
         collectedTasks.forEach { task ->
             logger.info("Collected task: {} {} | {}", task.task.name, task.task.fileName, message)
 

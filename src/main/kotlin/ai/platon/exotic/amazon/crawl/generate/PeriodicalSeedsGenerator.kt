@@ -62,29 +62,22 @@ class PeriodicalSeedsGenerator(
         seedCache.clear()
 
         searchDirectories.forEach { dir ->
-            val fileName = dir.fileName.toString()
-            val period = DateTimes.parseDurationOrNull(fileName)
-            if (period != null) {
-                listSeedDirectory(dir, period)
-            } else {
-                logger.warn("Search directory name has to be a duration" +
-                        " and can be parsed by DateTimes.parseDurationOrNull() | {}", dir)
-            }
+            listSeedDirectory(dir)
         }
 
         return seedCache
     }
 
-    fun listSeedDirectory(dir: Path, period: Duration) {
+    fun listSeedDirectory(dir: Path) {
         logger.info("List seed directory | {}", dir)
         Files.list(dir)
             .filter { it.isRegularFile() }
             .filter { it.fileName.toString().endsWith(".txt") }.forEach { seedPath ->
-                loadSeedsFromFile(seedPath, period)
+                loadSeedsFromFile(seedPath)
             }
     }
 
-    fun loadSeedsFromFile(seedFile: Path, period: Duration): List<CollectedResidentTask> {
+    fun loadSeedsFromFile(seedFile: Path): List<CollectedResidentTask> {
         val propsFileName = seedFile.fileName.toString().substringBeforeLast(".") + "properties"
         val propsFilePath = seedFile.resolveSibling(propsFileName)
         val args = if (Files.exists(propsFilePath)) {
@@ -93,7 +86,7 @@ class PeriodicalSeedsGenerator(
 
         // find out my task
         val matchTasks = tasks.asSequence()
-            .filter { it.taskPeriod == period }
+//            .filter { it.taskPeriod == period }
             .filter { isSupervisor(it) }
             .filterNot { it.fileName.isNullOrBlank() }
             .filter { seedFile.toString().endsWith(it.fileName!!) }
