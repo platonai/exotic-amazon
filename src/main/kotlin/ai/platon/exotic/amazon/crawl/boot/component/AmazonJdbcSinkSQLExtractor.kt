@@ -254,6 +254,8 @@ class AmazonJdbcSinkSQLExtractor(
                 if (amazonGenerator.asinGenerateStrategy == "IMMEDIATELY") {
                     // generate ASIN tasks immediately
                     collectAndSubmitASINLinks(label, page, document, queue2)
+                } else {
+                    amazonLinkCollector.extractAsinLinksFromPortalPage(page, document)
                 }
 
                 val queue3 = urlPool.higher3Cache.reentrantQueue
@@ -303,9 +305,9 @@ class AmazonJdbcSinkSQLExtractor(
         // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
         // -authToken b7ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
         // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
-        val links = amazonLinkCollector.collectAsinLinksFromBestSeller(page, document)
+        val links = amazonLinkCollector.collectAsinLinksFromPortalPage(page, document)
         // generate ASIN tasks immediately
-        links.forEach { queue.add(it) }
+        links.shuffled().forEach { queue.add(it) }
     }
 
     private fun archiveFetchedBestSellerLink(page: WebPage, document: FeaturedDocument) {

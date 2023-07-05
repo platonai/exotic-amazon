@@ -1,9 +1,6 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
-import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.core.ResidentTask
-import ai.platon.exotic.amazon.crawl.core.isRunTime
-import ai.platon.exotic.amazon.crawl.core.toResidentTask
+import ai.platon.exotic.amazon.crawl.core.*
 import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.PeriodicalSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
@@ -56,7 +53,7 @@ class AmazonGenerator(
      * 1. IMMEDIATELY: once a bestseller page is fetched, the asin links are extracted and submitted immediately.
      * 2. MONTHLY: all asin links are extracted when bestseller pages were fetched, and all they will be fetched in a month.
      * */
-    val asinGenerateStrategy = session.unmodifiedConfig["ENABLE_ADVANCED_ASIN_GENERATE_STRATEGY", "IMMEDIATELY"]
+    val asinGenerateStrategy = session.unmodifiedConfig[ENABLE_ADVANCED_ASIN_GENERATE_STRATEGY, "IMMEDIATELY"]
 
     val name = "amazon"
     val label = "20220801"
@@ -78,10 +75,7 @@ class AmazonGenerator(
      * */
     fun generateStartupTasks() {
         val tasks = listOf(
-            PredefinedTask.MOVERS_AND_SHAKERS,
-            PredefinedTask.BEST_SELLERS,
-            PredefinedTask.MOST_WISHED_FOR,
-            PredefinedTask.NEW_RELEASES
+            PredefinedTask.BEST_SELLERS
         )
             .map { it.toResidentTask() }
             .filter { it.isRunTime() }
@@ -96,6 +90,7 @@ class AmazonGenerator(
     fun generateLoadingTasksAtTimePoint(truncateUnit: ChronoUnit) {
         val now = Instant.now().truncatedTo(truncateUnit)
         val tasks = PredefinedTask.values()
+            .filter { it == PredefinedTask.BEST_SELLERS }
             .map { it.toResidentTask() }
             .filter { it.taskPeriod == Duration.ofDays(1) }
             .filter { it.startTime() == now }

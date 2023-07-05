@@ -167,6 +167,7 @@ fun main(args: Array<String>) {
     // Backend storage is detected automatically but not on some OS such as Mac,
     // uncomment the following line to force MongoDB to be used as the backend storage
     System.setProperty(CapabilityTypes.STORAGE_DATA_STORE_CLASS, AppConstants.MONGO_STORE_CLASS)
+    System.setProperty(ENABLE_ADVANCED_ASIN_GENERATE_STRATEGY, "MONTHLY")
 
     val isDev = ClusterTools.isDevInstance()
     // In dev mode, we trigger every kind of tasks immediately.

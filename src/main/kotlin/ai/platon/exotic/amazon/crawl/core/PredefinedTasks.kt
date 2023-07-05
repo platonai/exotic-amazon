@@ -50,7 +50,7 @@ enum class PredefinedTask(
      * */
     var storeContent: Boolean = false
 ) {
-    MOVERS_AND_SHAKERS("movers-and-shakers", Priority13.HIGHER3,
+    MOVERS_AND_SHAKERS("movers-and-shakers", Priority13.LOWER3,
         taskPeriod = Duration.ofHours(1),
         expires = Duration.ofHours(1),
         deadTime = { DateTimes.endOfHour() },
@@ -59,16 +59,16 @@ enum class PredefinedTask(
         fileName = "movers-and-shakers.txt"
     ),
 
-    BEST_SELLERS("zgbs", Priority13.NORMAL,
+    BEST_SELLERS("zgbs", Priority13.HIGHER,
         taskPeriod = Duration.ofDays(1),
         expires = Duration.ofDays(1),
         deadTime = { DateTimes.endOfDay() },
-        startTime = { DateTimes.timePointOfDay(9) },
+        startTime = { DateTimes.startOfDay() },
         endTime = { DateTimes.timePointOfDay(23, 30) },
         fileName = "best-sellers.txt",
         storeContent = true
     ),
-    MOST_WISHED_FOR("most-wished-for", Priority13.NORMAL,
+    MOST_WISHED_FOR("most-wished-for", Priority13.LOWER3,
         taskPeriod = Duration.ofDays(1),
         expires = Duration.ofDays(1),
         deadTime = { DateTimes.endOfDay() },
@@ -77,7 +77,7 @@ enum class PredefinedTask(
         fileName = "most-wished-for.txt",
         storeContent = true
     ),
-    NEW_RELEASES("new-releases", Priority13.NORMAL,
+    NEW_RELEASES("new-releases", Priority13.LOWER3,
         taskPeriod = Duration.ofDays(1),
         expires = Duration.ofDays(1),
         deadTime = { DateTimes.endOfDay() },
@@ -88,16 +88,16 @@ enum class PredefinedTask(
     ),
 
     ASIN(
-        "asin", Priority13.LOWER2,
+        "asin", Priority13.HIGHER2,
         taskPeriod = Duration.ofDays(1),
         expires = Duration.ofDays(30),
         deadTime = { DateTimes.endOfDay() },
-        startTime = { DateTimes.timePointOfDay(1) },
+        startTime = { DateTimes.startOfDay() },
         endTime = { DateTimes.timePointOfDay(23, 50) },
     ),
 
     REVIEW(
-        "review", Priority13.LOWER3,
+        "review", Priority13.LOWER2,
         taskPeriod = Duration.ofDays(1),
         expires = Duration.ofDays(300),
         deadTime = { DateTimes.endOfDay().plusSeconds(DateTimes.SECONDS_PER_DAY) },

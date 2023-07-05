@@ -59,18 +59,20 @@ class AmazonLinkCollector(
         it.normalizer.addFirst(AsinUrlNormalizer())
     }
 
-    fun collectAsinLinksFromBestSeller(page: WebPage, document: FeaturedDocument): List<Hyperlink> {
+    fun extractAsinLinksFromPortalPage(page: WebPage, document: FeaturedDocument) {
         // a typical option:
         // https://www.amazon.com/Best-Sellers-Video-Games-Xbox/zgbs/videogames/20972814011
         // -authToken vEcl889C-1-ea7a98d6157a8ca002d2599d2abe55f9 -expires PT24H -itemExpires PT720H
         // -label best-sellers-all -outLinkSelector "#zg-ordered-list a[href~=/dp/]"
 
-        // "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
-//        val itemArgs = "-itemExpires PT30D -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -l asin"
-//        val options = session.options(itemArgs)
+        // item args: "-expires 100d -requireSize 600000 -requireImages 70 -parse -label asin"
+        val itemArgs0 = "-itemExpires 30d -outLinkSelector \".p13n-gridRow a[href*=/dp/]:has(img)\" -sc 1 -l asin"
+        val options = session.options(itemArgs0)
         // extract asin links and save them into page.vividLinks
-//        fatLinkExtractor.parse(page, document, options)
+        fatLinkExtractor.parse(page, document, options)
+    }
 
+    fun collectAsinLinksFromPortalPage(page: WebPage, document: FeaturedDocument): List<Hyperlink> {
         // fieldCount in logs: numNonBlankFields, numNonNullFields, numFields
         // js status: i/a/nm/st/h
         val itemArgs = ASIN_LOAD_ARGUMENTS
@@ -79,7 +81,8 @@ class AmazonLinkCollector(
             .distinct()
             .map { l -> Hyperlink(normalizer(l.url)!!, args = itemArgs).apply { href = l.url } }
 
-        logger.info("Collected {} asin links from bestseller | {}", links.size, page.url)
+        val label = page.label.ifBlank { "?" }
+        logger.info("Collected {} asin links from {} | {}", links.size, label, page.url)
 
         return links
     }
