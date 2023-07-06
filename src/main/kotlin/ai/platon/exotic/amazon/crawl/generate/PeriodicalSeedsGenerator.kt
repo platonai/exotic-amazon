@@ -35,7 +35,7 @@ class PeriodicalSeedsGenerator(
     private val isDev get() = ClusterTools.isDevInstance()
 
     private val seedCache = mutableListOf<CollectedResidentTask>()
-    private val seedLimit = if (isDev) 100 else 5000
+    private val seedLimit = if (isDev) 100 else Int.MAX_VALUE
 
     private val fields = listOf(
         GWebPage.Field.PREV_FETCH_TIME,

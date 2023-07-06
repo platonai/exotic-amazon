@@ -22,4 +22,4 @@ if [[ ! -e "$APP_TMP_DIR" ]]; then
   mkdir "$APP_TMP_DIR"
 fi
 
-ENV=prod "$APP_HOME"/bin/start.sh -D -HL -pc 4 -mt 15
+ENV=prod "$APP_HOME"/bin/start.sh -D -HL -pc 8 -mt 10

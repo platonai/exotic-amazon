@@ -374,7 +374,7 @@ class MonthlyBasisAsinGenerator(
             .coerceAtLeast(1)
             .coerceAtMost(maxBSPageCount)
         // crawl asin between 14:00 ~ 23:30, about 36000 seconds/pages every day
-        // every best seller has less than 50 pages, so we need about 36000 / 50 = 720 best seller pages
+        // every bestseller has less than 50 pages, so we need about 36000 / 50 = 720 best seller pages
         val fields = arrayOf(GWebPage.Field.PREV_CRAWL_TIME1.toString(), GWebPage.Field.VIVID_LINKS.toString())
 
         if (injectAllAsinUrls) {
