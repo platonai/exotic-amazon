@@ -97,7 +97,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
         val generator = amazonGenerator.createPeriodicalSeedsGenerator(predefinedTask)
 
         val collectedTasks = generator.loadSeedsFromFile(path)
-        collectedTasks.forEach { task ->
+        collectedTasks.values.forEach { task ->
             logger.info("Collected task: {} {} | {}", task.task.name, task.task.fileName, message)
 
             assertEquals("zgbs", task.task.label)

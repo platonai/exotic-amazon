@@ -54,7 +54,7 @@ class MonthlyBasisAsinGenerator(
         private var reviewCollector: UrlCacheCollector? = null
 
         var testMode = false
-        var injectAllAsinUrls = true
+        var injectAllAsinUrls = false
 
         var minAsinTasks = if (isDev) 0 else 200
         var maxAsinTasks = if (isDev) 200 else Int.MAX_VALUE
@@ -136,6 +136,7 @@ class MonthlyBasisAsinGenerator(
     private val context get() = session.context as AbstractPulsarContext
     private val isActive get() = context.isActive
     private val webDb get() = context.webDb
+
     // The leaf categories of bestsellers
     private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/bestsellers/leaf-categories.txt"
     private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/bestsellers/seeds.properties"
@@ -148,10 +149,13 @@ class MonthlyBasisAsinGenerator(
     // A temporary file that holds the generated urls
     private val dailyAsinTaskPath
         get() = AppPaths.REPORT_DIR.resolve("generate/asin/$monthValue/$dayOfMonth.txt")
+
     // Keep the bestseller pages temporary to extract asin urls later
-    private val relevantBestSellers = mutableListOf<WebPage>()
+    private val relevantBestSellers = mutableMapOf<String, WebPage>()
+
     // The minimal interval to check bestseller pages in the database
     private val zgbsMinimalCheckInterval = Duration.ofMinutes(10)
+
     // The next time to check bestseller pages in the database
     private var zgbsNextCheckTime = Instant.now()
 
@@ -166,10 +170,21 @@ class MonthlyBasisAsinGenerator(
         get() = Companion.reviewCollector
 
     fun generate(): Queue<UrlAware> {
+        val startTime = Instant.now()
+        val urls = generate0()
+        val elapsedTime = DateTimes.elapsedTime(startTime)
+
+        logger.info("Generated {} asin urls in {}", urls.size, elapsedTime)
+
+        return urls
+    }
+
+    private fun generate0(): Queue<UrlAware> {
         if (!isActive) {
             return LinkedList()
         }
 
+        // before or after supervisor checking?
         getOrCreateCollectors()
 
         if (!isSupervisor()) {
@@ -183,19 +198,19 @@ class MonthlyBasisAsinGenerator(
         }
 
         val queue = collector.urlCache.nonReentrantQueue as AbstractLoadingQueue
-        val externalSize = queue.externalSize
-        if (externalSize > minAsinTasks) {
-            logger.info("Still {} asin tasks in seed repository, do not generate", externalSize)
+        val estimatedExternalSize = queue.estimatedExternalSize
+        if (estimatedExternalSize > minAsinTasks) {
+            logger.info("Still {} asin tasks in seed repository, do not generate", estimatedExternalSize)
             return queue
         } else {
             logger.info("Less than {} asin tasks({}) in seed repository, re-generating tasks",
-                minAsinTasks, externalSize)
+                minAsinTasks, estimatedExternalSize)
         }
 
         collectedCount = collector.collectedCount
         generateTo(queue)
 
-        logger.info("Generated {}/{} asin urls", queue.size, queue.externalSize)
+        logger.info("Generated {}/{} asin urls", queue.size, queue.estimatedExternalSize)
 
         return queue
     }
@@ -225,7 +240,7 @@ class MonthlyBasisAsinGenerator(
         generateRelevantBestSellersTo(relevantBestSellers)
 
         var count = 0
-        relevantBestSellers.forEach { count += writeAsinTasks(it) }
+        relevantBestSellers.forEach { count += writeAsinTasks(it.value) }
         if (count != 0) {
             logger.info("Written {} asin urls to {}", count, dailyAsinTaskPath)
         }
@@ -240,7 +255,7 @@ class MonthlyBasisAsinGenerator(
         }
 
         val now = Instant.now()
-        relevantBestSellers.onEach { it.prevCrawlTime1 = now }.forEach { session.persist(it) }
+        relevantBestSellers.values.onEach { it.prevCrawlTime1 = now }.forEach { session.persist(it) }
         logger.info(
             "Updated {} relevant best sellers with prevCrawlTime1 to be now({})",
             relevantBestSellers.size, LocalDateTime.now()
@@ -322,7 +337,7 @@ class MonthlyBasisAsinGenerator(
     }
 
     @Synchronized
-    fun generateRelevantBestSellersTo(bestSellerPages: MutableCollection<WebPage>) {
+    fun generateRelevantBestSellersTo(bestSellerPages: MutableMap<String, WebPage>) {
         if (!isActive) {
             return
         }
@@ -368,13 +383,13 @@ class MonthlyBasisAsinGenerator(
         val collectedPageCount = collectedCount / linkCountPerPage
         // the endTime for ASIN task is 23:30, so minus Duration.ofMinutes(30)
         val remainingSeconds = PredefinedTask.ASIN.endTime().epochSecond - Instant.now().epochSecond
-        val pagesPerSecond = 1.0 * ClusterTools.crawlerCount
-        val maxBSPageCount = (pagesPerSecond * remainingSeconds / linkCountPerPage).toInt()
+        val estimatedPagesPerSecond = 1.0 * ClusterTools.crawlerCount
+        val maxBSPageCount = (estimatedPagesPerSecond * remainingSeconds / linkCountPerPage).toInt()
         var bsPageCount = (sortedBestSellers.size / days - collectedPageCount)
             .coerceAtLeast(1)
             .coerceAtMost(maxBSPageCount)
         // crawl asin between 14:00 ~ 23:30, about 36000 seconds/pages every day
-        // every bestseller has less than 50 pages, so we need about 36000 / 50 = 720 best seller pages
+        // every bestseller has less than 50 pages, so we need about 36000 / 50 = 720 bestseller pages
         val fields = arrayOf(GWebPage.Field.PREV_CRAWL_TIME1.toString(), GWebPage.Field.VIVID_LINKS.toString())
 
         if (injectAllAsinUrls) {
@@ -394,7 +409,7 @@ class MonthlyBasisAsinGenerator(
 
         val linkCount = finalBestSellers.sumOf{ it.vividLinks.size }
         averageVividLinkCount = linkCount / finalBestSellers.size
-        bestSellerPages.addAll(finalBestSellers)
+        finalBestSellers.associateByTo(bestSellerPages) { it.url }
 
         logger.info(
             "Loaded {}/{}/{} best sellers (max {} ones for today) with {} links in {} | prev crawl time: {} -> {}",
@@ -415,7 +430,7 @@ class MonthlyBasisAsinGenerator(
         val collector = asinCollector ?: return
 
         val queues = collector.urlCache.queues.filterIsInstance<AbstractLoadingQueue>()
-        val count = queues.sumOf { it.externalSize }
+        val count = queues.sumOf { it.estimatedExternalSize }
         if (count > 0) {
             logger.info("Clear {} external asin tasks", count)
             queues.forEach { it.externalClear() }

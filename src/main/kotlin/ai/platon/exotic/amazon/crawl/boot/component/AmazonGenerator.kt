@@ -8,6 +8,7 @@ import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.common.ResourceWalker
 import ai.platon.exotic.common.diffusing.config.DiffusingCrawlerConfig
 import ai.platon.pulsar.common.DateTimes
+import ai.platon.pulsar.common.alwaysTrue
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
 import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.getLogger
@@ -74,14 +75,17 @@ class AmazonGenerator(
      * Generate tasks at startup.
      * */
     fun generateStartupTasks() {
+        logger.info("Generating startup tasks ...")
+
         val tasks = listOf(
             PredefinedTask.BEST_SELLERS
         )
             .map { it.toResidentTask() }
             .filter { it.isRunTime() }
 
-        logger.info("Generating startup tasks ...")
         generateLoadingTasks(tasks, true)
+
+        generateAsinTasks()
     }
 
     /**
@@ -105,6 +109,10 @@ class AmazonGenerator(
      * Generate tasks from a resource file.
      * */
     fun generateLoadingTasks(residentTasks: List<ResidentTask>, refresh: Boolean) {
+        if (alwaysTrue()) {
+            return
+        }
+
         try {
             val generator = createPeriodicalSeedsGenerator(residentTasks)
             generator.generate(refresh)

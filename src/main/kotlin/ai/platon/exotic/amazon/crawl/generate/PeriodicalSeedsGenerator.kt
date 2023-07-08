@@ -6,8 +6,8 @@ import ai.platon.exotic.amazon.crawl.core.createOptions
 import ai.platon.exotic.amazon.crawl.core.isSupervised
 import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.common.*
-import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
+import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
 import ai.platon.pulsar.common.collect.queue.LoadingQueue
 import ai.platon.pulsar.common.urls.Hyperlink
@@ -34,7 +34,7 @@ class PeriodicalSeedsGenerator(
     private val taskId = taskTime.toString()
     private val isDev get() = ClusterTools.isDevInstance()
 
-    private val seedCache = mutableListOf<CollectedResidentTask>()
+    private val seedCache = mutableMapOf<String, CollectedResidentTask>()
     private val seedLimit = if (isDev) 100 else Int.MAX_VALUE
 
     private val fields = listOf(
@@ -45,11 +45,11 @@ class PeriodicalSeedsGenerator(
     fun generate(refresh: Boolean): List<UrlCacheCollector> {
         loadTasksFromSearchDirectories()
 
-        logger.info("Collected tasks: {}", seedCache.joinToString { it.task.name })
+        logger.info("Collected tasks: {}", seedCache.values.joinToString { it.task.name })
 
         // for loading tasks
         val collectors = mutableListOf<UrlCacheCollector>()
-        seedCache.forEach { task ->
+        seedCache.values.forEach { task ->
             collectors.add(createUrlCacheCollector(task, refresh))
             // have a rest to reduce database pressure
             sleepSeconds(15)
@@ -58,7 +58,7 @@ class PeriodicalSeedsGenerator(
         return collectors
     }
 
-    fun loadTasksFromSearchDirectories(): List<CollectedResidentTask> {
+    fun loadTasksFromSearchDirectories(): Map<String, CollectedResidentTask> {
         seedCache.clear()
 
         searchDirectories.forEach { dir ->
@@ -77,7 +77,7 @@ class PeriodicalSeedsGenerator(
             }
     }
 
-    fun loadSeedsFromFile(seedFile: Path): List<CollectedResidentTask> {
+    fun loadSeedsFromFile(seedFile: Path): Map<String, CollectedResidentTask> {
         val propsFileName = seedFile.fileName.toString().substringBeforeLast(".") + "properties"
         val propsFilePath = seedFile.resolveSibling(propsFileName)
         val args = if (Files.exists(propsFilePath)) {
@@ -96,7 +96,7 @@ class PeriodicalSeedsGenerator(
             logger.info("Match resident task {} {} | {}", it.name, it.fileName, seedFile)
         }
 
-        matchTasks.mapTo(seedCache) { CollectedResidentTask(it, collectHyperlinks(seedFile, args)) }
+        matchTasks.associateTo(seedCache) { it.name to CollectedResidentTask(it, collectHyperlinks(seedFile, args)) }
 
         return seedCache
     }
@@ -119,7 +119,7 @@ class PeriodicalSeedsGenerator(
             collector.deepClear()
         }
 
-        if (collector.externalSize > 0) {
+        if (collector.estimatedExternalSize > 0) {
             logger.info(
                 "There are still {} tasks in collector {}, do not generate",
                 collector.estimatedSize, collector.name
@@ -143,14 +143,13 @@ class PeriodicalSeedsGenerator(
 
         logger.info(
             "Generated {}/{} {} tasks with collector {} in {}, with {} ones removed(fetched)",
-            readyQueue.size, readyQueue.externalSize, task.name, collector.name, time, fetchedUrls.size
+            readyQueue.size, readyQueue.estimatedExternalSize, task.name, collector.name, time, fetchedUrls.size
         )
 
         return collector
     }
 
     private fun loadFetchedUrls(links: Collection<Hyperlink>, task: ResidentTask): JvmTimedValue<Set<String>> {
-        logger.info("Checking {} links for task <{}> in database", links.size, task.name)
         if (task.refresh) {
             return JvmTimedValue(setOf(), Duration.ZERO)
         }

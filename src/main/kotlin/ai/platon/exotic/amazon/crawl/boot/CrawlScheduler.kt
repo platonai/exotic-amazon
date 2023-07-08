@@ -8,6 +8,7 @@ import ai.platon.exotic.amazon.crawl.core.toResidentTask
 import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
 import ai.platon.pulsar.common.CheckState
 import ai.platon.pulsar.common.config.ImmutableConfig
+import ai.platon.pulsar.common.measureTimedValueJvm
 import ai.platon.pulsar.crawl.CrawlLoops
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.scent.boot.autoconfigure.component.ScentCrawlLoop
@@ -35,7 +36,7 @@ class CrawlScheduler(
     private val crawlLoop: ScentCrawlLoop,
     private val crawlLoops: CrawlLoops,
     private val parseFilters: ParseFilters,
-    private val conf: ImmutableConfig
+    private val conf: ImmutableConfig,
 ) {
     companion object {
         const val INITIAL_DELAY = 1 * MINUTE_TO_MILLIS
@@ -135,9 +136,10 @@ class CrawlScheduler(
 
     @Scheduled(initialDelay = 2 * INITIAL_DELAY, fixedDelay = 2 * MINUTE_TO_MILLIS)
     fun createAsinTaskIfOldOneFinishedOrNoRunningTask() {
-        logger.info("Checking asin task ...")
-        val state = createAsinTaskIfOldOneFinishedOrNoRunningTask0()
-        logger.info("Asin task generation, state: {} message: {}", state.code, state.message)
+        val (state, time) = measureTimedValueJvm {
+            createAsinTaskIfOldOneFinishedOrNoRunningTask0()
+        }
+        logger.info("Checked asin tasks in {}, state: {} | {}", time, state.code, state.message)
     }
 
     /**
@@ -165,7 +167,7 @@ class CrawlScheduler(
         val collectors = crawlLoop.urlFeeder.openCollectors
         val reviewCount = collectors.asSequence()
             .filter { PredefinedTask.REVIEW.name in it.name }
-            .sumOf { it.externalSize }
+            .sumOf { it.estimatedExternalSize }
         if (reviewCount > 0) {
             // run review tasks
             return CheckState(90, "Still review tasks")
@@ -174,7 +176,7 @@ class CrawlScheduler(
         // The last asin collector is finished, but it's still the asin task's time
         val asinCount = collectors.asSequence()
             .filter { task.name in it.name }
-            .sumOf { it.externalSize }
+            .sumOf { it.estimatedExternalSize }
 
         if (asinCount in 1..MonthlyBasisAsinGenerator.minAsinTasks && task.isRunTime()) {
             logger.info("Too few asins, generating asin tasks ...")
@@ -183,7 +185,7 @@ class CrawlScheduler(
         }
 
         // No any running task, generate asin tasks
-        if (collectors.sumOf { it.externalSize } > 0) {
+        if (collectors.sumOf { it.estimatedExternalSize } > 0) {
             return CheckState(80, "Still other tasks")
         }
 

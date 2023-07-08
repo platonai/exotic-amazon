@@ -60,8 +60,8 @@ enum class PredefinedTask(
     ),
 
     BEST_SELLERS("zgbs", Priority13.HIGHER,
-        taskPeriod = Duration.ofDays(1),
-        expires = Duration.ofDays(1),
+        taskPeriod = Duration.ofHours(720),
+        expires = Duration.ofHours(720),
         deadTime = { DateTimes.endOfDay() },
         startTime = { DateTimes.startOfDay() },
         endTime = { DateTimes.timePointOfDay(23, 30) },
