@@ -1,15 +1,12 @@
 package ai.platon.exotic.amazon.crawl.generate
 
 import ai.platon.exotic.amazon.crawl.core.PATH_FETCHED_BEST_SELLER_URLS
-import ai.platon.exotic.common.ClusterTools
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.tools.common.AsinUrlNormalizer
+import ai.platon.exotic.amazon.tools.common.AmazonUrls
+import ai.platon.exotic.common.ClusterTools
 import ai.platon.pulsar.browser.common.BlockRule
 import ai.platon.pulsar.browser.common.InteractSettings
 import ai.platon.pulsar.common.*
-import ai.platon.pulsar.common.collect.UrlFeederHelper
-import ai.platon.pulsar.common.collect.ExternalUrlLoader
-import ai.platon.pulsar.common.collect.UrlFeeder
 import ai.platon.pulsar.common.collect.collector.UrlCacheCollector
 import ai.platon.pulsar.common.collect.queue.AbstractLoadingQueue
 import ai.platon.pulsar.common.options.LoadOptions
@@ -25,6 +22,7 @@ import ai.platon.scent.common.WebDbLongTimeTask
 import ai.platon.scent.crawl.SeedProperties
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.delay
 import java.io.IOException
 import java.net.MalformedURLException
 import java.nio.file.Files
@@ -33,27 +31,22 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
 import java.time.*
 import java.util.*
-import kotlin.jvm.Throws
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 /**
  * Generate asin tasks (fetching product pages) every day.
  * The asin links are extracted and updated from bestseller pages every day, and all them will be fetched in a month.
  * */
-class MonthlyBasisAsinGenerator(
+class DailyAsinGenerator(
     val session: ScentSession,
     val monthValue: Int,
     val dayOfMonth: Int
 ) {
     companion object {
-        private val logger = getLogger(MonthlyBasisAsinGenerator::class)
+        private val logger = getLogger(DailyAsinGenerator::class)
 
         private val isDev get() = ClusterTools.isDevInstance()
-
-        private var generator: MonthlyBasisAsinGenerator? = null
-
-        private lateinit var urlFeederHelper: UrlFeederHelper
-
-        private lateinit var lastUrlLoader: ExternalUrlLoader
 
         private var asinCollector: UrlCacheCollector? = null
 
@@ -64,39 +57,6 @@ class MonthlyBasisAsinGenerator(
 
         var minAsinTasks = if (isDev) 0 else 200
         var maxAsinTasks = if (isDev) 200 else Int.MAX_VALUE
-
-        /**
-         * Should create a new generator every day.
-         * */
-        @Synchronized
-        fun getOrCreate(
-            session: ScentSession,
-            urlLoader: ExternalUrlLoader,
-            urlFeeder: UrlFeeder
-        ): MonthlyBasisAsinGenerator {
-            val monthValue = MonthDay.now().monthValue
-            val dayOfMonth = MonthDay.now().dayOfMonth
-
-            lastUrlLoader = urlLoader
-            urlFeederHelper = UrlFeederHelper(urlFeeder)
-
-            val oldGenerator = generator
-            val isNewCollector = generator?.dayOfMonth != dayOfMonth || testMode
-            if (isNewCollector) {
-                asinCollector = null
-                reviewCollector = null
-                generator = MonthlyBasisAsinGenerator(session, monthValue, dayOfMonth)
-            }
-
-            if (isNewCollector) {
-                oldGenerator?.dailyAsinTaskPath?.let { Files.deleteIfExists(it) }
-                oldGenerator?.externalClear()
-            }
-
-            getOrCreateCollectors()
-
-            return generator!!
-        }
 
         /**
          * Check if this host is the supervisor node, only the supervisor node generates the tasks.
@@ -116,27 +76,6 @@ class MonthlyBasisAsinGenerator(
 
             return true
         }
-
-        private fun getOrCreateCollectors() {
-            if (asinCollector == null) {
-                asinCollector = createCollector(PredefinedTask.ASIN, lastUrlLoader)
-            }
-
-            if (reviewCollector == null) {
-                reviewCollector = createCollector(PredefinedTask.REVIEW, lastUrlLoader)
-            }
-        }
-
-        private fun createCollector(task: PredefinedTask, urlLoader: ExternalUrlLoader): UrlCacheCollector {
-            val priority = task.priority.value
-            urlFeederHelper.remove(task.name)
-
-            logger.info("Creating collector for {} with url loader {}", task.name, urlLoader::class)
-
-            return urlFeederHelper.create(task.name, priority, urlLoader).also {
-                it.labels.add(task.name)
-            }
-        }
     }
 
     private val context get() = session.context as AbstractPulsarContext
@@ -146,7 +85,6 @@ class MonthlyBasisAsinGenerator(
     // The leaf categories of bestsellers
     private val bestSellerResource = "sites/amazon/crawl/inject/seeds/category/bestsellers/leaf-categories.txt"
     private val propertiesResource = "sites/amazon/crawl/inject/seeds/category/bestsellers/seeds.properties"
-    private val normalizer = AsinUrlNormalizer()
     private val blockingRule = BlockRule()
     private val expires = PredefinedTask.ASIN.expires
     private val deadTime = PredefinedTask.ASIN.deadTime()
@@ -154,10 +92,10 @@ class MonthlyBasisAsinGenerator(
     private val taskId = DateTimes.startOfDay().toString()
 
     // A temporary file that holds the generated urls
-    private val dailyAsinTaskPath
+    val dailyAsinTaskPath
         get() = AppPaths.REPORT_DIR.resolve("generate/asin/$monthValue/$dayOfMonth.txt")
 
-    // Keep the bestseller pages temporary to extract asin urls later
+    // Keep the bestseller pages temporary to extract asin urls later, typically hundreds of pages with few fields
     private val relevantBestSellers = mutableMapOf<String, WebPage>()
 
     // The minimal interval to check bestseller pages in the database
@@ -166,9 +104,10 @@ class MonthlyBasisAsinGenerator(
     // The next time to check bestseller pages in the database
     private var zgbsNextCheckTime = Instant.now()
 
-    private var generatedCount = 0
+    // today's bestseller scanning count
+    private var bestsellerScanCount = AtomicInteger()
     private var averageVividLinkCount = 100
-    private var collectedCount = 0
+    private var collectedLinkCount = 0
 
     val asinCollector: UrlCacheCollector?
         get() = Companion.asinCollector
@@ -181,8 +120,8 @@ class MonthlyBasisAsinGenerator(
             return LinkedList()
         }
 
-        // before or after supervisor checking?
-        getOrCreateCollectors()
+        // before or after supervisor checking? or has been created already?
+        AsinGenerator.computeCollectors()
 
         if (!isSupervisor()) {
             return LinkedList()
@@ -207,7 +146,7 @@ class MonthlyBasisAsinGenerator(
 
         val startTime = Instant.now()
 
-        collectedCount = collector.collectedCount
+        collectedLinkCount = collector.collectedCount
         generateTo(queue)
 
         val elapsedTime = DateTimes.elapsedTime(startTime)
@@ -233,68 +172,93 @@ class MonthlyBasisAsinGenerator(
             return
         }
 
-        val propertiesContent = ResourceLoader.readString(propertiesResource)
-        val props: SeedProperties = JavaPropsMapper().readValue(propertiesContent)
-        val options = session.options(props.loadOptions)
+        var generatedLinkCount = 0
+        val isStartup = bestsellerScanCount.get() == 0
+        if (isStartup && Files.exists(dailyAsinTaskPath)) {
+            // the system is restarted
+            generatedLinkCount = readAsinUrlsFromFile(sink)
+        }
 
-        // val n = if (ClusterTools.isDevInstance()) 10 else Int.MAX_VALUE
+        if (generatedLinkCount > 0) {
+            return
+        }
+
+        prepareTaskFiles()
+        loadAsinUrlsFromDBToFile()
+        readAsinUrlsFromFile(sink)
+    }
+
+    private fun loadAsinUrlsFromDBToFile() {
+        bestsellerScanCount.incrementAndGet()
 
         relevantBestSellers.clear()
         generateRelevantBestSellersTo(relevantBestSellers)
 
         var count = 0
-        prepareFiles()
-        // Ensure file dailyAsinTaskPath does not exist
         relevantBestSellers.forEach { count += writeAsinTasks(it.value) }
         if (count != 0) {
             logger.info("Written {} asin urls to {}", count, dailyAsinTaskPath)
         }
+    }
+
+    private fun readAsinUrlsFromFile(sink: MutableCollection<UrlAware>): Int {
+        val propertiesContent = ResourceLoader.readString(propertiesResource)
+        val props: SeedProperties = JavaPropsMapper().readValue(propertiesContent)
+        val options = session.options(props.loadOptions)
 
         if (!Files.exists(dailyAsinTaskPath)) {
             logger.warn("File doesn't exist, no asin urls will be generated | {}", dailyAsinTaskPath)
-            return
+            return 0
         }
 
-        val asins = readAsinTasks(options)
-        if (asins.isEmpty()) {
+        // The asin links last loaded from bestseller pages
+        val loadedAsinLinks = readAsinTasks(options)
+        if (loadedAsinLinks.isEmpty()) {
             logger.warn("No asin urls in file | {}", dailyAsinTaskPath)
-            return
+            return 0
         }
 
+        val startOfDay = DateTimes.startOfDay()
         val now = Instant.now()
-        relevantBestSellers.values.onEach { it.prevCrawlTime1 = now }.forEach { session.persist(it) }
+        // TODO: actually previous generate time, since we do not know if the pages will be fetched successfully
+        relevantBestSellers.values
+            .asSequence()
+//            .filter { it.prevCrawlTime1 > startOfDay }
+            .onEach { it.prevCrawlTime1 = now }
+            .forEach { session.persist(it) }
         logger.info(
             "Updated {} relevant bestseller pages with prevCrawlTime1 to be now({})",
             relevantBestSellers.size, LocalDateTime.now()
         )
 
-        val asinOptions = session.options("-expires 30d")
-        val (fetchedUrls, time) = measureTimedValueJvm {
+        val expireOptions = session.options("-expires 30d")
+        val (fetchedUrls, dbAccessTime) = measureTimedValueJvm {
             WebDbLongTimeTask(webDb, "ASIN")
-                .getAll(asins, GWebPage.Field.PREV_FETCH_TIME)
-                .filterNot { asinOptions.isExpired(it.prevFetchTime) }
+                .getAll(loadedAsinLinks, GWebPage.Field.PREV_FETCH_TIME)
+                .filterNot { expireOptions.isExpired(it.prevFetchTime) }
                 .mapTo(HashSet()) { it.url }
         }
 
-        val readyLinks = if (testMode) {
-            asins
+        val expiredLinks = if (testMode) {
+            // take all asins in test mode
+            loadedAsinLinks
         } else {
-            asins.filterNot { it.url in fetchedUrls }.shuffled()
+            // take only expired links
+            // shuffle the urls, so they have fair chance to run
+            loadedAsinLinks.filterNot { it.url in fetchedUrls }.shuffled()
         }
 
         logger.info(
             "Generated {} asin links from {} bestsellers in {}, with {} ones removed(fetched)",
-            readyLinks.size, relevantBestSellers.size, time, fetchedUrls.size
+            expiredLinks.size, relevantBestSellers.size, dbAccessTime, fetchedUrls.size
         )
 
-        generatedCount += readyLinks.size
-        // shuffle the urls so they have fair chance to run
-        if (isDev) {
-            readyLinks.take(50).toCollection(sink)
-        } else {
-            // NOTE: every link is a ListenableHyperlink, which is not persistable
-            readyLinks.toCollection(sink)
-        }
+        val limit = if (isDev) 50 else Int.MAX_VALUE
+        val generatedLinkCount = expiredLinks.size.coerceAtMost(limit)
+        // NOTE: every link is a ListenableHyperlink, which is not persistable
+        expiredLinks.take(generatedLinkCount).toCollection(sink)
+
+        return generatedLinkCount
     }
 
     /**
@@ -307,7 +271,7 @@ class MonthlyBasisAsinGenerator(
     fun writeAsinTasks(page: WebPage): Int {
         val referrer = page.url
 
-        val urls = page.vividLinks.keys.mapNotNullTo(HashSet()) { normalizer(it.toString()) }
+        val urls = page.vividLinks.keys.mapNotNullTo(HashSet()) { it.toString() }
 
         try {
             val text = urls.joinToString("\n") { "$it $referrer" }
@@ -327,14 +291,14 @@ class MonthlyBasisAsinGenerator(
         }
 
         val urlRegex = options.outLinkPattern.toRegex()
-        val asinLoadArgs = "-i $expires -parse -ignoreFailure -sc 1 -label asin" +
+        val asinLoadArgs = "-i $expires -parse -ignoreFailure -label asin" +
                 " -taskId $taskId -taskTime $taskTime -deadTime $deadTime"
 
         val asins = Files.readAllLines(dailyAsinTaskPath).asSequence()
             .filter { !it.trim().startsWith("#") }
             .map { it.split("\\s+".toRegex()) }
             .filter { it.size == 2 }
-            .associate { normalizeOrEmpty(it[0]) to it[1] }
+            .associate { it[0] to it[1] }
             .filter { it.key.matches(urlRegex) }
             .map { createASINHyperlink(it.key, asinLoadArgs, it.value) }
             .toList()
@@ -344,15 +308,23 @@ class MonthlyBasisAsinGenerator(
         return asins
     }
 
+    /**
+     * @param href The hypertext reference to the destination page
+     * @param args The argument
+     * @param referrer The referrer
+     * */
     @Throws(MalformedURLException::class)
-    fun createASINHyperlink(asinUrl: String, args: String, referrer: String): ListenableHyperlink {
-        val tld = URLUtil.getDomainSuffix(asinUrl)?.domain
-            ?: throw MalformedURLException("Failed to get domain suffix | $asinUrl")
+    fun createASINHyperlink(href: String, args: String, referrer: String): ListenableHyperlink {
+        val url = AmazonUrls.normalizeAsinUrl(href) ?:
+            throw MalformedURLException("Failed to normalize | $href")
+
+        val tld = URLUtil.getDomainSuffix(href)?.domain
+            ?: throw MalformedURLException("Failed to get domain suffix | $href")
 
         val domain = "amazon.$tld"
-        val hyperlink = ListenableHyperlink(asinUrl, args = "$args -parse", referer = referrer)
+        val hyperlink = ListenableHyperlink(url, args = "$args -parse", href = href, referer = referrer)
         // no scrolling at all
-        val interactSettings = InteractSettings(initScrollPositions = "0.2,0.5", scrollCount = 0)
+        val interactSettings = InteractSettings(initScrollPositions = "0.2,0.5,0.3", scrollCount = 0)
 
         val le = hyperlink.event.loadEvent
         le.onWillFetch.addLast { page ->
@@ -370,6 +342,14 @@ class MonthlyBasisAsinGenerator(
             val warmUpUrl = "https://www.$domain/"
             logger.info("Browser launched, warm up with url | {}", warmUpUrl)
             driver.navigateTo(warmUpUrl)
+            delay(1_000)
+
+            if (Random.nextInt(3) == 0) {
+                driver.navigateTo(referrer)
+                delay(1_000)
+            }
+
+            driver.navigateTo("about:blank")
         }
 
         be.onWillNavigate.addLast { page, driver ->
@@ -441,7 +421,7 @@ class MonthlyBasisAsinGenerator(
 
         val days = 28
         val linkCountPerPage = averageVividLinkCount.coerceAtLeast(1)
-        val collectedPageCount = collectedCount / linkCountPerPage
+        val collectedPageCount = collectedLinkCount / linkCountPerPage
         // the endTime for ASIN task is 23:30, so minus Duration.ofMinutes(30)
         val remainingSeconds = PredefinedTask.ASIN.endTime().epochSecond - Instant.now().epochSecond
         val estimatedPagesPerSecond = 1.0 * ClusterTools.crawlerCount
@@ -507,7 +487,7 @@ class MonthlyBasisAsinGenerator(
     }
 
     @Synchronized
-    private fun prepareFiles() {
+    private fun prepareTaskFiles() {
         val directory = dailyAsinTaskPath.parent
         if (Files.exists(dailyAsinTaskPath)) {
             val predicate = { path: Path, attr: BasicFileAttributes ->
@@ -522,9 +502,5 @@ class MonthlyBasisAsinGenerator(
         } else {
             Files.createDirectories(directory)
         }
-    }
-
-    private fun normalizeOrEmpty(url: String): String {
-        return normalizer(url) ?: ""
     }
 }

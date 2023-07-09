@@ -51,6 +51,8 @@ object AmazonUrls {
 
         return null
     }
+
+    fun normalizeAsinUrl(url: String) = AsinUrlNormalizer().invoke(url)
 }
 
 class AsinUrlNormalizer: AbstractUrlNormalizer() {

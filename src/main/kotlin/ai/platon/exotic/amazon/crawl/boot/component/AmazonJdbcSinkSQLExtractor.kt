@@ -87,7 +87,7 @@ class AmazonJdbcSinkSQLExtractor(
      * */
     private val reviewFetchCache: UrlCache?
         get() = if (enableReviews) {
-            amazonGenerator.asinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
+            amazonGenerator.dailyAsinGenerator.reviewCollector?.urlCache ?: urlPool.lower2Cache
         } else null
     /**
      * The url queue for review urls

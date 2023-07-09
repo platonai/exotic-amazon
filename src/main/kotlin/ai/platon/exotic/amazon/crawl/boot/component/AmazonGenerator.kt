@@ -1,7 +1,7 @@
 package ai.platon.exotic.amazon.crawl.boot.component
 
 import ai.platon.exotic.amazon.crawl.core.*
-import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
+import ai.platon.exotic.amazon.crawl.generate.AsinGenerator
 import ai.platon.exotic.amazon.crawl.generate.PeriodicalSeedsGenerator
 import ai.platon.exotic.amazon.crawl.generate.ReviewGenerator
 import ai.platon.exotic.common.ClusterTools
@@ -60,7 +60,7 @@ class AmazonGenerator(
     val label = "20220801"
 
     // create a new instant every day for that day
-    val asinGenerator get() = MonthlyBasisAsinGenerator.getOrCreate(session, urlLoader, crawlLoop.urlFeeder)
+    val dailyAsinGenerator get() = AsinGenerator.computeDailyAsinGenerator(session, urlLoader, crawlLoop.urlFeeder)
     val confusingConfig = createConfusionConfig(label)
     val reviewGenerator = ReviewGenerator(confusingConfig, session, globalCacheFactory, trackedUrlRepository)
 
@@ -128,7 +128,7 @@ class AmazonGenerator(
         }
 
         when (asinGenerateStrategy) {
-            "MONTHLY" -> asinGenerator.generate()
+            "MONTHLY" -> dailyAsinGenerator.generate()
             "IMMEDIATELY" -> {
                 // see AmazonJdbcSinkSQLExtractor.collectHyperlinks -> collectAndSubmitASINLinks
             }

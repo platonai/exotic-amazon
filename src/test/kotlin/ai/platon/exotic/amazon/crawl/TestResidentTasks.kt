@@ -1,6 +1,6 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.exotic.amazon.crawl.generate.MonthlyBasisAsinGenerator
+import ai.platon.exotic.amazon.crawl.generate.DailyAsinGenerator
 import ai.platon.exotic.amazon.crawl.core.PredefinedTask
 import ai.platon.exotic.amazon.crawl.core.isRunTime
 import ai.platon.exotic.amazon.crawl.core.toResidentTask
@@ -31,7 +31,7 @@ class TestResidentTasks: TestBase() {
 
     @Before
     override fun setup() {
-        MonthlyBasisAsinGenerator.testMode = true
+        DailyAsinGenerator.testMode = true
 
         assertEquals(1, crawlLoops.loops.size)
         PredefinedTask.values().forEach { it.ignoreTTL = true }
@@ -40,7 +40,7 @@ class TestResidentTasks: TestBase() {
 
     @After
     fun tearDown() {
-        MonthlyBasisAsinGenerator.testMode = false
+        DailyAsinGenerator.testMode = false
     }
 
     @Test

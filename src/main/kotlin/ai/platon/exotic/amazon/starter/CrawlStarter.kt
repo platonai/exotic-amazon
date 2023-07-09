@@ -181,7 +181,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    val additionalProfiles = mutableListOf("rest", "crawler")
+    val additionalProfiles = mutableListOf("rest", "crawl")
     val prod = System.getenv("ENV")?.lowercase()
     if (prod == "prod") {
         // product environment, the best speed is required
