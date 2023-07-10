@@ -56,7 +56,7 @@ class AmazonLinkCollector(
      * Extract product links from best-seller pages
      * */
     val fatLinkExtractor = FatLinkExtractor(session).also {
-        // Do not normalize the links this step, normalize them before crawling.
+        // Keep un-normalized, normalize them when creating hyperlinks.
         // it.normalizer.addFirst(AsinUrlNormalizer())
     }
 

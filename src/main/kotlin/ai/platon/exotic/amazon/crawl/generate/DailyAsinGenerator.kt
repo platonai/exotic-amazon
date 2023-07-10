@@ -48,10 +48,6 @@ class DailyAsinGenerator(
 
         private val isDev get() = ClusterTools.isDevInstance()
 
-        private var asinCollector: UrlCacheCollector? = null
-
-        private var reviewCollector: UrlCacheCollector? = null
-
         var testMode = false
         var injectAllAsinUrls = false
 
@@ -107,14 +103,16 @@ class DailyAsinGenerator(
     // today's bestseller scanning count
     private var bestsellerScanCount = AtomicInteger()
     private var averageVividLinkCount = 100
-    private var collectedLinkCount = 0
+    // Totally collected asin links
+    private var collectedAsinLinkCount = 0
 
     val asinCollector: UrlCacheCollector?
-        get() = Companion.asinCollector
+        get() = AsinGenerator.asinCollector
 
     val reviewCollector: UrlCacheCollector?
-        get() = Companion.reviewCollector
+        get() = AsinGenerator.reviewCollector
 
+    @Synchronized
     fun generate(): Queue<UrlAware> {
         if (!isActive) {
             return LinkedList()
@@ -146,14 +144,15 @@ class DailyAsinGenerator(
 
         val startTime = Instant.now()
 
-        collectedLinkCount = collector.collectedCount
+        collectedAsinLinkCount = collector.collectedCount
         generateTo(queue)
 
         val elapsedTime = DateTimes.elapsedTime(startTime)
 
         val estimatedSize2 = queue.size + queue.estimatedExternalSize
-        logger.info("Generated {}/{} asin urls in {} to queue {}",
-            queue.size, estimatedSize2, elapsedTime, queue::class)
+        logger.info("Generated {}/{}/{} asin urls in {} to queue {}",
+            queue.size, estimatedSize2, collectedAsinLinkCount,
+            elapsedTime, queue::class)
 
         return queue
     }
@@ -184,21 +183,31 @@ class DailyAsinGenerator(
         }
 
         prepareTaskFiles()
-        loadAsinUrlsFromDBToFile()
-        readAsinUrlsFromFile(sink)
+        val relevantBestsellerCount = loadAsinUrlsFromDBToFile()
+        generatedLinkCount = readAsinUrlsFromFile(sink)
+        if (generatedLinkCount == 0) {
+            Files.deleteIfExists(dailyAsinTaskPath)
+        }
     }
 
-    private fun loadAsinUrlsFromDBToFile() {
+    private fun loadAsinUrlsFromDBToFile(): Int {
         bestsellerScanCount.incrementAndGet()
 
         relevantBestSellers.clear()
-        generateRelevantBestSellersTo(relevantBestSellers)
-
-        var count = 0
-        relevantBestSellers.forEach { count += writeAsinTasks(it.value) }
-        if (count != 0) {
-            logger.info("Written {} asin urls to {}", count, dailyAsinTaskPath)
+        val bsCount = generateRelevantBestSellersTo(relevantBestSellers)
+        if (bsCount == 0) {
+            logger.info("No relevant bestseller")
+            return 0
         }
+
+        var asinTaskCount = 0
+        relevantBestSellers.forEach { asinTaskCount += writeAsinTasks(it.value) }
+        if (asinTaskCount != 0) {
+            logger.info("Written {} asin links from {} bestsellers to {}",
+                asinTaskCount, bsCount, dailyAsinTaskPath)
+        }
+
+        return asinTaskCount
     }
 
     private fun readAsinUrlsFromFile(sink: MutableCollection<UrlAware>): Int {
@@ -207,7 +216,7 @@ class DailyAsinGenerator(
         val options = session.options(props.loadOptions)
 
         if (!Files.exists(dailyAsinTaskPath)) {
-            logger.warn("File doesn't exist, no asin urls will be generated | {}", dailyAsinTaskPath)
+            logger.warn("Task file doesn't exist, no asin url read | {}", dailyAsinTaskPath)
             return 0
         }
 
@@ -378,14 +387,14 @@ class DailyAsinGenerator(
     }
 
     @Synchronized
-    fun generateRelevantBestSellersTo(bestSellerPages: MutableMap<String, WebPage>) {
+    fun generateRelevantBestSellersTo(bestSellerPages: MutableMap<String, WebPage>): Int {
         if (!isActive) {
-            return
+            return 0
         }
 
         if (zgbsNextCheckTime > Instant.now()) {
-            logger.warn("The next best seller check will be at {}", zgbsNextCheckTime)
-            return
+            logger.warn("The next bestseller check will be at {}", zgbsNextCheckTime)
+            return 0
         }
         zgbsNextCheckTime += zgbsMinimalCheckInterval
 
@@ -416,32 +425,31 @@ class DailyAsinGenerator(
 
         if (bestSellerPrevCrawlTimeAwarePages.isEmpty()) {
             logger.warn("No bestseller page loaded")
-            return
+            return 0
         }
 
         val days = 28
         val linkCountPerPage = averageVividLinkCount.coerceAtLeast(1)
-        val collectedPageCount = collectedLinkCount / linkCountPerPage
+        val loadedBSPageCount = collectedAsinLinkCount / linkCountPerPage
         // the endTime for ASIN task is 23:30, so minus Duration.ofMinutes(30)
         val remainingSeconds = PredefinedTask.ASIN.endTime().epochSecond - Instant.now().epochSecond
-        val estimatedPagesPerSecond = 1.0 * ClusterTools.crawlerCount
-        val maxBSPageCount = (estimatedPagesPerSecond * remainingSeconds / linkCountPerPage).toInt()
-        var bsPageCount = (bestSellerPrevCrawlTimeAwarePages.size / days - collectedPageCount)
-            .coerceAtLeast(1)
-            .coerceAtMost(maxBSPageCount)
+
+        val minimalFetchSpeed = 0.2
+        // TODO: use CoreMetrics.successTasks
+        val fetchSpeed = 1.0 // pages/seconds
+        val estimatedPagesPerSecond = fetchSpeed * ClusterTools.crawlerCount
+        val estimatedBSPageCount = bestSellerPrevCrawlTimeAwarePages.size / days - loadedBSPageCount
+        // New logic: asin is the highest priority and should keep fetching asin pages
+        // So we have to generate some bestseller pages
+        val estimatedMinBSPageCount = (minimalFetchSpeed * remainingSeconds / linkCountPerPage).toInt()
+        val estimatedMaxBSPageCount = (estimatedPagesPerSecond * remainingSeconds / linkCountPerPage).toInt()
+        val bsPageCount = estimatedBSPageCount
+            .coerceAtLeast(estimatedMinBSPageCount)
+            .coerceAtMost(estimatedMaxBSPageCount)
         // crawl asin between 14:00 ~ 23:30, about 36000 seconds/pages every day
         // every bestseller has less than 50 pages, so we need about 36000 / 50 = 720 bestseller pages
         val linkAwareFields = arrayOf(GWebPage.Field.PREV_CRAWL_TIME1.toString(),
             GWebPage.Field.VIVID_LINKS.toString())
-
-        if (alwaysFalse() && injectAllAsinUrls) {
-            logger.warn("All asin urls collected from all bestseller pages will be injected, " +
-                    "which is a feature only for debug")
-            bsPageCount = bestSellerPrevCrawlTimeAwarePages.size
-            bestSellerPrevCrawlTimeAwarePages.parallelStream().forEach {
-                val page = session.load(it.url, "-storeContent true -requireSize 1000")
-            }
-        }
 
         val bestSellerLinkAwarePages = bestSellerPrevCrawlTimeAwarePages
             .asSequence().distinct().take(bsPageCount)
@@ -457,14 +465,17 @@ class DailyAsinGenerator(
         bestSellerLinkAwarePages.associateByTo(bestSellerPages) { it.url }
 
         logger.info(
-            "Loaded {}/{}/{} bestsellers (max {} ones for today) with {} links in {} | prev crawl time: {} -> {}",
-            bestSellerPages.size, bestSellerLinkAwarePages.size, bestSellerPrevCrawlTimeAwarePages.size,
-            maxBSPageCount,
+            "Loaded {}/{}/{}/{} bestsellers (max {} ones for today) with {} links in {}" +
+                    " | prev crawl time: {} -> {}",
+            bestSellerPages.size, bestSellerLinkAwarePages.size, bestSellerPrevCrawlTimeAwarePages.size, loadedBSPageCount,
+            estimatedMaxBSPageCount,
             linkCount,
             DateTimes.elapsedTime(startTime),
             bestSellerLinkAwarePages.first().prevCrawlTime1,
             bestSellerLinkAwarePages.last().prevCrawlTime1
         )
+
+        return bestSellerPages.size
     }
 
     fun clearAll() {
