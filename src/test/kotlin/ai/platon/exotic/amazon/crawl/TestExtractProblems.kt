@@ -25,7 +25,8 @@ class TestExtractProblems {
 
     @Test
     fun `Extract summarization attributes`() {
-        val restrictCss = "div[data-hook=cr-summarization-attributes-list] div[data-hook=cr-summarization-attribute], div[data-hook=cr-summarization-attributes-expanded] div[data-hook=cr-summarization-attribute]"
+        val restrictCss = "div[data-hook=cr-summarization-attributes-list] div[data-hook=cr-summarization-attribute]," +
+            " div[data-hook=cr-summarization-attributes-expanded] div[data-hook=cr-summarization-attribute]"
         val sql = """
 select
     dom_first_text(dom, 'div span:expr(char > 5)'),

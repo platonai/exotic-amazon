@@ -150,7 +150,7 @@ abstract class AbstractHyperlinkProcessor(
             args += " -deadTime $deadTime"
         }
 
-        return StatefulListenableHyperlink(url, args = args, referer = referrer, href = href)
+        return StatefulListenableHyperlink(url, args = args, referrer = referrer, href = href)
     }
 
     override fun collectTo(document: FeaturedDocument, sink: MutableCollection<UrlAware>) {

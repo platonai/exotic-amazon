@@ -180,7 +180,7 @@ abstract class AbstractSQLExtractor(
             onAfterFilter(page, document, parseContext.parseResult)
 
             return FilterResult(ParseStatusCodes.SUCCESS)
-        } catch (e: IllegalApplicationContextStateException) {
+        } catch (e: IllegalApplicationStateException) {
             AppContext.beginTermination()
             logger.warn("Illegal context state | {}", e.message)
             FilterResult.failed(e)

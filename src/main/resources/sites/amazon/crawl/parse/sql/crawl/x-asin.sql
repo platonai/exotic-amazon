@@ -101,7 +101,7 @@ select
     dom_first_attr(dom_owner_document(dom), 'head meta[name=description]', 'content') as `meta_description`,
 
     dom_first_attr(dom, '#PulsarMetaInformation', 'href') as `href`,
-    dom_first_attr(dom, '#PulsarMetaInformation', 'referer') as `referer`,
+    dom_first_attr(dom, '#PulsarMetaInformation', 'referrer') as `referrer`,
     dom_first_attr(dom, '#PulsarMetaInformation', 'label') as `label`,
     time_first_mysql_date_time(dom_attr(dom_select_first(dom_owner_body(dom), '#PulsarMetaInformation'), 'taskTime')) as `task_time`,
 

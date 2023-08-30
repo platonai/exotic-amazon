@@ -350,7 +350,7 @@ class MonthlyBasisAsinGenerator(
             ?: throw MalformedURLException("Failed to get domain suffix | $asinUrl")
 
         val domain = "amazon.$tld"
-        val hyperlink = ListenableHyperlink(asinUrl, args = "$args -parse", referer = referrer)
+        val hyperlink = ListenableHyperlink(asinUrl, args = "$args -parse", referrer = referrer)
         // no scrolling at all
         val interactSettings = InteractSettings(initScrollPositions = "0.2,0.5", scrollCount = 0)
 

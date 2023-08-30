@@ -90,7 +90,7 @@ class TestRequiredFields: TestBase() {
         // Collect the hyperlink of the next page
         val url = document.selectFirst("ul.a-pagination li.a-last a[href~=$label]").attr("abs:href")
 
-        val hyperlink = CompletableListenableHyperlink<WebPage>(url, args = page.args, referer = page.url)
+        val hyperlink = CompletableListenableHyperlink<WebPage>(url, args = page.args, referrer = page.url)
         hyperlink.event.crawlEvent.onLoaded.addLast { u, page2 ->
             if (page2 == null) {
                 return@addLast null
