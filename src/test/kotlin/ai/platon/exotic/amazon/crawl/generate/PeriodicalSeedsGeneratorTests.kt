@@ -46,7 +46,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
     }
 
     @Test
-    fun TestLoadSeedsFromExternalJar() {
+    fun testLoadSeedsFromExternalJar() {
         val resourcePrefix = "sites/amazon/crawl/generate/periodical"
         val period = "pt24h"
         val resource = "$resourcePrefix/$period/best-sellers.txt"
@@ -76,7 +76,7 @@ class PeriodicalSeedsGeneratorTests: TestBase() {
             println("$k.\t" + it.name)
         }
 
-        val path2 = Paths.get("file:/$jarFile!/$period/best-sellers.txt")
+        val path2 = Paths.get("$jarFile!/$period/best-sellers.txt")
         assertNotNull(path2)
         loadSeedsFromPathAndAssert(path2, period, "external jar")
         Files.deleteIfExists(path2)
