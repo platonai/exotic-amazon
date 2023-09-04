@@ -11,7 +11,7 @@
 
 	<groupId>ai.platon.exotic</groupId>
 	<artifactId>exotic-amazon</artifactId>
-	<version>0.5.3-SNAPSHOT</version>
+	<version>0.5.4-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
 
@@ -359,7 +359,7 @@
 		<distributed.lock.version>1.4.3</distributed.lock.version>
 
 		<pulsar.kotlin.driver.version>1.6.14</pulsar.kotlin.driver.version>
-		<pulsar.version>1.10.19-SNAPSHOT</pulsar.version>
+		<pulsar.version>1.10.19</pulsar.version>
 		<scent.version>1.10.7</scent.version>
 	</properties>
 </project>
