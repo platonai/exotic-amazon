@@ -11,7 +11,7 @@
 
 	<groupId>ai.platon.exotic</groupId>
 	<artifactId>exotic-amazon</artifactId>
-	<version>0.5.4-SNAPSHOT</version>
+	<version>0.5.5-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
 
@@ -352,14 +352,13 @@
 		<javac.src.version>11</javac.src.version>
 		<javac.target.version>11</javac.target.version>
 
-		<kotlin.version>1.5.32</kotlin.version>
-		<!-- <kotlin.version>1.7.10</kotlin.version>-->
+		<kotlin.version>1.8.22</kotlin.version>
 
 		<mysql.connector.version>5.1.34</mysql.connector.version>
 		<distributed.lock.version>1.4.3</distributed.lock.version>
 
 		<pulsar.kotlin.driver.version>1.6.14</pulsar.kotlin.driver.version>
-		<pulsar.version>1.10.19</pulsar.version>
-		<scent.version>1.10.7</scent.version>
+		<pulsar.version>1.10.21</pulsar.version>
+		<scent.version>1.11.0</scent.version>
 	</properties>
 </project>

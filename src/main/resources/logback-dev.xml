@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration scan="false" scanPeriod="30 seconds" debug="false">
+    <timestamp key="byMinute" datePattern="yyyyMMdd'T'HHmm"/>
+
     <property name="logging.dir" value="${logging.dir:-logs}" />
     <property name="logging.prefix" value="${logging.prefix:-pulsar}" />
     <property name="logging.file" value="${logging.prefix}.log" />
@@ -8,9 +10,14 @@
     <!-- Special task relative logs -->
     <property name="logging.c.file" value="${logging.prefix}.c.log" />
     <property name="logging.m.file" value="${logging.prefix}.m.log" />
+    <property name="logging.json.file" value="${logging.prefix}.json.${byMinute}.log" />
+    <property name="logging.report.file" value="${logging.prefix}.report.${byMinute}.log" />
+    <property name="logging.dc.file" value="${logging.prefix}.dc.${byMinute}.log" />
+    <property name="logging.bs.file" value="${logging.prefix}.bs.log" />
     <property name="logging.sql.file" value="${logging.prefix}.sql.log" />
-    <property name="logging.json.file" value="${logging.prefix}.json.log" />
-    <property name="logging.dc.file" value="${logging.prefix}.dc.log" />
+
+    <!-- Stop logback status INFO at the start -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -64,13 +71,37 @@
         </encoder>
     </appender>
 
+    <appender name="REPORT" class="ch.qos.logback.core.FileAppender">
+        <File>${logging.dir}/${logging.report.file}</File>
+        <encoder>
+            <pattern>%d{ISO8601} --- %m%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="${log.level:-INFO}">
         <appender-ref ref="DRFA"/>
         <appender-ref ref="Console"/>
     </root>
 
+    <logger name="ch.qos.logback" level="WARN"/>
+
     <logger name="ai.platon.exotic.amazon.crawl.boot.component.json" level="INFO" additivity="false">
         <appender-ref ref="JSON"/>
+    </logger>
+    <logger name="ai.platon.exotic.amazon.tools.io" level="INFO" additivity="true">
+        <appender-ref ref="REPORT"/>
+    </logger>
+    <logger name="ai.platon.exotic.amazon.tools.io.validate.AbstractPageEntityValidator.Report"
+            level="INFO" additivity="false">
+        <appender-ref ref="REPORT"/>
+    </logger>
+    <logger name="ai.platon.exotic.amazon.tools.scrapers.google.RegexExtractor.Task"
+            level="INFO" additivity="false">
+        <appender-ref ref="REPORT"/>
+    </logger>
+    <logger name="ai.platon.exotic.amazon.tools.scrapers.google.GoogleAgent.Task"
+            level="INFO" additivity="false">
+        <appender-ref ref="REPORT"/>
     </logger>
 
     <logger name="ai.platon.scent" level="INFO"/>
@@ -88,6 +119,9 @@
 
     <logger name="ai.platon.scent.examples" level="INFO"/>
 
+    <logger name="ai.platon.pulsar.common.metrics.MetricsSystem" level="INFO" additivity="false">
+        <appender-ref ref="METRICS"/>
+    </logger>
     <logger name="ai.platon.pulsar.common.metrics.AppMetrics" level="INFO" additivity="false">
         <appender-ref ref="METRICS"/>
     </logger>
@@ -103,20 +137,25 @@
     </logger>
 
     <logger name="ai.platon.pulsar" level="INFO"/>
+    <logger name="ai.platon.pulsar.common.ResourceLoader" level="INFO"/>
     <logger name="ai.platon.pulsar.ql" level="INFO"/>
     <logger name="ai.platon.pulsar.net" level="INFO"/>
-    <logger name="ai.platon.pulsar.browser" level="WARN"/>
     <logger name="ai.platon.pulsar.parse.html" level="INFO"/>
     <logger name="ai.platon.pulsar.crawl.parse" level="INFO"/>
     <logger name="ai.platon.pulsar.crawl" level="INFO"/>
     <logger name="ai.platon.pulsar.crawl.protocol" level="INFO"/>
-    <logger name="ai.platon.pulsar.protocol.browser" level="INFO"/>
-    <logger name="ai.platon.pulsar.protocol.browser.driver" level="INFO"/>
 
     <logger name="ai.platon.pulsar.crawl.component" level="INFO"/>
-    <logger name="ai.platon.pulsar.protocol.browser.emulator.BrowserEmulateEventHandler" level="INFO"/>
 
     <logger name="ai.platon.pulsar.protocol.browser.emulator.context" level="INFO"/>
+    <logger name="ai.platon.pulsar.protocol.browser.emulator.BrowserEmulateEventHandler" level="INFO"/>
+    <logger name="ai.platon.pulsar.protocol.browser" level="INFO"/>
+    <!--    <logger name="ai.platon.pulsar.protocol.browser.driver" level="TRACE"/>-->
+    <logger name="ai.platon.pulsar.protocol.browser.driver" level="INFO"/>
+    <logger name="ai.platon.pulsar.browser" level="WARN"/>
+    <!--    <logger name="ai.platon.pulsar.browser.driver" level="TRACE"/>-->
+    <logger name="ai.platon.pulsar.browser.driver" level="INFO"/>
+    <logger name="ai.platon.pulsar.browser.driver.chrome.impl.TransportImpl" level="WARN"/>
 
     <logger name="ai.platon.pulsar.common.distributed.lock" level="INFO"/>
 
