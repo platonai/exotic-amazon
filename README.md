@@ -22,7 +22,11 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
   * 热门评论
 * Review - 每天更新
 
-## 开始
+## 下载
+
+
+
+## 从源码开始构建
 
 如果 maven 版本号是 3.8.1 或以上，需要在 `.m2/settings.xml` 文件中加入如下代码：
 
@@ -46,7 +50,7 @@ Exotic Amazon 是采集整个 amazon.com 网站的完整解决方案，**开箱�
     cd exotic-amazon && mvn -DskipTests=true
 
     ####################
-    # On Linux:
+    # On Linux/WSL:
 
     # run in development mode
     java -jar target/exotic-amazon*.jar
