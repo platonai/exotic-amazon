@@ -55,7 +55,7 @@
 
 		<repository>
 			<id>platon.ai</id>
-			<url>http://static.platonic.fun/repo/</url>
+			<url>http://static.platonai.cn/repo/</url>
 			<releases>
 				<enabled>true</enabled>
 				<checksumPolicy>ignore</checksumPolicy>
